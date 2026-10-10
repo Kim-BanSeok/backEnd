@@ -31,7 +31,8 @@
 - `src/controllers/auth.controller.js`, `src/controllers/users.controller.js`
 - `src/services/auth.service.js`, `src/services/users.service.js` (오류 던지기, 응답 변환 `toMeResponse`)
 - `src/dao/users.dao.js`, `src/dao/stores.dao.js`
-- `tests/auth.test.js` (테스트 작성 방법)
+- 매장 API 도 좋은 예시입니다: `src/routes/stores.routes.js`(공개 API, 경로 순서), `src/services/stores.service.js`, `src/validators/stores.schema.js`(path 값 검사)
+- `tests/auth.test.js`, `tests/stores.test.js` (테스트 작성 방법)
 
 ## 꼭 지킬 규칙
 
@@ -44,7 +45,9 @@
 4. **날짜는 `toKstIso(date)`** (`utils/response.js`) 로 한국 시간 문자열로 바꿔 응답합니다. 예: `2026-10-14T15:00:00+09:00`
 5. **목록은 `page`(0부터, 기본 0), `size`(기본 20, 최대 50)** 를 받고 `{ content, page, size, totalElements, totalPages }` 로 응답합니다. 범위를 벗어나면 `VALIDATION_ERROR`.
 6. **"안 된다"는 판단은 service 에만** 씁니다. controller 나 dao 에 규칙을 넣지 않습니다.
-7. **내 것이 아닌 데이터(남의 원단·예약·문의)는 `FORBIDDEN`** 입니다. 로그인한 사용자는 `req.user.userId`, `req.user.role` 로 알 수 있습니다.
+7. **공개 API 에는 `optionalAuth`** 를 붙입니다. 로그인 없이도 되지만, 잘못된 토큰을 보내면 401 입니다(명세서 2.3). 로그인하면 더 보이는 API 는 `req.user` 로 판단합니다.
+   **고정 경로(`/stores/me`)는 변수 경로(`/stores/:storeId`)보다 먼저** 선언합니다. 아니면 `me` 가 id 로 읽힙니다.
+7-1. **내 것이 아닌 데이터(남의 원단·예약·문의)는 `FORBIDDEN`** 입니다. 로그인한 사용자는 `req.user.userId`, `req.user.role` 로 알 수 있습니다.
 8. **코드값(enum)** 은 `src/utils/codes.js` 의 목록을 씁니다. 문자열을 직접 쓰지 않습니다.
 9. **환경변수는 `src/config/env.js` 에서만** 읽습니다. `process.env` 를 직접 쓰지 않습니다.
 10. 쿼리는 Sequelize 모델 메서드로만 씁니다. 문자열을 이어 붙여 SQL 을 만들지 않습니다.

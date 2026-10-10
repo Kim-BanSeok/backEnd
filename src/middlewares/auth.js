@@ -30,8 +30,12 @@ export const requireAuth =
     next();
   };
 
-// 로그인해도 되고 안 해도 되는 곳. 로그인했으면 req.user 를 채운다.
+// 공개 API 용. 로그인해도 되고 안 해도 되며, 로그인했으면 req.user 를 채운다.
+// 토큰을 보냈는데 잘못됐거나 만료됐다면 공개 API 라도 401 이다. (명세서 2.3)
 export const optionalAuth = async (req, res, next) => {
-  req.user = (await authenticate(req)) ?? undefined;
+  if (!req.headers.authorization) return next();
+  const user = await authenticate(req);
+  if (!user) return next(fail('UNAUTHORIZED'));
+  req.user = user;
   next();
 };
