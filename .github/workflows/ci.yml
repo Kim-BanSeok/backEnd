@@ -1,0 +1,67 @@
+name: CI
+
+# PR 을 올리거나 main 에 머지될 때마다 lint 와 테스트를 자동으로 실행한다.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# 같은 브랜치에 연달아 푸시하면 이전 실행은 취소한다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # 테스트용 PostgreSQL. 이 작업 안에서만 잠깐 존재하고 끝나면 사라진다.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # npm 스크립트가 --env-file=.env 를 쓰므로 CI 용 .env 를 만든다. (비밀값 없음, 임시 DB 전용)
+      - name: .env 만들기
+        run: |
+          cat > .env <<'EOF'
+          NODE_ENV=test
+          DB_ID=postgres
+          DB_PASS=postgres
+          DB_DATABASE=material_loop
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_DIALECT=postgres
+          JWT_SECRET=ci-only-secret-ci-only-secret-ci-only
+          EOF
+
+      - name: 테스트 DB 만들기와 테이블 생성
+        run: |
+          npm run db:ensure:test
+          npm run migrate:test
+
+      - name: lint
+        run: npm run lint
+
+      - name: 테스트
+        run: npm test
