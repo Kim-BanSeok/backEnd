@@ -49,6 +49,8 @@ npm run dev
 | `DB_DATABASE` | 개발용 DB 이름. 테스트용 DB 는 뒤에 `_test` 를 붙인 이름을 **자동으로** 씁니다 |
 | `JWT_SECRET` | 로그인 토큰 비밀값. 개발 중에는 아무 긴 문자열이면 됩니다 |
 
+사진은 지금 내 컴퓨터의 `uploads/` 폴더에 저장되고 `PUBLIC_URL`(기본 `http://localhost:3000`) 주소로 보입니다. 이 폴더도 Git 에 올리지 않습니다. 나중에 클라우드 저장소로 옮길 때는 `src/storage/` 에 제공자만 추가합니다.
+
 `.env` 는 내 컴퓨터에만 있는 파일입니다. **Git 에 올리지 않습니다.** (이미 `.gitignore` 에 들어 있어요)
 
 ### 개발 DB 와 테스트 DB 가 따로 있는 이유
@@ -65,6 +67,7 @@ npm run dev
 | `npm run db:ensure` / `db:ensure:test` | 개발 DB / 테스트 DB 가 없으면 만들기 |
 | `npm run migrate` / `migrate:test` | 개발 DB / 테스트 DB 에 테이블 변경 적용 |
 | `npm run migrate:status` | 적용된 변경 목록 보기 |
+| `npm run docs:build` | 명세서에서 API 문서(Swagger)를 다시 만들기 |
 
 **누군가 `migrations/` 에 새 파일을 올렸다면**, `git pull` 후 `npm run migrate` 와 `npm run migrate:test` 를 둘 다 실행하세요.
 
@@ -89,6 +92,22 @@ docs/                    API 명세서
 ```
 
 요청은 `routes → controllers → services → dao → DB` 순서로 지나갑니다. 각 폴더의 역할은 [CLAUDE.md](CLAUDE.md) 에 자세히 있습니다.
+
+## 3-1. API 문서 (Swagger)
+
+서버를 켜고 <http://localhost:3000/api-docs> 를 열면 **명세서의 API 47개**가 목록으로 보이고, 요청 항목·응답 예시·오류 코드를 확인하거나 바로 호출해 볼 수 있습니다. 아직 구현되지 않은 API 도 보입니다. (프론트엔드가 서버 완성 전에 연동을 시작하는 용도)
+
+- 로그인이 필요한 API 는 `POST /auth/login` 으로 받은 `accessToken` 을 오른쪽 위 **Authorize** 에 붙여 넣으세요.
+- 문서는 `docs/API_명세서_v0.3.md` 에서 **자동으로 만들어집니다.** 직접 고치지 마세요 (`src/docs/openapi.json` 은 생성 파일).
+- 운영(`NODE_ENV=production`)에서는 기본으로 꺼집니다. 켜려면 `DOCS_ENABLED=true`.
+
+**명세서가 바뀌었다면 (리더)**
+```bash
+python scripts/docx-to-md.py docs/Material_Loop_API_명세서_v0.3.docx docs/API_명세서_v0.3.md   # docx → 읽기용 md
+npm run docs:build                                                                          # md → Swagger 문서
+npm test                                                                                    # 문서와 명세서가 같은지 확인
+```
+명세서만 고치고 `docs:build` 를 빼먹으면 `npm test`(CI 포함)가 실패합니다. 코드에 **명세서에 없는 API** 를 만들어도 실패합니다.
 
 ## 4. 문제가 생기면
 

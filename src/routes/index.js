@@ -4,6 +4,7 @@ import auth from './auth.routes.js';
 import users from './users.routes.js';
 import stores from './stores.routes.js';
 import fabrics from './fabrics.routes.js';
+import images from './images.routes.js';
 
 const router = Router();
 
@@ -13,5 +14,6 @@ router.use(auth);
 router.use(users);
 router.use(stores);
 router.use(fabrics);
+router.use(images);
 
 export default router;

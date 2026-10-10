@@ -1,3 +1,6 @@
+import os from 'node:os';
+import path from 'node:path';
+
 // 환경변수를 한 곳에서 읽는다. 다른 파일은 process.env 를 직접 쓰지 않는다.
 const num = (v, fallback) => (v === undefined || v === '' ? fallback : Number(v));
 
@@ -21,6 +24,16 @@ export const env = {
     port: num(process.env.DB_PORT, 5432),
     dialect: process.env.DB_DIALECT || 'postgres',
   },
+  // 사진 저장소. 지금은 내 컴퓨터 폴더(local)만 지원한다. 클라우드로 옮길 때 storage/ 에 제공자를 추가한다.
+  storageProvider: process.env.STORAGE_PROVIDER || 'local',
+  // 테스트는 임시 폴더를 써서 프로젝트의 uploads/ 를 건드리지 않는다.
+  uploadDir: path.resolve(
+    process.env.UPLOAD_DIR || (nodeEnv === 'test' ? path.join(os.tmpdir(), 'material-loop-test-uploads') : 'uploads'),
+  ),
+  // 응답의 사진 주소 앞부분 (프론트엔드가 이 주소로 사진을 불러온다)
+  publicUrl: (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/+$/, ''),
+  // API 문서(Swagger, /api-docs). 개발에서는 켜져 있고, 운영에서는 DOCS_ENABLED=true 로 켠 경우에만 보인다.
+  docsEnabled: process.env.DOCS_ENABLED ? process.env.DOCS_ENABLED === 'true' : nodeEnv !== 'production',
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
   corsOrigins: (process.env.CORS_ORIGIN || 'http://localhost:5173')
