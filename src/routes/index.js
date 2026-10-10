@@ -3,6 +3,7 @@ import health from './health.routes.js';
 import auth from './auth.routes.js';
 import users from './users.routes.js';
 import stores from './stores.routes.js';
+import fabrics from './fabrics.routes.js';
 
 const router = Router();
 
@@ -11,5 +12,6 @@ router.use(health);
 router.use(auth);
 router.use(users);
 router.use(stores);
+router.use(fabrics);
 
 export default router;
