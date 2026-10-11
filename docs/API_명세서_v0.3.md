@@ -8,7 +8,7 @@ API 명세서
 | --- | --- |
 | 버전 | v0.3 (초안) |
 | 작성일 | 2026-10-10 |
-| API 수 | 47개 (필수 38, 선택 9) |
+| API 수 | 48개 (필수 38, 선택 10) |
 | 기본 주소 | /api/v1 |
 | 기술 | Node.js + Express, PostgreSQL(관계형 데이터), MongoDB(AI 등록 세션) |
 
@@ -54,7 +54,7 @@ v0.3 변경 내용
 | 명시 | 12, 25 | 예상 금액은 예약 요청 시점 가격으로 고정. 판매자가 가격을 바꿔도 이미 요청된 예약은 그대로 |
 | 명시 | 17~19 | next_question 은 저장하지 않고 서버가 세션 값으로 계산 |
 | 변경 | 6.4 | AI 세션 자동 삭제 7일 → 24시간 (임시) |
-| 추가 | 7장 | factories(공장 리스트, 임시)를 대응표에 추가. API 는 범위가 정해지면 추가 |
+| 추가 | 7장, 48 | factories(공장 리스트, 임시)를 대응표에 추가. 공장 목록 조회(48)에서 생산품을 업종 카테고리로 묶어 본다 |
 
 # 2. 공통 규칙
 
@@ -214,6 +214,7 @@ error.code 로 분기하고, error.message 는 사용자에게 그대로 보여�
 | 문의 status | WAITING(답변 대기), ANSWERED(답변 완료) |
 | AI 세션 session_status | IN_PROGRESS(진행 중), CONFIRMED(확정), ABORTED(중단) |
 | 추천 judgement | SUITABLE(적합), NEEDS_CHECK(확인 필요) |
+| factory category (공장 업종) | TEXTILE(섬유·원단), APPAREL(의류·봉제), LEATHER(피혁), FOOD(식품), CHEMICAL(화학), PLASTIC(플라스틱), METAL(금속·기계), WOOD(목재·가구), PAPER(종이·인쇄), ELECTRIC(전기·전자), CONSTRUCTION(건설자재), OTHER(기타) |
 
 # 3. 오류 코드
 
@@ -305,6 +306,7 @@ TOO_MANY_REQUESTS(429)는 로그인 시도 제한을 위해 이전 초안에 없
 | 45 | 문의 | POST | /inquiries/{inquiryId}/answer | SELLER(본인) | 선택 | 문의 답변 |
 | 46 | 문의 | PATCH | /inquiries/{inquiryId} | BUYER(본인) | 선택 | 문의 수정 |
 | 47 | 문의 | DELETE | /inquiries/{inquiryId} | BUYER(본인) | 선택 | 문의 삭제 |
+| 48 | 공장 | GET | /factories | 공개 | 선택 | 공장 목록 조회 |
 
 # 5. API 상세
 
@@ -3913,6 +3915,89 @@ Path 항목
 | 403 | FORBIDDEN | 역할이 다르거나 내 데이터가 아니에요. |
 | 404 | NOT_FOUND | 없거나 볼 수 없는 데이터예요. |
 
+## 5.12 공장
+
+### 48. 공장 목록 조회
+
+| 항목 | 내용 |
+| --- | --- |
+| Method / URL | GET /api/v1/factories |
+| 권한 | 공개 |
+| 구분 | 선택 |
+| 설명 | 양주시 공장 목록을 누구나 볼 수 있어요. 생산품 문장을 업종 카테고리로 묶어, 한 업종만 골라 볼 수 있어요. |
+
+요청
+
+Query 항목
+
+| 이름 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| category | 문자열 | 선택 | 업종. 값: TEXTILE, APPAREL, LEATHER, FOOD, CHEMICAL, PLASTIC, METAL, WOOD, PAPER, ELECTRIC, CONSTRUCTION, OTHER |
+| page | 정수 | 선택 | 페이지 번호 (0부터) / 최소 0, 기본값 0 |
+| size | 정수 | 선택 | 한 페이지 개수 (기본 20, 최대 50) / 최소 1, 최대 50, 기본값 20 |
+
+성공 응답 (200)
+
+{
+
+"success": true,
+
+"data": {
+
+"content": [
+
+{
+
+"factoryId": 1,
+
+"factory_name": "대영섬유",
+
+"industry": "직물호부처리",
+
+"category": "TEXTILE",
+
+"address": "경기도 양주시 고암동 385-10",
+
+"latitude": null,
+
+"longitude": null,
+
+"data_source": "양주시청 공장등록 2026-09",
+
+"created_at": "2026-10-12T04:00:00+09:00"
+
+}
+
+],
+
+"page": 0,
+
+"size": 20,
+
+"totalElements": 1,
+
+"totalPages": 1
+
+}
+
+}
+
+처리 규칙
+
+category 를 주면 그 업종만 돌려줘요. 없으면 모든 공장을 돌려줘요.
+
+category 는 생산품(industry) 문장으로 정해요. 따로 저장된 값이 아니에요.
+
+정렬은 등록 순(factory_id 오름차순)이에요.
+
+위도·경도가 없으면 null 이에요.
+
+오류 코드
+
+| HTTP | 코드 | 언제 나오나요 |
+| --- | --- | --- |
+| 400 | VALIDATION_ERROR | 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요. |
+
 # 6. 상태와 재고 규칙
 
 ## 6.1 원단 상태
@@ -3996,7 +4081,7 @@ ERD의 테이블이 바뀌면 이 표에서 영향을 받는 API를 찾아 고�
 | reservations | 예약 요청·수락·거절·취소·수령, 내 예약·받은 예약·예약 상세, 원단 삭제 검사 |
 | favorites | 관심저장 추가·목록·삭제 |
 | inquiries | 문의 작성·목록·답변·수정·삭제 |
-| factories (임시) | 없음. 부자재 지도의 범위가 정해지면 조회 API 를 추가해요 |
+| factories (임시) | 공장 목록 조회 |
 | MongoDB ai_registration_sessions | AI 등록 시작·조회·답변·확정·중단 (임시) |
 
 ERD 수정 때 같이 확인할 것

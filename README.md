@@ -2,7 +2,7 @@
 
 양주시 자투리 원단 거래 웹 서비스의 백엔드입니다. Node.js + Express + PostgreSQL(Sequelize)로 만들고 있습니다.
 
-API는 47개(필수 38, 선택 9)이고, 기준은 **`docs/Material_Loop_API_명세서_v0.3.docx`** 입니다.
+API는 48개(필수 38, 선택 10)이고, 기준은 **`docs/Material_Loop_API_명세서_v0.3.docx`** 입니다.
 (같은 내용을 읽기 쉽게 변환한 `docs/API_명세서_v0.3.md`도 있지만, 원본은 docx 입니다.)
 
 처음 참여한다면 이 문서를 위에서부터 따라 하고, 그다음 [docs/서브_시작_가이드.md](docs/서브_시작_가이드.md) 와 [CONTRIBUTING.md](CONTRIBUTING.md) 를 읽으세요.
@@ -105,7 +105,7 @@ docs/                    API 명세서, 담당표, 서브 시작 가이드
 
 ## 3-1. API 문서 (Swagger)
 
-서버를 켜고 <http://localhost:3000/api-docs> 를 열면 **명세서의 API 47개**가 목록으로 보이고, 요청 항목·응답 예시·오류 코드를 확인하거나 바로 호출해 볼 수 있습니다. 아직 구현되지 않은 API 도 보입니다. (프론트엔드가 서버 완성 전에 연동을 시작하는 용도)
+서버를 켜고 <http://localhost:3000/api-docs> 를 열면 **명세서의 API 48개**가 목록으로 보이고, 요청 항목·응답 예시·오류 코드를 확인하거나 바로 호출해 볼 수 있습니다. 아직 구현되지 않은 API 도 보입니다. (프론트엔드가 서버 완성 전에 연동을 시작하는 용도)
 
 - 로그인이 필요한 API 는 `POST /auth/login` 으로 받은 `accessToken` 을 오른쪽 위 **Authorize** 에 붙여 넣으세요.
 - 문서는 `docs/API_명세서_v0.3.md` 에서 **자동으로 만들어집니다.** 직접 고치지 마세요 (`src/docs/openapi.json` 은 생성 파일).

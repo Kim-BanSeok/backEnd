@@ -16,7 +16,9 @@
     "db:ensure:test": "node --env-file=.env scripts/ensure-database.js --test",
     "lint": "eslint .",
     "docs:build": "node scripts/build-openapi.js",
-    "db:seed": "node --env-file=.env scripts/seed.js"
+    "db:seed": "node --env-file=.env scripts/seed.js",
+    "factories:pull": "node --env-file=.env scripts/pull-yangju-factories.js",
+    "factories:import": "node --env-file=.env scripts/import-yangju-factories.js"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +35,7 @@
     "sequelize": "^6.37.8",
     "sharp": "^0.35.5",
     "swagger-ui-express": "^5.0.1",
+    "xlsx": "^0.18.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {

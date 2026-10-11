@@ -41,6 +41,9 @@
     },
     {
       "name": "문의"
+    },
+    {
+      "name": "공장"
     }
   ],
   "paths": {
@@ -9554,6 +9557,184 @@
         "x-priority": "선택",
         "x-permission": "BUYER(본인)",
         "description": "구매자가 자기 문의를 지워요. 삭제 표시(deleted_at)만 해요.\n\n**권한:** BUYER(본인) · **구분:** 선택\n\n**처리 규칙**\n\n- 작성자 본인만 지울 수 있어요.\n- 삭제하면 목록에서 사라져요."
+      }
+    },
+    "/factories": {
+      "get": {
+        "tags": [
+          "공장"
+        ],
+        "summary": "48. 공장 목록 조회",
+        "operationId": "api48",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "업종. 값: TEXTILE, APPAREL, LEATHER, FOOD, CHEMICAL, PLASTIC, METAL, WOOD, PAPER, ELECTRIC, CONSTRUCTION, OTHER",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TEXTILE",
+                "APPAREL",
+                "LEATHER",
+                "FOOD",
+                "CHEMICAL",
+                "PLASTIC",
+                "METAL",
+                "WOOD",
+                "PAPER",
+                "ELECTRIC",
+                "CONSTRUCTION",
+                "OTHER"
+              ],
+              "description": "업종. 값: TEXTILE, APPAREL, LEATHER, FOOD, CHEMICAL, PLASTIC, METAL, WOOD, PAPER, ELECTRIC, CONSTRUCTION, OTHER"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "페이지 번호 (0부터) / 최소 0, 기본값 0",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0,
+              "description": "페이지 번호 (0부터) / 최소 0, 기본값 0"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "description": "한 페이지 개수 (기본 20, 최대 50) / 최소 1, 최대 50, 기본값 20",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 50,
+              "description": "한 페이지 개수 (기본 20, 최대 50) / 최소 1, 최대 50, 기본값 20"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "content": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "factoryId": {
+                                "type": "integer"
+                              },
+                              "factory_name": {
+                                "type": "string"
+                              },
+                              "industry": {
+                                "type": "string"
+                              },
+                              "category": {
+                                "type": "string"
+                              },
+                              "address": {
+                                "type": "string"
+                              },
+                              "latitude": {
+                                "nullable": true
+                              },
+                              "longitude": {
+                                "nullable": true
+                              },
+                              "data_source": {
+                                "type": "string"
+                              },
+                              "created_at": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "size": {
+                          "type": "integer"
+                        },
+                        "totalElements": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "content": [
+                      {
+                        "factoryId": 1,
+                        "factory_name": "대영섬유",
+                        "industry": "직물호부처리",
+                        "category": "TEXTILE",
+                        "address": "경기도 양주시 고암동 385-10",
+                        "latitude": null,
+                        "longitude": null,
+                        "data_source": "양주시청 공장등록 2026-09",
+                        "created_at": "2026-10-12T04:00:00+09:00"
+                      }
+                    ],
+                    "page": 0,
+                    "size": 20,
+                    "totalElements": 1,
+                    "totalPages": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "입력값을 확인해 주세요"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "x-api-no": 48,
+        "x-priority": "선택",
+        "x-permission": "공개",
+        "description": "양주시 공장 목록을 누구나 볼 수 있어요. 생산품 문장을 업종 카테고리로 묶어, 한 업종만 골라 볼 수 있어요.\n\n**권한:** 공개 · **구분:** 선택\n\n**처리 규칙**\n\n- category 를 주면 그 업종만 돌려줘요. 없으면 모든 공장을 돌려줘요.\n- category 는 생산품(industry) 문장으로 정해요. 따로 저장된 값이 아니에요.\n- 정렬은 등록 순(factory_id 오름차순)이에요.\n- 위도·경도가 없으면 null 이에요."
       }
     }
   },

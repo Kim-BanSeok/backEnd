@@ -22,10 +22,10 @@ after(() => server.close());
 
 // ---- 문서 내용
 
-test('명세서의 API 47개가 모두 문서에 있고 번호가 1~47 이다', () => {
-  assert.equal(operations.length, 47);
+test('명세서의 API 48개가 모두 문서에 있고 번호가 1~48 이다', () => {
+  assert.equal(operations.length, 48);
   const numbers = operations.map((o) => o.op['x-api-no']).sort((a, b) => a - b);
-  assert.deepEqual(numbers, Array.from({ length: 47 }, (_, i) => i + 1));
+  assert.deepEqual(numbers, Array.from({ length: 48 }, (_, i) => i + 1));
 });
 
 test('openapi.json 이 명세서와 같다 (명세서를 고치고 npm run docs:build 를 빼먹지 않았는지)', () => {
