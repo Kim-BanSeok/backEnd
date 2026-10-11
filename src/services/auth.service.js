@@ -10,6 +10,9 @@ const SALT_ROUNDS = env.isTest ? 4 : 10; // 테스트는 빠르게
 // 없는 이메일로 로그인해도 해시 비교 시간이 같도록, 가짜 해시와도 비교한다.
 const DUMMY_HASH = bcrypt.hashSync('dummy-password', SALT_ROUNDS);
 
+// 비밀번호는 평문이 아닌 bcrypt 해시로만 저장한다. (가입과 ADMIN 시드가 같은 방식을 쓴다)
+export const hashPassword = (password) => bcrypt.hash(password, SALT_ROUNDS);
+
 export const signToken = (user) =>
   jwt.sign({ role: user.role }, env.jwtSecret, {
     algorithm: 'HS256',
@@ -21,7 +24,7 @@ export async function signup(input) {
   if (!input.privacy_agreed || !input.terms_agreed) throw fail('AGREEMENT_REQUIRED');
   if (await usersDao.findByEmail(input.email)) throw fail('EMAIL_DUPLICATED');
 
-  const password_hash = await bcrypt.hash(input.password, SALT_ROUNDS);
+  const password_hash = await hashPassword(input.password);
   try {
     const user = await usersDao.insert({
       email: input.email,

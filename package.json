@@ -15,7 +15,8 @@
     "migrate:test": "node --env-file=.env node_modules/sequelize-cli/lib/sequelize db:migrate --env test",
     "db:ensure:test": "node --env-file=.env scripts/ensure-database.js --test",
     "lint": "eslint .",
-    "docs:build": "node scripts/build-openapi.js"
+    "docs:build": "node scripts/build-openapi.js",
+    "db:seed": "node --env-file=.env scripts/seed.js"
   },
   "keywords": [],
   "author": "",

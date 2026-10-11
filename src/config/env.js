@@ -34,6 +34,12 @@ export const env = {
   publicUrl: (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/+$/, ''),
   // API 문서(Swagger, /api-docs). 개발에서는 켜져 있고, 운영에서는 DOCS_ENABLED=true 로 켠 경우에만 보인다.
   docsEnabled: process.env.DOCS_ENABLED ? process.env.DOCS_ENABLED === 'true' : nodeEnv !== 'production',
+  // 처음 한 번 만들 운영팀(ADMIN) 계정. npm run db:seed 가 이 값으로 만들고, 이미 있으면 만들지 않는다. (가입 API 로는 ADMIN 을 만들 수 없다)
+  admin: {
+    email: (process.env.ADMIN_EMAIL || '').trim().toLowerCase(),
+    password: process.env.ADMIN_PASSWORD || '',
+    nickname: (process.env.ADMIN_NICKNAME || '').trim() || '운영팀',
+  },
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
   corsOrigins: (process.env.CORS_ORIGIN || 'http://localhost:5173')

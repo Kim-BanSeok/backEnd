@@ -31,6 +31,9 @@ npm run db:ensure:test
 npm run migrate
 npm run migrate:test
 
+# 4-1) 운영팀(ADMIN) 계정 만들기 (.env 의 ADMIN_EMAIL, ADMIN_PASSWORD 사용. 이미 있으면 다시 만들지 않아요)
+npm run db:seed
+
 # 5) 테스트가 통과하는지 확인
 npm test
 
@@ -48,6 +51,7 @@ npm run dev
 | `DB_PASS` | PostgreSQL 설치 때 정한 비밀번호 |
 | `DB_DATABASE` | 개발용 DB 이름. 테스트용 DB 는 뒤에 `_test` 를 붙인 이름을 **자동으로** 씁니다 |
 | `JWT_SECRET` | 로그인 토큰 비밀값. 개발 중에는 아무 긴 문자열이면 됩니다 |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | 운영팀(ADMIN) 계정. 가입 API 로는 만들 수 없어서 `npm run db:seed` 가 이 값으로 **처음 한 번** 만듭니다 (비밀번호 8~72자) |
 
 사진은 지금 내 컴퓨터의 `uploads/` 폴더에 저장되고 `PUBLIC_URL`(기본 `http://localhost:3000`) 주소로 보입니다. 이 폴더도 Git 에 올리지 않습니다. 나중에 클라우드 저장소로 옮길 때는 `src/storage/` 에 제공자만 추가합니다.
 
@@ -67,6 +71,7 @@ npm run dev
 | `npm run db:ensure` / `db:ensure:test` | 개발 DB / 테스트 DB 가 없으면 만들기 |
 | `npm run migrate` / `migrate:test` | 개발 DB / 테스트 DB 에 테이블 변경 적용 |
 | `npm run migrate:status` | 적용된 변경 목록 보기 |
+| `npm run db:seed` | 운영팀(ADMIN) 계정 만들기. 이미 있으면 그대로 두니 여러 번 실행해도 안전해요 |
 | `npm run docs:build` | 명세서에서 API 문서(Swagger)를 다시 만들기 |
 
 **누군가 `migrations/` 에 새 파일을 올렸다면**, `git pull` 후 `npm run migrate` 와 `npm run migrate:test` 를 둘 다 실행하세요.
@@ -84,11 +89,15 @@ src/
 ├─ validators/           요청 값의 형식 검사 (zod)
 ├─ middlewares/          로그인 확인, 입력 검사, 오류 응답 등 공통 처리
 ├─ models/               테이블 정의 (리더만 수정)
-├─ db/connection.js      DB 연결
+├─ db/                   DB 연결(connection.js), 처음 필요한 데이터(seedAdmin.js)
+├─ storage/              사진 저장소 (지금은 내 컴퓨터의 uploads/, 나중에 클라우드로 교체)
+├─ docs/                 Swagger API 문서 (명세서에서 자동 생성, 직접 고치지 않기)
+├─ ai/                   AI 등록 (아직 비어 있음)
 └─ utils/                오류 코드(errors.js), 응답(response.js), 코드값(codes.js)
 migrations/              테이블 변경 기록 (리더만 추가)
+scripts/                 npm run 으로 실행하는 한 번짜리 작업 (DB 만들기, 시드, 문서 생성)
 tests/                   자동 테스트
-docs/                    API 명세서
+docs/                    API 명세서, 담당표, 서브 시작 가이드
 ```
 
 요청은 `routes → controllers → services → dao → DB` 순서로 지나갑니다. 각 폴더의 역할은 [CLAUDE.md](CLAUDE.md) 에 자세히 있습니다.
