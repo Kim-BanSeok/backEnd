@@ -413,3 +413,321 @@ test('삭제된 원단과 없는 원단은 누구에게나 404 이다 (판매자
     assert.equal((await call('GET', '/fabrics/99999/inquiries', { token })).status, 404);
   }
 });
+
+// ---- 44. 받은 문의 목록 (판매자)
+
+const receivedPath = (query = {}) => `/sellers/me/inquiries?${new URLSearchParams(query)}`;
+const inquiryIds = (json) => json.data.content.map((item) => item.inquiryId);
+
+test('받은 문의 목록 성공: 판매자는 200, 명세서 항목 그대로', async () => {
+  const { seller, fabric } = await makePostedFabric({ title: '네이비 면 20수' });
+  const buyer = await makeUser({ nickname: '재봉러' });
+  const inquiry = await makeInquiry(fabric, buyer, seller, { content: '세탁하면 줄어드나요?' });
+
+  const { status, json } = await call('GET', receivedPath(), { token: signToken(seller) });
+  assert.equal(status, 200);
+  assert.deepEqual(Object.keys(json.data).sort(), PAGE_KEYS);
+  assert.deepEqual(Object.keys(json.data.content[0]).sort(), ITEM_KEYS);
+  const item = json.data.content[0];
+  assert.match(item.created_at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/);
+  assert.deepEqual(item, {
+    inquiryId: inquiry.inquiry_id,
+    fabricId: fabric.fabric_id,
+    fabric_title: '네이비 면 20수',
+    buyer_nickname: '재봉러',
+    is_private: false,
+    status: 'WAITING',
+    content: '세탁하면 줄어드나요?',
+    answer: null,
+    answered_at: null,
+    created_at: item.created_at,
+  });
+  assert.equal(json.data.totalElements, 1);
+  assert.equal(json.data.totalPages, 1);
+});
+
+test('받은 문의 목록: 판매자는 비공개 문의도 내용과 답변을 보고, 답변 완료 항목에는 답변과 시각이 나온다. 최근 문의가 먼저', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const first = await makeInquiry(fabric, buyer, seller, {
+    content: '비공개로 물어요',
+    is_private: true,
+    status: 'ANSWERED',
+    answer: '찬물 단독 세탁을 권해요',
+    answered_at: new Date('2026-10-12T10:00:00+09:00'),
+  });
+  const second = await makeInquiry(fabric, buyer, seller, { content: '두 번째 문의', is_private: true });
+
+  const { json } = await call('GET', receivedPath(), { token: signToken(seller) });
+  assert.deepEqual(inquiryIds(json), [second.inquiry_id, first.inquiry_id]);
+  const [secondItem, firstItem] = json.data.content;
+  assert.equal(secondItem.content, '두 번째 문의');
+  assert.equal(firstItem.content, '비공개로 물어요');
+  assert.equal(firstItem.is_private, true);
+  assert.equal(firstItem.status, 'ANSWERED');
+  assert.equal(firstItem.answer, '찬물 단독 세탁을 권해요');
+  assert.equal(firstItem.answered_at, '2026-10-12T10:00:00+09:00');
+});
+
+test('받은 문의 목록 status: 답변 대기·답변 완료만 걸러 본다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const waiting = await makeInquiry(fabric, buyer, seller);
+  const answered = await makeInquiry(fabric, buyer, seller, {
+    status: 'ANSWERED',
+    answer: '답변이에요',
+    answered_at: new Date(),
+  });
+
+  const token = signToken(seller);
+  assert.deepEqual(inquiryIds((await call('GET', receivedPath({ status: 'WAITING' }), { token })).json), [waiting.inquiry_id]);
+  assert.deepEqual(inquiryIds((await call('GET', receivedPath({ status: 'ANSWERED' }), { token })).json), [answered.inquiry_id]);
+  assert.equal((await call('GET', receivedPath(), { token })).json.data.totalElements, 2);
+});
+
+test('받은 문의 목록은 내가 받은 문의만 보여 주고, 삭제한 문의는 나오지 않는다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const { seller: otherSeller, fabric: otherFabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const mine = await makeInquiry(fabric, buyer, seller, { content: '내 원단 문의' });
+  await makeInquiry(otherFabric, buyer, otherSeller, { content: '남의 원단 문의' });
+  const deleted = await makeInquiry(fabric, buyer, seller, { content: '삭제한 문의' });
+  await deleted.destroy();
+
+  const { json } = await call('GET', receivedPath(), { token: signToken(seller) });
+  assert.deepEqual(inquiryIds(json), [mine.inquiry_id]);
+  assert.equal(json.data.totalElements, 1);
+});
+
+test('받은 문의 목록: 원단을 삭제해도 문의는 남고 제목도 나온다. 탈퇴한 구매자는 buyer_nickname 이 null', async () => {
+  const { seller, fabric } = await makePostedFabric({ title: '삭제할 원단' });
+  const buyer = await makeUser({ nickname: '탈퇴할 구매자' });
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  await fabric.destroy();
+  await buyer.destroy();
+
+  const { status, json } = await call('GET', receivedPath(), { token: signToken(seller) });
+  assert.equal(status, 200);
+  assert.deepEqual(inquiryIds(json), [inquiry.inquiry_id]);
+  assert.equal(json.data.content[0].fabric_title, '삭제할 원단');
+  assert.equal(json.data.content[0].buyer_nickname, null);
+});
+
+test('받은 문의가 없는 판매자(매장이 없는 판매자 포함)는 빈 목록이다', async () => {
+  const noStore = await makeUser({ role: 'SELLER', seller_approval_status: 'APPROVED' });
+  const { seller } = await makePostedFabric();
+  for (const who of [noStore, seller]) {
+    const { status, json } = await call('GET', receivedPath(), { token: signToken(who) });
+    assert.equal(status, 200);
+    assert.deepEqual(json.data, { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+  }
+});
+
+test('받은 문의 목록 페이지 나누기: page·size 와 범위 밖 페이지', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const made = [];
+  for (let i = 0; i < 5; i += 1) made.push(await makeInquiry(fabric, buyer, seller));
+  const newestFirst = made.map((q) => q.inquiry_id).reverse();
+
+  const token = signToken(seller);
+  const first = (await call('GET', receivedPath({ page: 0, size: 2 }), { token })).json.data;
+  assert.deepEqual(first.content.map((item) => item.inquiryId), newestFirst.slice(0, 2));
+  assert.equal(first.totalElements, 5);
+  assert.equal(first.totalPages, 3);
+  const last = (await call('GET', receivedPath({ page: 2, size: 2 }), { token })).json.data;
+  assert.deepEqual(last.content.map((item) => item.inquiryId), newestFirst.slice(4));
+  const outside = (await call('GET', receivedPath({ page: 3, size: 2 }), { token })).json.data;
+  assert.deepEqual(outside.content, []);
+  assert.equal(outside.totalElements, 5);
+});
+
+test('받은 문의 목록 권한: 로그인 안 함·잘못된 토큰·만료된 토큰은 401, 구매자·운영팀은 403', async () => {
+  const expired = jwt.sign({ role: 'SELLER' }, env.jwtSecret, { subject: '1', expiresIn: -10 });
+  for (const token of [undefined, 'garbage', expired]) {
+    const { status, json } = await call('GET', receivedPath(), { token });
+    assert.equal(status, 401);
+    assert.equal(json.error.code, 'UNAUTHORIZED');
+  }
+  for (const role of ['BUYER', 'ADMIN']) {
+    const { status, json } = await call('GET', receivedPath(), { token: await tokenOf(role) });
+    assert.equal(status, 403, role);
+    assert.equal(json.error.code, 'FORBIDDEN');
+  }
+});
+
+test('받은 문의 목록 입력 오류: VALIDATION_ERROR 와 항목별 details', async () => {
+  const token = await tokenOf('SELLER');
+  for (const [field, query] of [
+    ['status', { status: 'DONE' }],
+    ['status', { status: 'waiting' }],
+    ['status', { status: '' }],
+    ['page', { page: -1 }],
+    ['page', { page: 'abc' }],
+    ['size', { size: 0 }],
+    ['size', { size: 51 }],
+  ]) {
+    const { status, json } = await call('GET', receivedPath(query), { token });
+    assert.equal(status, 400, JSON.stringify(query));
+    assert.equal(json.error.code, 'VALIDATION_ERROR');
+    assert.ok(json.error.details.some((d) => d.field === field && d.message), `${field}: ${JSON.stringify(json.error.details)}`);
+  }
+});
+
+// ---- 45. 문의 답변
+
+const answerPath = (inquiry) => `/inquiries/${inquiry.inquiry_id}/answer`;
+
+test('문의 답변 성공: 200 { inquiryId, status: ANSWERED } 와 DB 저장, 앞뒤 공백은 지운다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+
+  const { status, json } = await call('POST', answerPath(inquiry), {
+    token: signToken(seller),
+    body: { answer: '  찬물 단독 세탁을 권해요. 거의 줄지 않았어요.  ' },
+  });
+  assert.equal(status, 200);
+  assert.deepEqual(json, { success: true, data: { inquiryId: inquiry.inquiry_id, status: 'ANSWERED' } });
+
+  const saved = await db.Inquiry.findByPk(inquiry.inquiry_id);
+  assert.equal(saved.status, 'ANSWERED');
+  assert.equal(saved.answer, '찬물 단독 세탁을 권해요. 거의 줄지 않았어요.');
+  assert.ok(saved.answered_at);
+  assert.equal(saved.content, inquiry.content);
+});
+
+test('문의 답변: 비공개 문의에도 답변할 수 있고, 1000자는 통과한다. 답변은 받은 문의 목록과 원단 문의 목록에 나온다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller, { is_private: true });
+  const longAnswer = '가'.repeat(1000);
+
+  const { status } = await call('POST', answerPath(inquiry), { token: signToken(seller), body: { answer: longAnswer } });
+  assert.equal(status, 200);
+
+  const received = await call('GET', receivedPath(), { token: signToken(seller) });
+  assert.equal(received.json.data.content[0].status, 'ANSWERED');
+  assert.equal(received.json.data.content[0].answer, longAnswer);
+  const byBuyer = await call('GET', listPath(fabric), { token: signToken(buyer) });
+  assert.equal(byBuyer.json.data.content[0].answer, longAnswer);
+});
+
+test('문의 답변: 다시 보내면 답변과 답변 시각을 새로 쓰고, 상태는 ANSWERED 그대로', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller, {
+    status: 'ANSWERED',
+    answer: '처음 답변',
+    answered_at: new Date('2026-10-10T10:00:00+09:00'),
+  });
+
+  const { status, json } = await call('POST', answerPath(inquiry), {
+    token: signToken(seller),
+    body: { answer: '고친 답변' },
+  });
+  assert.equal(status, 200);
+  assert.deepEqual(json.data, { inquiryId: inquiry.inquiry_id, status: 'ANSWERED' });
+  const saved = await db.Inquiry.findByPk(inquiry.inquiry_id);
+  assert.equal(saved.answer, '고친 답변');
+  assert.equal(saved.status, 'ANSWERED');
+  assert.ok(saved.answered_at > new Date('2026-10-10T10:00:00+09:00'));
+});
+
+test('문의 답변: 원단을 삭제했어도 그 문의에는 답변할 수 있다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  await fabric.destroy();
+
+  const { status } = await call('POST', answerPath(inquiry), { token: signToken(seller), body: { answer: '답변이에요' } });
+  assert.equal(status, 200);
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).status, 'ANSWERED');
+});
+
+test('문의 답변 권한: 로그인 안 함·잘못된 토큰·만료된 토큰은 401, 구매자·운영팀은 403', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  const expired = jwt.sign({ role: 'SELLER' }, env.jwtSecret, { subject: '1', expiresIn: -10 });
+
+  for (const token of [undefined, 'garbage', expired]) {
+    const { status, json } = await call('POST', answerPath(inquiry), { token, body: { answer: '답변' } });
+    assert.equal(status, 401);
+    assert.equal(json.error.code, 'UNAUTHORIZED');
+  }
+  for (const token of [signToken(buyer), await tokenOf('ADMIN')]) {
+    const { status, json } = await call('POST', answerPath(inquiry), { token, body: { answer: '답변' } });
+    assert.equal(status, 403);
+    assert.equal(json.error.code, 'FORBIDDEN');
+  }
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).status, 'WAITING');
+});
+
+test('남의 문의에는 답변할 수 없다: 다른 판매자는 403 FORBIDDEN 이고 그대로 남는다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const { seller: otherSeller } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller, { status: 'ANSWERED', answer: '원래 답변', answered_at: new Date() });
+
+  const { status, json } = await call('POST', answerPath(inquiry), {
+    token: signToken(otherSeller),
+    body: { answer: '가로챈 답변' },
+  });
+  assert.equal(status, 403);
+  assert.equal(json.error.code, 'FORBIDDEN');
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).answer, '원래 답변');
+});
+
+test('문의 답변 입력 오류: VALIDATION_ERROR 와 항목별 details', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  const token = signToken(seller);
+
+  for (const [field, body] of [
+    ['answer', {}],
+    ['answer', { answer: '' }],
+    ['answer', { answer: '   ' }],
+    ['answer', { answer: '가'.repeat(1001) }],
+    ['answer', { answer: 123 }],
+    ['answer', { answer: null }],
+  ]) {
+    const { status, json } = await call('POST', answerPath(inquiry), { token, body });
+    assert.equal(status, 400, JSON.stringify(body));
+    assert.equal(json.error.code, 'VALIDATION_ERROR');
+    assert.ok(json.error.details.some((d) => d.field === field && d.message), `${field}: ${JSON.stringify(json.error.details)}`);
+  }
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).status, 'WAITING');
+
+  for (const id of ['abc', '0', '-1', '1.5', '99999999999999999999']) {
+    const { status, json } = await call('POST', `/inquiries/${id}/answer`, { token, body: { answer: '답변' } });
+    assert.equal(status, 400, id);
+    assert.equal(json.error.code, 'VALIDATION_ERROR');
+    assert.ok(json.error.details.some((d) => d.field === 'inquiryId' && d.message), `${id}: ${JSON.stringify(json.error.details)}`);
+  }
+
+  const res = await fetch(`${base}${answerPath(inquiry)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: '[]',
+  });
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error.code, 'VALIDATION_ERROR');
+});
+
+test('문의 답변: 없는 문의와 삭제한 문의는 404 NOT_FOUND 이고, 남의 문의보다 404 가 먼저다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const { seller: otherSeller } = await makePostedFabric();
+  const buyer = await makeUser();
+  const deleted = await makeInquiry(fabric, buyer, seller);
+  await deleted.destroy();
+
+  for (const token of [signToken(seller), signToken(otherSeller)]) {
+    for (const path of ['/inquiries/999999/answer', answerPath(deleted)]) {
+      const { status, json } = await call('POST', path, { token, body: { answer: '답변' } });
+      assert.equal(status, 404, path);
+      assert.deepEqual(json.error, NOT_FOUND);
+    }
+  }
+});

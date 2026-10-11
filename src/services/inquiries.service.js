@@ -62,3 +62,35 @@ export async function listFabricInquiries(viewer, fabricId, { page, size }) {
     totalPages: Math.ceil(count / size),
   };
 }
+
+// 받은 문의 목록 (명세서 44번). 문의의 seller_id 가 나인 것만 보이고, 판매자는 비공개 문의도 내용을 본다. 최근 문의가 먼저다.
+// 원단을 삭제했어도 문의는 남는다. (명세서에 없어서 판매자가 받은 문의를 놓치지 않게 정했다)
+// 받은 문의가 없으면(매장이 없는 판매자 포함) 빈 목록이다.
+export async function listReceivedInquiries(sellerId, { status, page, size }) {
+  const { rows, count } = await inquiriesDao.findPageBySeller({
+    sellerId,
+    status,
+    includeDeletedFabric: true,
+    limit: size,
+    offset: page * size,
+  });
+  return {
+    content: rows.map((inquiry) => toInquiryItem(inquiry, inquiry.fabric, true)),
+    page,
+    size,
+    totalElements: count,
+    totalPages: Math.ceil(count / size),
+  };
+}
+
+// 문의 답변 (명세서 45번). 문의의 seller_id 가 나인 판매자만 답변할 수 있다. (없는 문의·삭제한 문의는 NOT_FOUND, 남의 문의는 FORBIDDEN)
+// 답변하면 ANSWERED 가 되고, 다시 보내면 답변과 답변 시각(answered_at)을 새로 쓴다.
+// 원단이 삭제됐어도 문의는 남아 있어서 답변할 수 있다. (명세서에 없어서 막는 오류 코드가 없는 대로 정했다)
+export async function answerInquiry(sellerId, inquiryId, { answer }) {
+  const inquiry = await inquiriesDao.findById(inquiryId);
+  if (!inquiry) throw fail('NOT_FOUND');
+  if (inquiry.seller_id !== sellerId) throw fail('FORBIDDEN');
+
+  const updated = await inquiriesDao.update(inquiry, { answer, status: 'ANSWERED', answered_at: new Date() });
+  return { inquiryId: updated.inquiry_id, status: updated.status };
+}
