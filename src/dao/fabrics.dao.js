@@ -58,5 +58,10 @@ export const findDetailByFabric = (fabricId, options = {}) =>
 export const updateDetail = (detail, values, options = {}) => detail.update(values, options);
 
 // 원단 행을 잠근다 (SELECT ... FOR UPDATE). 같은 원단을 동시에 바꾸는 요청을 한 줄로 세운다. 트랜잭션 안에서만 쓴다.
-export const lockById = (fabricId, { transaction }) =>
-  db.Fabric.findByPk(fabricId, { transaction, lock: transaction.LOCK.UPDATE });
+// paranoid: false 를 주면 삭제 표시된 원단도 잠근다. (끝난 예약이 남은 원단 등)
+export const lockById = (fabricId, { transaction, paranoid }) =>
+  db.Fabric.findByPk(fabricId, {
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+    ...(paranoid !== undefined && { paranoid }),
+  });

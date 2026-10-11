@@ -8,6 +8,7 @@ import images from './images.routes.js';
 import patterns from './patterns.routes.js';
 import favorites from './favorites.routes.js';
 import admin from './admin.routes.js';
+import reservations from './reservations.routes.js';
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use(images);
 router.use(patterns);
 router.use(favorites);
 router.use(admin);
+router.use(reservations);
 
 export default router;
