@@ -54,6 +54,7 @@
 10. 쿼리는 Sequelize 모델 메서드로만 씁니다. 문자열을 이어 붙여 SQL 을 만들지 않습니다.
 11. 삭제는 `deleted_at`(soft delete)입니다. `users`, `fabrics`, `inquiries` 는 `destroy()` 가 자동으로 `deleted_at` 을 채우고, 조회에서 자동으로 빠집니다.
 12. 여러 테이블을 한 번에 바꾸는 작업은 **트랜잭션** 으로 묶습니다 (dao 함수는 `options = {}` 로 `{ transaction }` 을 받습니다).
+13-1. **AI 보조 등록(`ai/`)**: 질문 순서와 답변 정리는 `ai/flow.js`(순수 함수), 답에서 값을 뽑는 제공자는 `ai/fakeProvider.js`(개발용)와 `ai/openaiProvider.js`입니다. `AI_PROVIDER` 로 고르고, 운영에서는 가짜 AI 를 쓸 수 없습니다. 세션은 `dao/aiSessions.*`(지금은 메모리 저장)에 둡니다.
 13. **같은 원단의 재고·상태를 바꾸는 작업(예약 요청·수락·취소·수령, 원단 수정·삭제, 게시 승인)은 모두 원단 행을 먼저 잠급니다** (`fabricsDao.lockById(id, { transaction })`).
     그래야 동시에 눌러도 재고가 어긋나지 않습니다. 새 기능이 원단의 `status`, `remaining_length_cm`, `reserved_length_cm` 을 바꾼다면 반드시 같은 순서(잠금 → 다시 읽기 → 규칙 확인 → 변경)를 따르세요.
 

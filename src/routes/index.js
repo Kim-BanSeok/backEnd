@@ -11,6 +11,8 @@ import favorites from './favorites.routes.js';
 import admin from './admin.routes.js';
 import inquiries from './inquiries.routes.js';
 import reservations from './reservations.routes.js';
+import recommendations from './recommendations.routes.js';
+import aiSessions from './aiSessions.routes.js';
 
 const router = Router();
 
@@ -27,5 +29,7 @@ router.use(favorites);
 router.use(admin);
 router.use(inquiries);
 router.use(reservations);
+router.use(recommendations);
+router.use(aiSessions);
 
 export default router;

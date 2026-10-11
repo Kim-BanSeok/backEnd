@@ -1,0 +1,101 @@
+// 개발·시험용 가짜 AI. OpenAI 키 없이도 AI 등록 흐름을 끝까지 써 볼 수 있다. 키워드 규칙으로 답에서 값을 뽑는다.
+// 운영(NODE_ENV=production)에서는 쓸 수 없다. (config/env.js 가 막는다)
+// 같은 모양(extract)의 제공자라서 실제 AI(openaiProvider.js)로 바꿔도 services 는 그대로다.
+
+const UNKNOWN_WORDS = /모름|몰라|모르겠|잘 ?모|기억 ?안|기억이 ?안|확실하지 ?않/;
+const toInt = (text) => Number(String(text).replace(/,/g, ''));
+
+// "3마" → 270, "1.5마" → 135, "200cm" → 200, "2m" → 200, 단위가 없으면 cm
+function lengthsIn(text) {
+  const found = [];
+  for (const match of text.matchAll(/(\d+(?:\.\d+)?)\s*(마|cm|㎝|센티미터|센티|m|미터)?/gi)) {
+    const number = Number(match[1]);
+    const unit = (match[2] ?? '').toLowerCase();
+    const cm = unit === '마' ? number * 90 : unit === 'm' || unit === '미터' ? number * 100 : number;
+    found.push({ cm: Math.round(cm), index: match.index, unit });
+  }
+  return found;
+}
+
+// 이름표("가로", "폭", "세로", "길이", "남은") 바로 뒤의 숫자를 찾는다.
+const afterLabel = (text, labels) => {
+  const match = text.match(new RegExp(`(?:${labels})\\D{0,4}?(\\d+(?:\\.\\d+)?)\\s*(마|cm|㎝|센티|m)?`, 'i'));
+  if (!match) return null;
+  const number = Number(match[1]);
+  const unit = (match[2] ?? '').toLowerCase();
+  return Math.round(unit === '마' ? number * 90 : unit === 'm' ? number * 100 : number);
+};
+
+// 이름표가 없으면 등장한 순서대로 첫 번째를 폭, 두 번째를 길이로 본다. (예: "50에 70", "폭 150에 3마")
+// 숫자가 하나뿐이면 폭으로만 보고 길이는 모름으로 둔다. (같은 값을 두 곳에 넣지 않는다)
+function parseSize(text, saleType) {
+  const numbers = lengthsIn(text).map((l) => l.cm);
+  const labeledWidth = afterLabel(text, '가로|폭|너비');
+  const labeledLength = afterLabel(text, saleType === 'ROLL' ? '남은 ?길이|길이|남은|세로' : '세로|길이|높이');
+
+  let width = labeledWidth;
+  let length = labeledLength;
+  if (width === null && length === null) [width = null, length = null] = numbers; // 이름표가 없다
+  else if (width === null) width = numbers.find((cm) => cm !== length) ?? null; // 길이만 이름표가 있다
+  else if (length === null) length = numbers.find((cm, i) => i > numbers.indexOf(width)) ?? null; // 폭만 이름표가 있다
+
+  return saleType === 'ROLL' ? { width_cm: width, remaining_length_cm: length } : { width_cm: width, length_cm: length };
+}
+
+const MATERIAL_WORDS = [
+  [/혼방/, 'BLEND'], [/린넨|리넨|삼베/, 'LINEN'], [/폴리/, 'POLYESTER'], [/나일론/, 'NYLON'], [/레이온/, 'RAYON'],
+  [/울|양모|모직/, 'WOOL'], [/면|코튼|cotton/i, 'COTTON'], [/기타/, 'ETC'],
+];
+const COLOR_WORDS = [
+  [/남색|네이비|감색/, 'NAVY'], [/하양|하얀|흰|화이트/, 'WHITE'], [/검정|검은|블랙/, 'BLACK'], [/회색|그레이/, 'GRAY'],
+  [/베이지|아이보리|크림/, 'BEIGE'], [/갈색|브라운|밤색/, 'BROWN'], [/빨강|빨간|레드/, 'RED'], [/분홍|핑크/, 'PINK'],
+  [/노랑|노란|옐로/, 'YELLOW'], [/초록|녹색|그린|연두/, 'GREEN'], [/파랑|파란|블루|하늘/, 'BLUE'], [/보라|퍼플|자주/, 'PURPLE'],
+  [/혼합|여러|다양|믹스|체크|줄무늬|프린트/, 'MIXED'],
+];
+const THICKNESS_WORDS = [[/얇/, 'THIN'], [/두껍|두꺼|도톰/, 'THICK'], [/보통|중간|적당/, 'NORMAL']];
+const firstMatch = (words, text) => words.find(([pattern]) => pattern.test(text))?.[1] ?? null;
+
+// "3천 5백원", "1만 2천원", "3,500원", "3000" 처럼 쓴 가격을 숫자로
+function parsePrice(text) {
+  const plain = text.replace(/,/g, '');
+  let total = 0;
+  let matched = false;
+  for (const [unit, factor] of [['만', 10000], ['천', 1000], ['백', 100]]) {
+    const m = plain.match(new RegExp(`(\\d+)\\s*${unit}`));
+    if (m) { total += Number(m[1]) * factor; matched = true; }
+  }
+  if (matched) return total;
+  const digits = plain.match(/\d+/);
+  return digits ? toInt(digits[0]) : null;
+}
+
+const EXTRACTORS = {
+  sale_type: (text) => ({ sale_type: /롤|두루마리|마 ?단위/.test(text) ? 'ROLL' : /자투리|조각|한 ?장|1 ?장/.test(text) ? 'SCRAP' : null }),
+  title: (text) => ({ title: text.trim() }),
+  material: (text) => ({ material: firstMatch(MATERIAL_WORDS, text) }),
+  thickness: (text) => ({ thickness: firstMatch(THICKNESS_WORDS, text) }),
+  color_family: (text) => ({ color_family: firstMatch(COLOR_WORDS, text) }),
+  has_defect: (text) => ({ has_defect: /없|깨끗|괜찮|아니/.test(text) ? false : /있|얼룩|구멍|오염|흠|뜯|찢/.test(text) ? true : null }),
+  defect_note: (text) => ({ defect_note: text.trim() }),
+  price: (text) => ({ price: parsePrice(text) }),
+};
+
+export function createFakeProvider() {
+  return {
+    name: 'fake',
+    model: 'fake-rules',
+    // question: { field }, text: 판매자가 쓴 답, draft: 지금까지의 초안
+    // 돌려주는 값: { values: { 항목: 값 | null }, usage }. null 은 모름·알아듣지 못함.
+    async extract({ question, text, draft }) {
+      const fields = question.field === 'size'
+        ? (draft.sale_type === 'ROLL' ? ['width_cm', 'remaining_length_cm'] : ['width_cm', 'length_cm'])
+        : [question.field];
+      // "모름"이라고 답하면 이 질문의 모든 항목을 모름으로 둔다.
+      if (UNKNOWN_WORDS.test(text) && question.field !== 'title' && question.field !== 'defect_note') {
+        return { values: Object.fromEntries(fields.map((name) => [name, null])), usage: { input_tokens: 0, output_tokens: 0 } };
+      }
+      const values = question.field === 'size' ? parseSize(text, draft.sale_type) : EXTRACTORS[question.field](text);
+      return { values, usage: { input_tokens: 0, output_tokens: 0 } };
+    },
+  };
+}
