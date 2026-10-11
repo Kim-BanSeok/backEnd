@@ -5,6 +5,7 @@ import users from './users.routes.js';
 import stores from './stores.routes.js';
 import fabrics from './fabrics.routes.js';
 import images from './images.routes.js';
+import patterns from './patterns.routes.js';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use(users);
 router.use(stores);
 router.use(fabrics);
 router.use(images);
+router.use(patterns);
 
 export default router;
