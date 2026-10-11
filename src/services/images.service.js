@@ -4,8 +4,8 @@ import sequelize from '../db/connection.js';
 import { fail } from '../utils/errors.js';
 import { storage } from '../storage/index.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
-import * as storesDao from '../dao/stores.dao.js';
 import * as imagesDao from '../dao/images.dao.js';
+import { assertFabricOwner } from './fabricAccess.js';
 
 const MAX_IMAGES = 3;
 const THUMBNAIL_WIDTH = 400;
@@ -16,8 +16,7 @@ const ALLOWED_FORMATS = { jpeg: 'jpg', png: 'png', webp: 'webp' };
 async function assertOwnFabric(userId, fabricId) {
   const fabric = await fabricsDao.findById(fabricId);
   if (!fabric) throw fail('NOT_FOUND');
-  const store = await storesDao.findById(fabric.store_id);
-  if (!store || store.user_id !== userId) throw fail('FORBIDDEN');
+  await assertFabricOwner(userId, fabric);
 }
 
 // 파일 내용을 실제로 읽어서 jpg·png·webp 인지 확인하고 썸네일(가로 400px webp)을 만든다.

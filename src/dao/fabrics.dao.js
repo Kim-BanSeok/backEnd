@@ -41,6 +41,22 @@ export const findAdminPage = async ({ status, limit, offset }, options = {}) => 
 
 export const update = (fabric, values, options = {}) => fabric.update(values, options);
 
+// 수정 시각만 지금으로 바꾼다. 상세만 바뀌어도 원단의 수정 시각을 갱신할 때 쓴다.
+// 값이 하나도 안 바뀐 것으로 보면 Sequelize 가 UPDATE 를 건너뛰므로, changed 로 직접 표시한다.
+export const touch = (fabric, options = {}) => {
+  fabric.changed('updated_at', true);
+  return fabric.save({ fields: ['updated_at'], ...options });
+};
+
+// 삭제 표시(deleted_at)만 한다. 실제로 지우지 않는다.
+export const destroy = (fabric, options = {}) => fabric.destroy(options);
+
+// 원단상세는 원단당 1개다. 없으면 null.
+export const findDetailByFabric = (fabricId, options = {}) =>
+  db.FabricDetail.findOne({ where: { fabric_id: fabricId }, ...options });
+
+export const updateDetail = (detail, values, options = {}) => detail.update(values, options);
+
 // 원단 행을 잠근다 (SELECT ... FOR UPDATE). 같은 원단을 동시에 바꾸는 요청을 한 줄로 세운다. 트랜잭션 안에서만 쓴다.
 export const lockById = (fabricId, { transaction }) =>
   db.Fabric.findByPk(fabricId, { transaction, lock: transaction.LOCK.UPDATE });
