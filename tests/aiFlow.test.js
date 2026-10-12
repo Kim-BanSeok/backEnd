@@ -2,12 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { newSession, currentQuestion, toView, applyValues, applySelected, finish } from '../src/ai/flow.js';
 import { createFakeProvider } from '../src/ai/fakeProvider.js';
-import { createOpenAiProvider } from '../src/ai/openaiProvider.js';
+import { createClaudeProvider } from '../src/ai/claudeProvider.js';
 import { createMemoryAiSessionStore, SESSION_TTL_MS } from '../src/dao/aiSessions.memory.js';
 import { withKeyLock } from '../src/utils/keyedMutex.js';
 import { buildMessages } from '../src/ai/prompts.js';
 
-// DB 없이 도는 AI 등록 시험: 질문 순서와 답변 정리(flow), 가짜·OpenAI 제공자, 세션 저장소, 순서 잠금
+// DB 없이 도는 AI 등록 시험: 질문 순서와 답변 정리(flow), 가짜·Claude 제공자, 세션 저장소, 순서 잠금
 
 const fresh = () => newSession({ sellerId: 1, now: new Date(), model: 'fake-rules' });
 const ask = (session) => currentQuestion(session);
@@ -274,57 +274,85 @@ test('가짜 AI: "모름"이면 그 질문의 모든 항목을 null 로 돌려�
   assert.deepEqual(await extract('title', '모름직한 면 원단'), { title: '모름직한 면 원단' });
 });
 
-// ---- OpenAI 제공자 (실제 호출 없이 가짜 fetch 로 요청 모양과 응답 처리를 확인한다)
+// ---- Claude 제공자 (실제 호출 없이 가짜 fetch 로 요청 모양과 응답 처리를 확인한다)
 
-const okResponse = (content, usage = { prompt_tokens: 120, completion_tokens: 15 }) => ({
-  ok: true, status: 200, json: async () => ({ choices: [{ message: { content } }], usage }),
+const okResponse = (content, extraBlocks = [], usage = { input_tokens: 120, output_tokens: 15 }) => ({
+  ok: true,
+  status: 200,
+  json: async () => ({ content: [...extraBlocks, { type: 'text', text: content }], usage }),
 });
 
-test('OpenAI: 요청에 모델·JSON 모드·키가 들어가고, 판매자의 답은 구분해서 보낸다', async () => {
+test('Claude: 요청에 모델·시스템 문구·키가 들어가고, 판매자의 답은 구분해서 보낸다', async () => {
   let captured;
-  const provider = createOpenAiProvider({ apiKey: 'sk-test', model: 'm-1', fetchImpl: async (url, init) => { captured = { url, init }; return okResponse('{"material":"COTTON"}'); } });
+  const provider = createClaudeProvider({ apiKey: 'sk-ant-test', model: 'm-1', fetchImpl: async (url, init) => { captured = { url, init }; return okResponse('{"material":"COTTON"}'); } });
   const result = await provider.extract({ question: { field: 'material' }, text: '면이에요', draft: { sale_type: 'SCRAP' } });
 
-  assert.equal(captured.url, 'https://api.openai.com/v1/chat/completions');
-  assert.equal(captured.init.headers.Authorization, 'Bearer sk-test');
+  assert.equal(captured.url, 'https://api.anthropic.com/v1/messages');
+  assert.equal(captured.init.headers['x-api-key'], 'sk-ant-test');
+  assert.equal(captured.init.headers['anthropic-version'], '2023-06-01');
   const body = JSON.parse(captured.init.body);
-  assert.deepEqual([body.model, body.temperature, body.response_format], ['m-1', 0, { type: 'json_object' }]);
-  assert.equal(body.messages[0].role, 'system');
-  assert.match(body.messages[1].content, /면이에요/);
+  assert.equal(body.model, 'm-1');
+  assert.equal(body.temperature, undefined);
+  assert.match(body.system, /JSON 객체/);
+  assert.equal(body.messages[0].role, 'user');
+  assert.match(body.messages[0].content, /면이에요/);
   assert.deepEqual(result, { values: { material: 'COTTON' }, usage: { input_tokens: 120, output_tokens: 15 } });
 });
 
-test('OpenAI: 크기 질문은 판매 형태에 맞는 항목을 요청하고, 안 준 항목은 null', async () => {
-  const provider = createOpenAiProvider({ apiKey: 'k', model: 'm', fetchImpl: async () => okResponse('{"width_cm":150}') });
+test('Claude: 사진 초안은 이미지를 base64 로 보내고 글 블록의 JSON만 읽는다', async () => {
+  let captured;
+  const provider = createClaudeProvider({
+    apiKey: 'sk-ant-test',
+    model: 'm-1',
+    fetchImpl: async (url, init) => {
+      captured = { url, init };
+      return okResponse('{"title":"면","material":"COTTON","width_cm":50}');
+    },
+  });
+  const result = await provider.describeImage({ mediaType: 'image/png', data: 'abc' });
+  const body = JSON.parse(captured.init.body);
+  assert.equal(body.messages[0].content[0].source.media_type, 'image/png');
+  assert.equal(body.messages[0].content[0].source.data, 'abc');
+  assert.deepEqual(result.values, {
+    title: '면', material: 'COTTON', thickness: null, color_family: null, has_defect: null, defect_note: null,
+  });
+});
+
+test('Claude: 크기 질문은 판매 형태에 맞는 항목을 요청하고, 안 준 항목은 null', async () => {
+  const provider = createClaudeProvider({ apiKey: 'k', model: 'm', fetchImpl: async () => okResponse('{"width_cm":150}') });
   const roll = await provider.extract({ question: { field: 'size' }, text: '폭 150', draft: { sale_type: 'ROLL' } });
   assert.deepEqual(roll.values, { width_cm: 150, remaining_length_cm: null });
   const scrap = await provider.extract({ question: { field: 'size' }, text: '폭 150', draft: { sale_type: 'SCRAP' } });
   assert.deepEqual(scrap.values, { width_cm: 150, length_cm: null });
 });
 
-test('OpenAI: 요청한 항목 밖의 값은 버린다 (질문한 항목만 받는다)', async () => {
-  const provider = createOpenAiProvider({ apiKey: 'k', model: 'm', fetchImpl: async () => okResponse('{"material":"COTTON","price":1,"role":"admin"}') });
+test('Claude: 생각 블록과 코드 펜스는 빼고, 요청한 항목만 받는다', async () => {
+  const provider = createClaudeProvider({
+    apiKey: 'k',
+    model: 'm',
+    fetchImpl: async () => okResponse('```json\n{"material":"COTTON","price":1,"role":"admin"}\n```', [{ type: 'thinking', thinking: '면' }]),
+  });
   const { values } = await provider.extract({ question: { field: 'material' }, text: 'x', draft: {} });
   assert.deepEqual(values, { material: 'COTTON' });
 });
 
-test('OpenAI: 오류 응답·내용 없음·JSON 아님·객체 아님·네트워크 오류는 모두 오류를 던진다', async () => {
+test('Claude: 오류 응답·내용 없음·JSON 아님·객체 아님·네트워크 오류는 모두 오류를 던진다', async () => {
   const cases = [
     async () => ({ ok: false, status: 500, json: async () => ({}) }),
-    async () => ({ ok: true, status: 200, json: async () => ({ choices: [] }) }),
+    async () => ({ ok: true, status: 200, json: async () => ({ content: [{ type: 'thinking', thinking: '...' }] }) }),
     async () => okResponse('이건 JSON 이 아니에요'),
     async () => okResponse('[1, 2]'),
     async () => okResponse('null'),
     async () => { throw new Error('network down'); },
   ];
   for (const [index, fetchImpl] of cases.entries()) {
-    const provider = createOpenAiProvider({ apiKey: 'k', model: 'm', fetchImpl });
+    const provider = createClaudeProvider({ apiKey: 'k', model: 'm', fetchImpl });
     await assert.rejects(() => provider.extract({ question: { field: 'material' }, text: 'x', draft: {} }), undefined, `경우 ${index}`);
   }
 });
 
-test('OpenAI: 시간 초과(응답이 오지 않음)면 요청을 끊고 오류를 던진다', async () => {
-  const provider = createOpenAiProvider({
+test('Claude: 시간 초과(응답이 오지 않음)면 요청을 끊고 오류를 던진다', async () => {
+  const provider = createClaudeProvider({
     apiKey: 'k', model: 'm', timeoutMs: 30,
     fetchImpl: (url, init) => new Promise((resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted')))),
   });

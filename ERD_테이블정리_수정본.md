@@ -209,7 +209,7 @@
 | unconfirmed_fields | 미확인 항목 | Array |  |  | N | [] | 판매자 확인이 필요한 항목 |
 | session_status | 세션 상태 | String |  |  | N | IN_PROGRESS | IN_PROGRESS / CONFIRMED / ABORTED |
 | prompt_version | 프롬프트 버전 | String |  |  | N |  |  |
-| ai_model | AI 모델 | String |  |  | N |  | OpenAI 모델명 |
+| ai_model | AI 모델 | String |  |  | N |  | Claude 모델명 |
 | call_count | 호출 수 | Number |  |  | N | 0 | 비용 산정 |
 | input_tokens | 입력 토큰 | Number |  |  | N | 0 | 비용 산정 |
 | output_tokens | 출력 토큰 | Number |  |  | N | 0 | 비용 산정 |

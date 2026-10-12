@@ -4487,6 +4487,213 @@
         "description": "AI 등록을 그만두고 직접 입력으로 바꿔요. 지금까지의 초안을 돌려줘요.\n\n**권한:** SELLER(본인) · **구분:** 필수\n\n**처리 규칙**\n\n- 프론트엔드가 돌려받은 ai_draft 를 직접 입력 화면에 채워 넣어요.\n- 중단한 뒤에는 답변·확정을 할 수 없어요."
       }
     },
+    "/ai/fabric-photo": {
+      "post": {
+        "tags": [
+          "AI 등록"
+        ],
+        "summary": "49. 원단 사진 초안",
+        "operationId": "api49",
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "type": "string"
+                        },
+                        "material": {
+                          "type": "string"
+                        },
+                        "thickness": {
+                          "type": "string"
+                        },
+                        "color_family": {
+                          "type": "string"
+                        },
+                        "has_defect": {
+                          "type": "boolean"
+                        },
+                        "defect_note": {
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "data": {
+                    "title": "네이비 면",
+                    "material": "COTTON",
+                    "thickness": "THIN",
+                    "color_family": "NAVY",
+                    "has_defect": false,
+                    "defect_note": null
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**IMAGE_TOO_LARGE** — 5MB 를 넘거나 jpg, png, webp 가 아니에요.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "VALIDATION_ERROR",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "입력값을 확인해 주세요"
+                      }
+                    }
+                  },
+                  "IMAGE_TOO_LARGE": {
+                    "summary": "IMAGE_TOO_LARGE",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "IMAGE_TOO_LARGE",
+                        "message": "5MB 이하의 jpg·png·webp만 올릴 수 있어요"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "**UNAUTHORIZED** — 토큰이 없거나, 잘못됐거나, 만료됐어요.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "summary": "UNAUTHORIZED",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "다시 로그인해 주세요"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "**FORBIDDEN** — 역할이 다르거나 내 데이터가 아니에요.\n\n**SELLER_NOT_APPROVED** — 운영팀이 아직 판매자를 승인하지 않았거나 거절했어요.\n\n**STORE_REQUIRED** — 매장을 등록하지 않았어요.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "FORBIDDEN",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "권한이 없어요"
+                      }
+                    }
+                  },
+                  "SELLER_NOT_APPROVED": {
+                    "summary": "SELLER_NOT_APPROVED",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "SELLER_NOT_APPROVED",
+                        "message": "판매자 승인 후 원단을 등록할 수 있어요"
+                      }
+                    }
+                  },
+                  "STORE_REQUIRED": {
+                    "summary": "STORE_REQUIRED",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "STORE_REQUIRED",
+                        "message": "매장 정보를 먼저 등록해 주세요"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "**AI_UNAVAILABLE** — AI 응답이 실패했어요(1회 다시 시도한 뒤에도).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AI_UNAVAILABLE": {
+                    "summary": "AI_UNAVAILABLE",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "AI_UNAVAILABLE",
+                        "message": "AI 연결이 어려워요. 직접 입력으로 계속해 주세요"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-api-no": 49,
+        "x-priority": "선택",
+        "x-permission": "SELLER",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "이미지 파일 (jpg, png, webp, 5MB 이하)"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "description": "원단 사진 한 장으로 등록 초안을 만들어요. 저장하지 않아요.\n\n**권한:** SELLER · **구분:** 선택\n\n**처리 규칙**\n\n- 승인된 판매자이고 매장이 있어야 해요.\n- 사진은 저장하지 않아요. 원단도 만들지 않아요.\n- 소재, 두께, 색은 코드 목록에 있을 때만 돌려줘요. 아니면 null 이에요.\n- 확실하지 않은 항목은 null 이에요. 길이와 가격은 사진으로 재지 않아요.\n- 하자가 없으면 defect_note 는 null 이에요."
+      }
+    },
     "/patterns": {
       "get": {
         "tags": [

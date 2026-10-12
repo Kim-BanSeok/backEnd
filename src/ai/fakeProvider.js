@@ -1,6 +1,6 @@
-// 개발·시험용 가짜 AI. OpenAI 키 없이도 AI 등록 흐름을 끝까지 써 볼 수 있다. 키워드 규칙으로 답에서 값을 뽑는다.
+// 개발·시험용 가짜 AI. Claude 키 없이도 AI 등록 흐름을 끝까지 써 볼 수 있다. 키워드 규칙으로 답에서 값을 뽑는다.
 // 운영(NODE_ENV=production)에서는 쓸 수 없다. (config/env.js 가 막는다)
-// 같은 모양(extract)의 제공자라서 실제 AI(openaiProvider.js)로 바꿔도 services 는 그대로다.
+// 같은 모양(extract)의 제공자라서 실제 AI(claudeProvider.js)로 바꿔도 services 는 그대로다.
 
 const UNKNOWN_WORDS = /모름|몰라|모르겠|잘 ?모|기억 ?안|기억이 ?안|확실하지 ?않/;
 const toInt = (text) => Number(String(text).replace(/,/g, ''));
@@ -96,6 +96,13 @@ export function createFakeProvider() {
       }
       const values = question.field === 'size' ? parseSize(text, draft.sale_type) : EXTRACTORS[question.field](text);
       return { values, usage: { input_tokens: 0, output_tokens: 0 } };
+    },
+    // 사진은 보지 않는다. 키 없이 화면을 붙일 때 빈 초안을 돌려준다.
+    async describeImage() {
+      return {
+        values: { title: null, material: null, thickness: null, color_family: null, has_defect: null, defect_note: null },
+        usage: { input_tokens: 0, output_tokens: 0 },
+      };
     },
   };
 }

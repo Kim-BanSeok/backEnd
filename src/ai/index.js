@@ -1,11 +1,11 @@
 import { env } from '../config/env.js';
 import { createFakeProvider } from './fakeProvider.js';
-import { createOpenAiProvider } from './openaiProvider.js';
+import { createClaudeProvider } from './claudeProvider.js';
 
-// AI_PROVIDER 에 따라 AI 제공자를 고른다. (fake: 개발·시험용 규칙, openai: 실제 AI)
+// AI_PROVIDER 에 따라 AI 제공자를 고른다. (fake: 개발·시험용 규칙, claude: 실제 AI)
 function createProvider() {
-  if (env.ai.provider === 'openai') {
-    return createOpenAiProvider({ apiKey: env.ai.openaiApiKey, model: env.ai.openaiModel, timeoutMs: env.ai.timeoutMs });
+  if (env.ai.provider === 'claude') {
+    return createClaudeProvider({ apiKey: env.ai.anthropicApiKey, model: env.ai.anthropicModel, timeoutMs: env.ai.timeoutMs });
   }
   return createFakeProvider();
 }

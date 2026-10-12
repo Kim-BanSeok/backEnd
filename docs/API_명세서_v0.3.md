@@ -8,7 +8,7 @@ API 명세서
 | --- | --- |
 | 버전 | v0.3 (초안) |
 | 작성일 | 2026-10-10 |
-| API 수 | 48개 (필수 38, 선택 10) |
+| API 수 | 49개 (필수 38, 선택 11) |
 | 기본 주소 | /api/v1 |
 | 기술 | Node.js + Express, PostgreSQL(관계형 데이터), MongoDB(AI 등록 세션) |
 
@@ -307,6 +307,7 @@ TOO_MANY_REQUESTS(429)는 로그인 시도 제한을 위해 이전 초안에 없
 | 46 | 문의 | PATCH | /inquiries/{inquiryId} | BUYER(본인) | 선택 | 문의 수정 |
 | 47 | 문의 | DELETE | /inquiries/{inquiryId} | BUYER(본인) | 선택 | 문의 삭제 |
 | 48 | 공장 | GET | /factories | 공개 | 선택 | 공장 목록 조회 |
+| 49 | AI 등록 | POST | /ai/fabric-photo | SELLER | 선택 | 원단 사진 초안 |
 
 # 5. API 상세
 
@@ -2002,6 +2003,71 @@ Path 항목
 | 403 | FORBIDDEN | 역할이 다르거나 내 데이터가 아니에요. |
 | 404 | NOT_FOUND | 없거나 볼 수 없는 데이터예요. |
 | 409 | AI_SESSION_CLOSED | 이미 확정되거나 중단된 세션이에요. |
+
+### 49. 원단 사진 초안
+
+| 항목 | 내용 |
+| --- | --- |
+| Method / URL | POST /api/v1/ai/fabric-photo |
+| 권한 | SELLER |
+| 구분 | 선택 |
+| 설명 | 원단 사진 한 장으로 등록 초안을 만들어요. 저장하지 않아요. |
+
+요청
+
+Form 항목 (multipart/form-data)
+
+| 이름 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| file | 파일 | 필수 | 이미지 파일 (jpg, png, webp, 5MB 이하) |
+
+성공 응답 (200)
+
+{
+
+"success": true,
+
+"data": {
+
+"title": "네이비 면",
+
+"material": "COTTON",
+
+"thickness": "THIN",
+
+"color_family": "NAVY",
+
+"has_defect": false,
+
+"defect_note": null
+
+}
+
+}
+
+처리 규칙
+
+승인된 판매자이고 매장이 있어야 해요.
+
+사진은 저장하지 않아요. 원단도 만들지 않아요.
+
+소재, 두께, 색은 코드 목록에 있을 때만 돌려줘요. 아니면 null 이에요.
+
+확실하지 않은 항목은 null 이에요. 길이와 가격은 사진으로 재지 않아요.
+
+하자가 없으면 defect_note 는 null 이에요.
+
+오류 코드
+
+| HTTP | 코드 | 언제 나오나요 |
+| --- | --- | --- |
+| 401 | UNAUTHORIZED | 토큰이 없거나, 잘못됐거나, 만료됐어요. |
+| 403 | FORBIDDEN | 역할이 다르거나 내 데이터가 아니에요. |
+| 403 | SELLER_NOT_APPROVED | 운영팀이 아직 판매자를 승인하지 않았거나 거절했어요. |
+| 403 | STORE_REQUIRED | 매장을 등록하지 않았어요. |
+| 400 | VALIDATION_ERROR | 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요. |
+| 400 | IMAGE_TOO_LARGE | 5MB 를 넘거나 jpg, png, webp 가 아니에요. |
+| 503 | AI_UNAVAILABLE | AI 응답이 실패했어요(1회 다시 시도한 뒤에도). |
 
 ## 5.5 도안
 
