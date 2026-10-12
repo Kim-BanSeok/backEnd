@@ -39,3 +39,6 @@ export const findPageBySeller = ({ sellerId, status, includeDeletedFabric, limit
 export const findById = (inquiryId, options = {}) => db.Inquiry.findByPk(inquiryId, options);
 
 export const update = (inquiry, values, options = {}) => inquiry.update(values, options);
+
+// 삭제 표시(deleted_at)만 한다. 행은 지우지 않는다.
+export const remove = (inquiry, options = {}) => inquiry.destroy(options);

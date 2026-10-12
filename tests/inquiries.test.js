@@ -731,3 +731,227 @@ test('문의 답변: 없는 문의와 삭제한 문의는 404 NOT_FOUND 이고, 
     }
   }
 });
+
+// ---- 46. 문의 수정
+
+const patchPath = (inquiry) => `/inquiries/${inquiry.inquiry_id}`;
+
+test('문의 수정 성공: 200 { inquiryId, status: WAITING } 와 DB 저장, 앞뒤 공백은 지운다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+
+  const { status, json } = await call('PATCH', patchPath(inquiry), {
+    token: signToken(buyer),
+    body: { content: '  세탁하면 줄어드나요?  ', is_private: true },
+  });
+  assert.equal(status, 200);
+  assert.deepEqual(json, { success: true, data: { inquiryId: inquiry.inquiry_id, status: 'WAITING' } });
+  const saved = await db.Inquiry.findByPk(inquiry.inquiry_id);
+  assert.equal(saved.content, '세탁하면 줄어드나요?');
+  assert.equal(saved.is_private, true);
+});
+
+test('문의 수정: 보낸 항목만 바뀐다. 1000자는 통과하고, 원단이 삭제됐어도 고칠 수 있다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller, { content: '원래 내용', is_private: true });
+
+  let res = await call('PATCH', patchPath(inquiry), { token: signToken(buyer), body: { content: '가'.repeat(1000) } });
+  assert.equal(res.status, 200);
+  let saved = await db.Inquiry.findByPk(inquiry.inquiry_id);
+  assert.equal(saved.content, '가'.repeat(1000));
+  assert.equal(saved.is_private, true);
+
+  await fabric.destroy();
+  res = await call('PATCH', patchPath(inquiry), { token: signToken(buyer), body: { is_private: false } });
+  assert.equal(res.status, 200);
+  saved = await db.Inquiry.findByPk(inquiry.inquiry_id);
+  assert.equal(saved.content, '가'.repeat(1000));
+  assert.equal(saved.is_private, false);
+});
+
+test('문의 수정 권한: 로그인 안 함·잘못된 토큰·만료된 토큰은 401, 판매자·운영팀은 403', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  const expired = jwt.sign({ role: 'BUYER' }, env.jwtSecret, { subject: '1', expiresIn: -10 });
+
+  for (const token of [undefined, 'garbage', expired]) {
+    const { status, json } = await call('PATCH', patchPath(inquiry), { token, body: { content: '고침' } });
+    assert.equal(status, 401);
+    assert.equal(json.error.code, 'UNAUTHORIZED');
+  }
+  for (const token of [signToken(seller), await tokenOf('ADMIN')]) {
+    const { status, json } = await call('PATCH', patchPath(inquiry), { token, body: { content: '고침' } });
+    assert.equal(status, 403);
+    assert.equal(json.error.code, 'FORBIDDEN');
+  }
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).content, inquiry.content);
+});
+
+test('남의 문의는 고칠 수 없다: 다른 구매자는 403 FORBIDDEN 이고 그대로 남는다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+
+  const { status, json } = await call('PATCH', patchPath(inquiry), {
+    token: await tokenOf('BUYER'),
+    body: { content: '남이 고침' },
+  });
+  assert.equal(status, 403);
+  assert.equal(json.error.code, 'FORBIDDEN');
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).content, inquiry.content);
+});
+
+test('문의 수정 입력 오류: VALIDATION_ERROR 와 항목별 details', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  const token = signToken(buyer);
+
+  for (const [field, body] of [
+    ['content', { content: '' }],
+    ['content', { content: '   ' }],
+    ['content', { content: '가'.repeat(1001) }],
+    ['content', { content: 123 }],
+    ['content', { content: null }],
+    ['is_private', { is_private: 'true' }],
+    ['is_private', { is_private: null }],
+    ['', {}],
+    ['answer', { answer: '구매자가 쓴 답변' }],
+    ['status', { content: '고침', status: 'ANSWERED' }],
+  ]) {
+    const { status, json } = await call('PATCH', patchPath(inquiry), { token, body });
+    assert.equal(status, 400, JSON.stringify(body));
+    assert.equal(json.error.code, 'VALIDATION_ERROR');
+    assert.ok(json.error.details.some((d) => d.message), `${field}: ${JSON.stringify(json.error.details)}`);
+  }
+  const saved = await db.Inquiry.findByPk(inquiry.inquiry_id);
+  assert.equal(saved.content, inquiry.content);
+  assert.equal(saved.status, 'WAITING');
+
+  for (const id of ['abc', '0', '-1', '1.5', '99999999999999999999']) {
+    const { status, json } = await call('PATCH', `/inquiries/${id}`, { token, body: { content: '고침' } });
+    assert.equal(status, 400, id);
+    assert.ok(json.error.details.some((d) => d.field === 'inquiryId' && d.message), `${id}: ${JSON.stringify(json.error.details)}`);
+  }
+});
+
+test('문의 수정: 답변된 문의는 409 INVALID_STATUS 이고 그대로 남는다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller, { status: 'ANSWERED', answer: '답변', answered_at: new Date() });
+
+  const { status, json } = await call('PATCH', patchPath(inquiry), { token: signToken(buyer), body: { content: '고침' } });
+  assert.equal(status, 409);
+  assert.equal(json.error.code, 'INVALID_STATUS');
+  assert.equal((await db.Inquiry.findByPk(inquiry.inquiry_id)).content, inquiry.content);
+});
+
+test('문의 수정: 없는 문의와 삭제한 문의는 404 NOT_FOUND 이고, 남의 문의보다 404 가 먼저다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const deleted = await makeInquiry(fabric, buyer, seller);
+  await deleted.destroy();
+
+  for (const token of [signToken(buyer), await tokenOf('BUYER')]) {
+    for (const path of ['/inquiries/999999', patchPath(deleted)]) {
+      const { status, json } = await call('PATCH', path, { token, body: { content: '고침' } });
+      assert.equal(status, 404, path);
+      assert.deepEqual(json.error, NOT_FOUND);
+    }
+  }
+});
+
+// ---- 47. 문의 삭제
+
+test('문의 삭제 성공: 200 data null, 삭제 표시만 하고 두 목록에서 사라진다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  const kept = await makeInquiry(fabric, buyer, seller, { content: '남길 문의' });
+
+  const { status, json } = await call('DELETE', patchPath(inquiry), { token: signToken(buyer) });
+  assert.equal(status, 200);
+  assert.deepEqual(json, { success: true, data: null });
+
+  assert.equal(await db.Inquiry.findByPk(inquiry.inquiry_id), null);
+  const row = await db.Inquiry.findByPk(inquiry.inquiry_id, { paranoid: false });
+  assert.ok(row.deleted_at);
+  const list = await call('GET', listPath(fabric));
+  assert.deepEqual(list.json.data.content.map((i) => i.inquiryId), [kept.inquiry_id]);
+  const received = await call('GET', receivedPath(), { token: signToken(seller) });
+  assert.deepEqual(received.json.data.content.map((i) => i.inquiryId), [kept.inquiry_id]);
+});
+
+test('문의 삭제: 답변된 문의도, 원단을 삭제했거나 게시 중이 아닌 원단의 문의도 지울 수 있다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const answered = await makeInquiry(fabric, buyer, seller, { status: 'ANSWERED', answer: '답변', answered_at: new Date() });
+  const onRemoved = await makeInquiry(fabric, buyer, seller);
+  await fabric.destroy();
+  const { seller: seller2, fabric: soldOut } = await makePostedFabric({ status: 'SOLD_OUT' });
+  const onSoldOut = await makeInquiry(soldOut, buyer, seller2);
+
+  for (const inquiry of [answered, onRemoved, onSoldOut]) {
+    const { status } = await call('DELETE', patchPath(inquiry), { token: signToken(buyer) });
+    assert.equal(status, 200);
+    assert.equal(await db.Inquiry.findByPk(inquiry.inquiry_id), null);
+  }
+});
+
+test('문의 삭제 권한: 로그인 안 함·잘못된 토큰·만료된 토큰은 401, 판매자·운영팀은 403', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+  const expired = jwt.sign({ role: 'BUYER' }, env.jwtSecret, { subject: '1', expiresIn: -10 });
+
+  for (const token of [undefined, 'garbage', expired]) {
+    const { status, json } = await call('DELETE', patchPath(inquiry), { token });
+    assert.equal(status, 401);
+    assert.equal(json.error.code, 'UNAUTHORIZED');
+  }
+  for (const token of [signToken(seller), await tokenOf('ADMIN')]) {
+    const { status, json } = await call('DELETE', patchPath(inquiry), { token });
+    assert.equal(status, 403);
+    assert.equal(json.error.code, 'FORBIDDEN');
+  }
+  assert.ok(await db.Inquiry.findByPk(inquiry.inquiry_id));
+});
+
+test('남의 문의는 지울 수 없다: 다른 구매자는 403 FORBIDDEN 이고 그대로 남는다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const inquiry = await makeInquiry(fabric, buyer, seller);
+
+  const { status, json } = await call('DELETE', patchPath(inquiry), { token: await tokenOf('BUYER') });
+  assert.equal(status, 403);
+  assert.equal(json.error.code, 'FORBIDDEN');
+  assert.ok(await db.Inquiry.findByPk(inquiry.inquiry_id));
+});
+
+test('문의 삭제 입력 오류: 잘못된 inquiryId 는 400 VALIDATION_ERROR', async () => {
+  const token = signToken(await makeUser());
+  for (const id of ['abc', '0', '-1', '1.5', '99999999999999999999']) {
+    const { status, json } = await call('DELETE', `/inquiries/${id}`, { token });
+    assert.equal(status, 400, id);
+    assert.equal(json.error.code, 'VALIDATION_ERROR');
+    assert.ok(json.error.details.some((d) => d.field === 'inquiryId' && d.message), `${id}: ${JSON.stringify(json.error.details)}`);
+  }
+});
+
+test('문의 삭제: 없는 문의와 이미 삭제한 문의는 404 NOT_FOUND 이고, 남의 문의보다 404 가 먼저다', async () => {
+  const { seller, fabric } = await makePostedFabric();
+  const buyer = await makeUser();
+  const deleted = await makeInquiry(fabric, buyer, seller);
+  await deleted.destroy();
+
+  for (const token of [signToken(buyer), await tokenOf('BUYER')]) {
+    for (const path of ['/inquiries/999999', patchPath(deleted)]) {
+      const { status, json } = await call('DELETE', path, { token });
+      assert.equal(status, 404, path);
+      assert.deepEqual(json.error, NOT_FOUND);
+    }
+  }
+});

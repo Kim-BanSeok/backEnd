@@ -41,3 +41,24 @@ export const answerInquirySchema = {
     answer: z.string().trim().min(1).max(1000),
   }),
 };
+
+// 수정: 보낸 항목만 바뀐다. 빈 요청과 모르는 필드(answer, status 등)는 VALIDATION_ERROR. 내용은 앞뒤 공백을 지우고 1~1000자.
+export const updateInquirySchema = {
+  params: z.object({
+    inquiryId: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  }),
+  body: z
+    .strictObject({
+      content: z.string().trim().min(1).max(1000),
+      is_private: z.boolean(),
+    })
+    .partial()
+    .refine((v) => Object.keys(v).length > 0, { error: '수정할 항목을 하나 이상 보내 주세요' }),
+};
+
+// 삭제: 문의 번호는 양의 정수.
+export const deleteInquirySchema = {
+  params: z.object({
+    inquiryId: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  }),
+};

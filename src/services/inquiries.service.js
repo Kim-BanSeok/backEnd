@@ -94,3 +94,28 @@ export async function answerInquiry(sellerId, inquiryId, { answer }) {
   const updated = await inquiriesDao.update(inquiry, { answer, status: 'ANSWERED', answered_at: new Date() });
   return { inquiryId: updated.inquiry_id, status: updated.status };
 }
+
+// 문의 수정 (명세서 46번). 작성자 본인만, 답변 전(WAITING)에만 고칠 수 있다. 보낸 항목만 바뀐다.
+// 없는 문의·삭제한 문의는 NOT_FOUND, 남의 문의는 FORBIDDEN, 답변된 문의는 INVALID_STATUS 다.
+// 원단 상태는 보지 않는다. (명세서에 없어서 문의 상태만 보기로 정했다)
+export async function updateInquiry(buyerId, inquiryId, body) {
+  const inquiry = await inquiriesDao.findById(inquiryId);
+  if (!inquiry) throw fail('NOT_FOUND');
+  if (inquiry.buyer_id !== buyerId) throw fail('FORBIDDEN');
+  if (inquiry.status !== 'WAITING') throw fail('INVALID_STATUS');
+
+  const values = Object.fromEntries(Object.entries(body).filter(([, v]) => v !== undefined));
+  const updated = await inquiriesDao.update(inquiry, values);
+  return { inquiryId: updated.inquiry_id, status: updated.status };
+}
+
+// 문의 삭제 (명세서 47번). 작성자 본인만 지울 수 있고, 삭제 표시(deleted_at)만 한다. (없는 문의·이미 삭제한 문의는 NOT_FOUND, 남의 문의는 FORBIDDEN)
+// 답변된 문의도, 원단이 삭제됐거나 게시 중이 아닌 원단의 문의도 지울 수 있다. (명세서에 없어서 막는 오류 코드가 없는 대로 정했다)
+export async function deleteInquiry(buyerId, inquiryId) {
+  const inquiry = await inquiriesDao.findById(inquiryId);
+  if (!inquiry) throw fail('NOT_FOUND');
+  if (inquiry.buyer_id !== buyerId) throw fail('FORBIDDEN');
+
+  await inquiriesDao.remove(inquiry);
+  return null;
+}

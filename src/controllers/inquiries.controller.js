@@ -12,3 +12,9 @@ export const listReceived = async (req, res) =>
 
 export const answer = async (req, res) =>
   ok(res, await inquiriesService.answerInquiry(req.user.userId, req.valid.params.inquiryId, req.valid.body));
+
+export const update = async (req, res) =>
+  ok(res, await inquiriesService.updateInquiry(req.user.userId, req.valid.params.inquiryId, req.valid.body));
+
+export const remove = async (req, res) =>
+  ok(res, await inquiriesService.deleteInquiry(req.user.userId, req.valid.params.inquiryId));
