@@ -47,6 +47,10 @@ const summary = (factory) => ({
   industry: factory.industry,
   category: classifyIndustry(factory.industry),
   address: factory.address,
+  phone_number: factory.phone_number,
+  fax_number: factory.fax_number,
+  employee_count: factory.employee_count,
+  legal_dong: factory.legal_dong,
   latitude: null,
   longitude: null,
   data_source: factory.data_source,
@@ -54,7 +58,7 @@ const summary = (factory) => ({
 });
 
 const ITEM_KEYS = [
-  'address', 'category', 'created_at', 'data_source', 'factoryId', 'factory_name', 'industry', 'latitude', 'longitude',
+  'address', 'category', 'created_at', 'data_source', 'employee_count', 'factoryId', 'factory_name', 'fax_number', 'industry', 'latitude', 'legal_dong', 'longitude', 'phone_number',
 ];
 const PAGE_KEYS = ['content', 'page', 'size', 'totalElements', 'totalPages'];
 

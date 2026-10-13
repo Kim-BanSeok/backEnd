@@ -1,5 +1,5 @@
 // 받아 둔 양주시청 공장등록 엑셀을 factories 에 넣는다.
-// 회사명+주소가 같고 생산품도 같으면 건너뛴다. 생산품이 다르면 수정하고, 없으면 추가한다.
+// 회사명+주소가 같고 생산품·연락처·종업원수·법정동도 같으면 건너뛴다. 다르면 수정하고, 없으면 추가한다.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -20,7 +20,7 @@ async function latestDir() {
 
 export async function saveFactoryWorkbook({ dir, stamp }) {
   const names = await fs.readdir(dir);
-  const filename = names.find((name) => /\.xls[x]?$/i.test(name));
+  const filename = names.find((name) => /\.xls[x]?$/i.test(name) && !name.includes('~$'));
   if (!filename) throw new Error(`엑셀 파일이 없습니다: ${dir}`);
 
   const workbook = XLSX.readFile(path.join(dir, filename));
@@ -31,7 +31,7 @@ export async function saveFactoryWorkbook({ dir, stamp }) {
 
   const counts = await sequelize.transaction(async (transaction) => {
     const existing = await Factory.findAll({
-      attributes: ['factory_id', 'factory_name', 'industry', 'address'],
+      attributes: ['factory_id', 'factory_name', 'industry', 'address', 'phone_number', 'fax_number', 'employee_count', 'legal_dong'],
       transaction,
     });
     const plan = planFactoryChanges(existing, parsed.rows);
@@ -43,7 +43,7 @@ export async function saveFactoryWorkbook({ dir, stamp }) {
     }
     for (const row of plan.update) {
       await Factory.update(
-        { industry: row.industry, data_source: dataSource },
+        { industry: row.industry, phone_number: row.phone_number, fax_number: row.fax_number, employee_count: row.employee_count, legal_dong: row.legal_dong, data_source: dataSource },
         { where: { factory_id: row.factory_id }, transaction },
       );
     }

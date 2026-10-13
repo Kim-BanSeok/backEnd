@@ -6,6 +6,7 @@ import * as flow from '../ai/flow.js';
 import * as aiSessionsDao from '../dao/aiSessions.dao.js';
 import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { MATERIALS, THICKNESSES, COLOR_FAMILIES } from '../utils/codes.js';
 import { createFabric } from './fabrics.service.js';
 
 const MAX_AI_ATTEMPTS = 2; // 처음 한 번 + 다시 시도 1회 (명세서 19번)
@@ -54,6 +55,79 @@ export async function startSession(userId) {
   const session = flow.newSession({ sellerId: userId, now: new Date(), model: provider.model });
   recordNextQuestion(session);
   return base(await aiSessionsDao.insert(session));
+}
+
+const MATERIAL_WORDS = [
+  [/혼방/, 'BLEND'], [/린넨|리넨|삼베/, 'LINEN'], [/폴리/, 'POLYESTER'], [/나일론/, 'NYLON'], [/레이온/, 'RAYON'],
+  [/울|양모|모직/, 'WOOL'], [/면|코튼|cotton/i, 'COTTON'], [/기타/, 'ETC'],
+];
+
+function materialCode(text) {
+  const found = MATERIAL_WORDS.find(([pattern]) => pattern.test(text))?.[1];
+  return MATERIALS.includes(found) ? found : 'UNKNOWN';
+}
+
+function listingBrief(input) {
+  return [
+    '[현재 상품 입력]',
+    `소재·원단 종류: ${input.material_text}`,
+    `두께: ${input.thickness_label}`,
+    `폭: ${input.width_cm}cm`,
+    `길이: ${input.length_cm}cm`,
+    `장수: ${input.sheet_count}장`,
+    `촉감: ${input.feel || '미입력'}`,
+    `신축성: ${input.stretch || '미입력'}`,
+    `추가 메모: ${input.memo || '미입력'}`,
+    '첨부 이미지는 현재 판매할 원단 사진입니다.',
+  ].join('\n');
+}
+
+// 사진과 판매자 입력을 받아 소개글만 만들고, 치수는 입력값을 유지한다.
+export async function composeListing(userId, input) {
+  const user = await usersDao.findById(userId);
+  if (!user) throw fail('UNAUTHORIZED');
+  if (user.seller_approval_status !== 'APPROVED') throw fail('SELLER_NOT_APPROVED');
+  if (!(await storesDao.findByUserId(userId))) throw fail('STORE_REQUIRED');
+
+  const provider = getProvider();
+  const brief = listingBrief(input);
+  let described;
+  try {
+    described = await provider.describeProduct({ text: brief, images: input.images });
+  } catch (error) {
+    console.error('AI 호출 실패', error);
+    throw fail('AI_UNAVAILABLE');
+  }
+  const values = described?.values;
+  if (!values || typeof values !== 'object') throw fail('AI_UNAVAILABLE');
+
+  const session = flow.newSession({ sellerId: userId, now: new Date(), model: provider.model });
+  session.call_count = 1;
+  session.input_tokens = described.usage?.input_tokens ?? 0;
+  session.output_tokens = described.usage?.output_tokens ?? 0;
+  const thickness = THICKNESSES.includes(input.thickness) ? input.thickness : null;
+  const color = COLOR_FAMILIES.includes(values.color_family) ? values.color_family : null;
+  const defect = /얼룩|구멍|오염|뜯/.test(input.memo || '');
+  flow.applyValues(session, { field: 'listing' }, {
+    sale_type: 'SCRAP',
+    title: values.title || input.material_text,
+    width_cm: input.width_cm,
+    length_cm: input.length_cm,
+    material: materialCode(input.material_text),
+    thickness,
+    color_family: color,
+    description: values.description,
+    price: null,
+    has_defect: defect ? true : null,
+    defect_note: defect ? String(input.memo).trim().slice(0, 255) : null,
+  });
+  session.messages.push(message('user', brief));
+  session.messages.push(message('assistant', session.ai_draft.description || flow.COMPLETE_MESSAGE));
+  if (typeof values.seller_note === 'string' && values.seller_note.trim()) {
+    session.messages.push(message('assistant', `판매자 확인 메모: ${values.seller_note.trim()}`));
+  }
+  const stored = await persist(await aiSessionsDao.insert(session));
+  return { ...base(stored), messages: stored.messages.map(toMessageView), fabric_id: null };
 }
 
 // ==== 18. AI 등록 세션 조회

@@ -6,6 +6,7 @@ const FabricDetail = sequelize.define('FabricDetail', {
   fabric_id: { type: DataTypes.BIGINT, allowNull: false },
   width_cm: { type: DataTypes.INTEGER, allowNull: false },
   length_cm: { type: DataTypes.INTEGER, allowNull: true },
+  sheet_count: { type: DataTypes.INTEGER, allowNull: true },
   material: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'UNKNOWN' },
   thickness: { type: DataTypes.STRING(10), allowNull: false },
   color_family: { type: DataTypes.STRING(10), allowNull: false },

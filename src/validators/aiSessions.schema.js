@@ -23,3 +23,24 @@ export const answerSchema = {
 
 // 확정: 요청 본문은 POST /fabrics 와 같다.
 export const confirmSchema = { params, body: createFabricSchema.body };
+
+const listingImage = z.object({
+  media_type: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  data: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/, { error: '사진 데이터가 올바르지 않아요' }).max(3_000_000),
+});
+
+// 사진과 짧은 입력을 한 번에 받아 소개글을 만든다. 치수는 이 입력값을 유지한다.
+export const listingSchema = {
+  body: z.object({
+    material_text: z.string().trim().min(1).max(100),
+    thickness: z.enum(['THIN', 'NORMAL', 'THICK', 'UNKNOWN']),
+    thickness_label: z.string().trim().min(1).max(20),
+    width_cm: z.number().int().min(1).max(1000),
+    length_cm: z.number().int().min(1).max(2147483647),
+    sheet_count: z.number().int().min(1).max(9999),
+    feel: z.string().trim().max(200).optional(),
+    stretch: z.string().trim().max(40).optional(),
+    memo: z.string().trim().max(1000).optional(),
+    images: z.array(listingImage).min(1).max(2),
+  }),
+};

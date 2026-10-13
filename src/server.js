@@ -4,6 +4,7 @@ import sequelize from './db/connection.js';
 
 const server = createApp().listen(env.port, () => {
   console.log(`Server running on http://localhost:${env.port}`);
+  console.log(`AI provider: ${env.ai.provider} (${env.ai.provider === 'openai' ? env.ai.openaiModel : env.ai.provider === 'claude' ? env.ai.anthropicModel : 'rules'})`);
 });
 
 // 안전한 종료: 새 요청을 멈추고 DB 연결을 닫는다.

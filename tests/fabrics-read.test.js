@@ -304,7 +304,7 @@ const DETAIL_KEYS = [
 ];
 const DETAIL_INNER_KEYS = [
   'blend_ratio', 'color_detail', 'color_family', 'defect_note', 'description', 'grain_direction', 'has_defect',
-  'length_cm', 'material', 'thickness', 'weave', 'width_cm',
+  'length_cm', 'material', 'sheet_count', 'thickness', 'weave', 'width_cm',
 ];
 const IMAGE_KEYS = ['imageId', 'image_type', 'image_url', 'sort_order', 'thumbnail_url'];
 const STORE_KEYS = ['closed_days', 'pickup_guide', 'storeId', 'store_address', 'store_name', 'store_phone'];
@@ -356,6 +356,7 @@ test('원단 상세 성공: 로그인 없이 200, 명세서 항목 그대로, �
     weave: null,
     grain_direction: null,
     description: '앞치마용으로 쓰던 원단이에요',
+    sheet_count: null,
   });
   assert.deepEqual(data.store, {
     storeId: store.store_id,

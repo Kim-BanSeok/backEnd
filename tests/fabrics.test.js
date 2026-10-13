@@ -46,6 +46,7 @@ const scrapBody = (detail = {}, top = {}) => ({
     color_detail: '짙은 남색',
     width_cm: 150,
     length_cm: 65,
+    sheet_count: 1,
     has_defect: true,
     defect_note: '오른쪽 아래 얼룩 3cm',
     description: '앞치마용으로 쓰던 원단이에요',
@@ -88,6 +89,7 @@ test('자투리 등록 성공: 201 { fabricId, status: PENDING } 과 원단·상
   assert.equal(fabric.remaining_length_cm, null);
   assert.equal(fabric.reserved_length_cm, 0);
   assert.equal(fabric.detail.length_cm, 65);
+  assert.equal(fabric.detail.sheet_count, 1);
   assert.equal(fabric.detail.has_defect, true);
   assert.equal(fabric.detail.defect_note, '오른쪽 아래 얼룩 3cm');
 });

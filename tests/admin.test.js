@@ -128,7 +128,7 @@ test('원단 목록: 기본은 게시 대기(PENDING), 오래 기다린 순, 명
   assert.match(item.created_at, /\+09:00$/);
   assert.deepEqual(Object.keys(item.detail).sort(), [
     'blend_ratio', 'color_detail', 'color_family', 'defect_note', 'description', 'grain_direction',
-    'has_defect', 'length_cm', 'material', 'thickness', 'weave', 'width_cm',
+    'has_defect', 'length_cm', 'material', 'sheet_count', 'thickness', 'weave', 'width_cm',
   ]);
   assert.equal(item.detail.length_cm, 65);
   assert.deepEqual(Object.keys(item.images[0]).sort(), ['imageId', 'image_type', 'image_url', 'sort_order', 'thumbnail_url']);
@@ -555,7 +555,7 @@ test('운영 흐름: 판매자 승인 후에야 원단을 등록할 수 있고, 
   const sellerToken = signToken(seller);
   const fabricBody = {
     sale_type: 'SCRAP', title: '네이비 면', price: 3000,
-    detail: { thickness: 'NORMAL', color_family: 'NAVY', width_cm: 150, length_cm: 65 },
+    detail: { thickness: 'NORMAL', color_family: 'NAVY', width_cm: 150, length_cm: 65, sheet_count: 1 },
   };
 
   const before = await call('POST', '/fabrics', { token: sellerToken, body: fabricBody });

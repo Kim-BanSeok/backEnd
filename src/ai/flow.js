@@ -4,7 +4,7 @@ import { SALE_TYPES, MATERIALS, THICKNESSES, COLOR_FAMILIES } from '../utils/cod
 // 질문 순서는 서버가 정한다: 판매 형태 → 이름 → 가로·세로(롤은 폭·남은 길이) → 소재 → 두께 → 색상 → 하자 → 가격.
 // next_question 은 세션에 저장하지 않고, 세션의 sale_type·ai_draft·unconfirmed_fields 를 보고 매번 계산한다.
 
-export const PROMPT_VERSION = 'p1';
+export const PROMPT_VERSION = 'p2';
 const INT_MAX = 2147483647;
 
 export const FIELD_OPTIONS = {
@@ -18,7 +18,13 @@ export const FIELD_OPTIONS = {
 const SCRAP_SIZE_FIELDS = ['width_cm', 'length_cm'];
 const ROLL_SIZE_FIELDS = ['width_cm', 'remaining_length_cm'];
 
-// 질문 단계. fields 는 그 단계의 답이 채우는 ai_draft 항목이다. 이미 채웠거나 "모름"으로 표시한 항목은 다시 묻지 않는다.
+// 판매자가 원단을 한 번 적으면, 이 질문의 답에서 등록 항목과 소개글을 함께 만든다.
+export const LISTING_QUESTION = {
+  field: 'listing',
+  text: '어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요.',
+};
+
+// 질문 단계. 한 줄 설명을 받기 전에는 쓰지 않는다. fields 는 그 단계의 답이 채우는 ai_draft 항목이다.
 const STEPS = [
   { field: 'sale_type', text: '안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?', options: SALE_TYPES, fields: () => ['sale_type'] },
   { field: 'title', text: '원단 이름은 뭐라고 할까요? 예를 들면 네이비 면 20수요.', fields: () => ['title'] },
@@ -80,6 +86,7 @@ export function newSession({ sellerId, now, model, promptVersion = PROMPT_VERSIO
 // 지금 물어볼 질문. 더 물을 것이 없거나 끝난 세션이면 null.
 export function currentQuestion(session) {
   if (session.session_status !== 'IN_PROGRESS' || session.flags.finished) return null;
+  if (!session.flags.listing_done) return { ...LISTING_QUESTION };
   const { ai_draft: draft, unconfirmed_fields: unconfirmed } = session;
 
   for (const step of STEPS) {
@@ -177,6 +184,7 @@ export function applyValues(session, question, values) {
     }
   }
   if (question.field === 'listing') {
+    session.flags.listing_done = true;
     const type = session.ai_draft.sale_type;
     if (type === 'ROLL') { dropValue(session, 'length_cm'); clearUnconfirmed(session, 'length_cm'); }
     if (type === 'SCRAP') { dropValue(session, 'remaining_length_cm'); clearUnconfirmed(session, 'remaining_length_cm'); }

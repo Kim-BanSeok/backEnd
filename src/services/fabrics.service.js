@@ -17,6 +17,9 @@ export async function createFabric(userId, input) {
   if (!store) throw fail('STORE_REQUIRED');
 
   assertFabricRules(input);
+  if (input.sale_type === 'SCRAP' && (!Number.isInteger(input.detail.sheet_count) || input.detail.sheet_count < 1)) {
+    throw fail('VALIDATION_ERROR', [{ field: 'detail.sheet_count', message: '판매 장수는 1장 이상인 정수로 입력해 주세요' }]);
+  }
 
   // 원단정보와 원단상세는 한 번에 저장한다. 하나라도 실패하면 둘 다 취소된다.
   const fabric = await sequelize.transaction(async (transaction) => {
@@ -42,7 +45,7 @@ export async function createFabric(userId, input) {
 
 const DETAIL_FIELDS = [
   'width_cm', 'length_cm', 'material', 'thickness', 'color_family', 'color_detail',
-  'has_defect', 'defect_note', 'blend_ratio', 'weave', 'grain_direction', 'description',
+  'has_defect', 'defect_note', 'blend_ratio', 'weave', 'grain_direction', 'description', 'sheet_count',
 ];
 const pick = (object, keys) => Object.fromEntries(keys.map((key) => [key, object[key]]));
 const definedOnly = (object = {}) => Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));

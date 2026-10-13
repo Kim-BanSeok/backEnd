@@ -1587,17 +1587,9 @@ Path 항목
 
 "next_question": {
 
-"field": "sale_type",
+"field": "listing",
 
-"text": "안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?",
-
-"options": [
-
-"SCRAP",
-
-...
-
-]
+"text": "어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요."
 
 },
 
@@ -1697,7 +1689,7 @@ Path 항목
 
 "role": "assistant",
 
-"content": "안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?",
+"content": "어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요.",
 
 "created_at": "2026-10-10T17:31:31+09:00"
 
@@ -4023,6 +4015,14 @@ Query 항목
 "category": "TEXTILE",
 
 "address": "경기도 양주시 고암동 385-10",
+
+"phone_number": null,
+
+"fax_number": null,
+
+"employee_count": null,
+
+"legal_dong": null,
 
 "latitude": null,
 

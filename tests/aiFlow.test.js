@@ -1,24 +1,30 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { newSession, currentQuestion, toView, applyValues, applySelected, finish } from '../src/ai/flow.js';
+import { newSession, currentQuestion, toView, applyValues, applySelected, finish, LISTING_QUESTION } from '../src/ai/flow.js';
 import { createFakeProvider, parseListing } from '../src/ai/fakeProvider.js';
 import { createClaudeProvider } from '../src/ai/claudeProvider.js';
+import { createOpenaiProvider } from '../src/ai/openaiProvider.js';
 import { createMemoryAiSessionStore, SESSION_TTL_MS } from '../src/dao/aiSessions.memory.js';
 import { withKeyLock } from '../src/utils/keyedMutex.js';
 import { buildMessages } from '../src/ai/prompts.js';
 
 // DB 없이 도는 AI 등록 시험: 질문 순서와 답변 정리(flow), 가짜·Claude 제공자, 세션 저장소, 순서 잠금
 
-const fresh = () => newSession({ sellerId: 1, now: new Date(), model: 'fake-rules' });
+const fresh = () => {
+  const session = newSession({ sellerId: 1, now: new Date(), model: 'fake-rules' });
+  session.flags.listing_done = true; // 한 줄 설명을 받은 뒤의 항목 규칙을 시험한다
+  return session;
+};
 const ask = (session) => currentQuestion(session);
 const give = (session, values) => applyValues(session, ask(session), values);
 const pick = (session, selected) => applySelected(session, ask(session), selected);
 
 // ---- 질문 순서
 
-test('처음 질문은 판매 형태이고 선택 목록이 있다 (명세서 17번)', () => {
-  const q = ask(fresh());
-  assert.deepEqual(q, { field: 'sale_type', text: '안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?', options: ['SCRAP', 'ROLL'] });
+test('처음 질문은 원단 설명이고 선택 목록이 없다', () => {
+  const q = ask(newSession({ sellerId: 1, now: new Date(), model: 'fake-rules' }));
+  assert.deepEqual(q, LISTING_QUESTION);
+  assert.equal(q.options, undefined);
 });
 
 test('밴드 메모 한 줄은 롤 가격을 90cm 단가로 나누고 소개글을 만든 뒤 질문을 끝낸다', () => {
@@ -334,6 +340,64 @@ test('Claude: 시간 초과(응답이 오지 않음)면 요청을 끊고 오류�
     fetchImpl: (url, init) => new Promise((resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted')))),
   });
   await assert.rejects(() => provider.extract({ question: { field: 'material' }, text: 'x', draft: {} }), /aborted/);
+});
+
+const openaiResponse = (content, usage = { prompt_tokens: 80, completion_tokens: 12 }) => ({
+  ok: true,
+  status: 200,
+  json: async () => ({ choices: [{ message: { content } }], usage }),
+});
+
+test('OpenAI: 요청에 모델·시스템 문구·키가 들어가고, 판매자의 답은 구분해서 보낸다', async () => {
+  let captured;
+  const provider = createOpenaiProvider({ apiKey: 'sk-test', model: 'gpt-test', fetchImpl: async (url, init) => { captured = { url, init }; return openaiResponse('{"material":"COTTON"}'); } });
+  const result = await provider.extract({ question: { field: 'material' }, text: '면이에요', draft: { sale_type: 'SCRAP' } });
+
+  assert.equal(captured.url, 'https://api.openai.com/v1/chat/completions');
+  assert.equal(captured.init.headers.Authorization, 'Bearer sk-test');
+  const body = JSON.parse(captured.init.body);
+  assert.equal(body.model, 'gpt-test');
+  assert.equal(body.response_format.type, 'json_object');
+  assert.match(body.messages[0].content, /JSON 객체/);
+  assert.match(body.messages[1].content, /면이에요/);
+  assert.deepEqual(result, { values: { material: 'COTTON' }, usage: { input_tokens: 80, output_tokens: 12 } });
+});
+
+test('OpenAI: 사진 초안은 data URL 로 보내고 요청한 항목만 받는다', async () => {
+  let captured;
+  const provider = createOpenaiProvider({
+    apiKey: 'sk-test',
+    model: 'gpt-test',
+    fetchImpl: async (url, init) => { captured = JSON.parse(init.body); return openaiResponse('{"title":"면","material":"COTTON"}'); },
+  });
+  const result = await provider.describeImage({ mediaType: 'image/png', data: 'abc' });
+  assert.equal(captured.messages[1].content[0].image_url.url, 'data:image/png;base64,abc');
+  assert.deepEqual(result.values, {
+    title: '면', material: 'COTTON', thickness: null, color_family: null, has_defect: null, defect_note: null,
+  });
+});
+
+test('OpenAI: 상품 설명은 사진 data URL 과 입력 문구를 함께 보낸다', async () => {
+  let captured;
+  const provider = createOpenaiProvider({
+    apiKey: 'sk-test',
+    model: 'gpt-test',
+    fetchImpl: async (url, init) => { captured = JSON.parse(init.body); return openaiResponse('{"title":"남색 면","description":"소개","color_family":"NAVY","seller_note":""}'); },
+  });
+  const result = await provider.describeProduct({ text: '소재·원단 종류: 면', images: [{ media_type: 'image/jpeg', data: 'abc' }] });
+  assert.equal(captured.max_completion_tokens, 2500);
+  assert.equal(captured.messages[1].content[0].image_url.url, 'data:image/jpeg;base64,abc');
+  assert.match(captured.messages[1].content[1].text, /소재·원단 종류: 면/);
+  assert.deepEqual(result.values, { title: '남색 면', description: '소개', color_family: 'NAVY', seller_note: '' });
+});
+
+test('OpenAI: 오류 본문의 메시지를 함께 던진다', async () => {
+  const provider = createOpenaiProvider({
+    apiKey: 'sk-test',
+    model: 'gpt-test',
+    fetchImpl: async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'invalid_api_key' } }) }),
+  });
+  await assert.rejects(() => provider.extract({ question: { field: 'material' }, text: 'x', draft: {} }), /OpenAI 응답 오류 401: invalid_api_key/);
 });
 
 test('프롬프트: 모르면 null, 지시문 무시, 1마는 90cm 변환 안내가 들어 있다', () => {

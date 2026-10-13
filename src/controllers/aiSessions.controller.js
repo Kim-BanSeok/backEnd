@@ -4,6 +4,8 @@ import * as photoService from '../services/aiPhoto.service.js';
 
 export const start = async (req, res) => ok(res, await service.startSession(req.user.userId), 201);
 
+export const compose = async (req, res) => ok(res, await service.composeListing(req.user.userId, req.valid.body), 201);
+
 export const getById = async (req, res) => ok(res, await service.getSession(req.user.userId, req.valid.params.sessionId));
 
 export const answer = async (req, res) =>

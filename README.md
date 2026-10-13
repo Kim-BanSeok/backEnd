@@ -51,7 +51,7 @@ npm run dev
 | `DB_PASS` | PostgreSQL 설치 때 정한 비밀번호 |
 | `DB_DATABASE` | 개발용 DB 이름. 테스트용 DB 는 뒤에 `_test` 를 붙인 이름을 **자동으로** 씁니다 |
 | `JWT_SECRET` | 로그인 토큰 비밀값. 개발 중에는 아무 긴 문자열이면 됩니다 |
-| `AI_PROVIDER`, `ANTHROPIC_API_KEY` | AI 보조 등록. 기본 `fake`(키 없이 쓰는 개발용 규칙)이고, 운영에서는 `claude` 와 키가 필요합니다. 세션은 서버 메모리에 저장되어 서버를 다시 켜면 사라집니다 |
+| `AI_PROVIDER`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` | AI 보조 등록. 기본 `fake`(키 없이 쓰는 개발용 규칙)입니다. 지금은 `openai` 와 OpenAI 키, 나중에는 `claude` 와 Anthropic 키로 바꿉니다. 세션은 서버 메모리에 저장되어 서버를 다시 켜면 사라집니다 |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | 운영팀(ADMIN) 계정. 가입 API 로는 만들 수 없어서 `npm run db:seed` 가 이 값으로 **처음 한 번** 만듭니다 (비밀번호 8~72자) |
 
 사진은 지금 내 컴퓨터의 `uploads/` 폴더에 저장되고 `PUBLIC_URL`(기본 `http://localhost:3000`) 주소로 보입니다. 이 폴더도 Git 에 올리지 않습니다. 나중에 클라우드 저장소로 옮길 때는 `src/storage/` 에 제공자만 추가합니다.

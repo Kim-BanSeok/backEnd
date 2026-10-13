@@ -160,5 +160,17 @@ export function createFakeProvider() {
         usage: { input_tokens: 0, output_tokens: 0 },
       };
     },
+    async describeProduct({ text }) {
+      const title = text.split('\n').find(line => line.startsWith('소재·원단 종류:'))?.slice('소재·원단 종류:'.length).trim().slice(0, 100) || '자투리 원단';
+      return {
+        values: {
+          title,
+          description: `${title}\n\n사진과 입력한 두께, 치수를 바탕으로 정리한 소개입니다.\n작은 소품과 부분 활용을 검토해 보세요.`,
+          color_family: null,
+          seller_note: '',
+        },
+        usage: { input_tokens: 0, output_tokens: 0 },
+      };
+    },
   };
 }

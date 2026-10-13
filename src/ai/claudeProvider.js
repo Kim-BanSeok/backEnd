@@ -1,4 +1,4 @@
-import { buildMessages, buildPhotoPrompt, PHOTO_FIELDS } from './prompts.js';
+import { buildMessages, buildPhotoPrompt, buildListingMessages, PHOTO_FIELDS } from './prompts.js';
 
 // Claude Messages API 로 판매자의 답에서 값을 뽑는다.
 // 실패(네트워크, 시간 초과, 오류 응답, 형식 오류)는 오류를 던진다. 다시 시도하고 503 AI_UNAVAILABLE 로 바꾸는 것은 services 가 한다.
@@ -85,6 +85,25 @@ export function createClaudeProvider({ apiKey, model, timeoutMs = 15000, fetchIm
       });
       return {
         values: Object.fromEntries(PHOTO_FIELDS.map((name) => [name, parsed[name] ?? null])),
+        usage,
+      };
+    },
+    async describeProduct({ text, images }) {
+      const built = buildListingMessages({ text });
+      const content = [
+        ...(images || []).map(image => ({ type: 'image', source: { type: 'base64', media_type: image.media_type, data: image.data } })),
+        { type: 'text', text: built[1].content },
+      ];
+      const { parsed, usage } = await complete(fetchImpl, {
+        apiKey, model, timeoutMs, system: built[0].content, content,
+      });
+      return {
+        values: {
+          title: parsed.title ?? null,
+          description: parsed.description ?? null,
+          color_family: parsed.color_family ?? null,
+          seller_note: parsed.seller_note ?? null,
+        },
         usage,
       };
     },

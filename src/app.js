@@ -13,7 +13,7 @@ export function createApp() {
   if (env.docsEnabled) app.use(createDocsRouter());
   app.use(helmet());
   app.use(cors({ origin: env.corsOrigins }));
-  app.use(express.json());
+  app.use(express.json({ limit: '8mb' }));
   // 올린 사진 보여 주기 (로컬 저장소일 때). helmet 의 기본값은 다른 사이트(프론트엔드)가 이미지를 못 불러오게 하므로 이 경로만 허용한다.
   if (env.storageProvider === 'local') {
     app.use(

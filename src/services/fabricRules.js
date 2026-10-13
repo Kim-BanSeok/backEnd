@@ -21,4 +21,11 @@ export function assertFabricRules({ sale_type, remaining_length_cm, detail }) {
   }
 
   if (detail.has_defect && !detail.defect_note) throw fail('DEFECT_NOTE_REQUIRED');
+  const count = detail.sheet_count;
+  if (sale_type === 'ROLL' && count != null) {
+    throw fail('VALIDATION_ERROR', [{ field: 'detail.sheet_count', message: '롤은 판매 장수를 보내지 않아요' }]);
+  }
+  if (count != null && (!Number.isInteger(count) || count < 1 || count > 9999)) {
+    throw fail('VALIDATION_ERROR', [{ field: 'detail.sheet_count', message: '판매 장수는 1장 이상 9,999장 이하인 정수로 입력해 주세요' }]);
+  }
 }

@@ -30,6 +30,7 @@ const detailSchema = z.object({
   weave: optionalText(50),
   grain_direction: optionalText(50),
   description: optionalText(5000),
+  sheet_count: z.number().int().min(1).max(9999).nullish().transform((v) => v ?? null),
 });
 
 export const createFabricSchema = {
@@ -72,6 +73,7 @@ const updateDetailSchema = z.object({
   weave: clearableText(50),
   grain_direction: clearableText(50),
   description: clearableText(5000),
+  sheet_count: z.number().int().min(1).max(9999).nullable().optional(),
 });
 
 const hasAny = (object) => Object.values(object).some((value) => value !== undefined);

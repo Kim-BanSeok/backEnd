@@ -40,6 +40,7 @@ const toAdminFabric = (fabric) => {
       weave: detail.weave,
       grain_direction: detail.grain_direction,
       description: detail.description,
+      sheet_count: detail.sheet_count,
     },
     images: fabric.images.map((image) => ({
       imageId: image.image_id,
