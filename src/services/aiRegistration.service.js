@@ -7,6 +7,11 @@ import * as aiSessionsDao from '../dao/aiSessions.dao.js';
 import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
 import { createFabric } from './fabrics.service.js';
+import { reserveSession, releaseSession, renewSession, withAiCall } from './security.service.js';
+import { withAiSessionLock } from '../dao/security.dao.js';
+import { env } from '../config/env.js';
+
+const withSessionLock = (sessionId, task) => env.ai.sessionStore === 'database' ? withAiSessionLock(sessionId, task) : withKeyLock(`ai-session:${sessionId}`, task);
 
 const MAX_AI_ATTEMPTS = 2; // 처음 한 번 + 다시 시도 1회 (명세서 19번)
 
@@ -32,7 +37,10 @@ const base = (session) => ({ sessionId: session._id, ...flow.toView(session) });
 // 저장한 세션을 돌려준다. (그 사이 방치 세션으로 정리되었다면 지금 메모리의 세션을 그대로 돌려준다)
 const persist = async (session) => {
   session.last_updated_at = new Date();
-  return (await aiSessionsDao.save(session)) ?? session;
+  const saved = (await aiSessionsDao.save(session)) ?? session;
+  if (session.session_status === 'IN_PROGRESS') await renewSession(session.securityLeaseId);
+  else await releaseSession(session.securityLeaseId);
+  return saved;
 };
 
 // 다음 질문을 대화 기록에 남긴다. 더 물을 것이 없으면 마무리 안내를 남긴다.
@@ -52,8 +60,10 @@ export async function startSession(userId) {
 
   const provider = getProvider();
   const session = flow.newSession({ sellerId: userId, now: new Date(), model: provider.model });
+  session.securityLeaseId = await reserveSession(userId);
   recordNextQuestion(session);
-  return base(await aiSessionsDao.insert(session));
+  try { return base(await aiSessionsDao.insert(session)); }
+  catch (error) { await releaseSession(session.securityLeaseId); throw error; }
 }
 
 // ==== 18. AI 등록 세션 조회
@@ -72,12 +82,13 @@ async function extractWithRetry(session, question, text) {
   for (let attempt = 1; attempt <= MAX_AI_ATTEMPTS; attempt += 1) {
     session.call_count += 1;
     try {
-      const result = await provider.extract({ question, text, draft: session.ai_draft });
+      const result = await withAiCall(session.seller_id, () => provider.extract({ question, text, draft: session.ai_draft }));
       if (!result || typeof result.values !== 'object' || result.values === null) throw new Error('AI 응답 형식이 올바르지 않아요');
       session.input_tokens += result.usage?.input_tokens ?? 0;
       session.output_tokens += result.usage?.output_tokens ?? 0;
       return result.values;
     } catch (error) {
+      if (error.code === 'TOO_MANY_REQUESTS') throw error;
       lastError = error;
     }
   }
@@ -87,7 +98,7 @@ async function extractWithRetry(session, question, text) {
 
 // 말하듯 쓴 답은 answer 로, 선택 버튼을 누른 값은 selected 로 보낸다. 둘 다 없고 finish 도 아니면 입력 검사에서 VALIDATION_ERROR 다.
 export function answerSession(userId, sessionId, { answer, selected, finish }) {
-  return withKeyLock(`ai-session:${sessionId}`, async () => {
+  return withSessionLock(sessionId, async () => {
     const session = await findOwn(userId, sessionId);
     assertOpen(session);
 
@@ -122,7 +133,7 @@ export function answerSession(userId, sessionId, { answer, selected, finish }) {
 // 판매자가 확인·수정한 최종본으로 원단을 만든다. 요청 본문은 POST /fabrics 와 같고 같은 검사를 한다.
 // 두 번 눌러도 원단은 하나만 만들어진다. 검사에 걸려 실패하면 세션은 계속 진행 중이다.
 export function confirmSession(userId, sessionId, input) {
-  return withKeyLock(`ai-session:${sessionId}`, async () => {
+  return withSessionLock(sessionId, async () => {
     const session = await findOwn(userId, sessionId);
     assertOpen(session);
 
@@ -138,7 +149,7 @@ export function confirmSession(userId, sessionId, input) {
 // ==== 21. AI 등록 중단
 
 export function abortSession(userId, sessionId) {
-  return withKeyLock(`ai-session:${sessionId}`, async () => {
+  return withSessionLock(sessionId, async () => {
     const session = await findOwn(userId, sessionId);
     assertOpen(session);
 

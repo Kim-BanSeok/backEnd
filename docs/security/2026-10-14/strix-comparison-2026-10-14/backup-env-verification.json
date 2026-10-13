@@ -1,0 +1,1 @@
+[{"archive": "backend-local-before-dd1a4333c3d6.zip", "envFileNames": [".env.example", ".env.team.example"], "allEnvFilesAreExamples": true}, {"archive": "frontend-before-5144a45ea8f5.zip", "envFileNames": [".env.example"], "allEnvFilesAreExamples": true}]

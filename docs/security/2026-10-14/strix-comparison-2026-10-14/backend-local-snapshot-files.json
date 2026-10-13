@@ -1,0 +1,802 @@
+[
+  {
+    "file": "docs/API_SECURITY_2026-10-14.md",
+    "sha256": "0789f89998223f6bd61b19072dc899aa8d24be5bcba95ee90d793a35658f7a18"
+  },
+  {
+    "file": "migrations/20261014000000-security-state.cjs",
+    "sha256": "5add8e6f13b6e156507270ca990a7151edbf3236a3253304b094d642f4983281"
+  },
+  {
+    "file": "migrations/20261014000001-password-input-length.cjs",
+    "sha256": "1464542b2d321ef39f60092071ee0a7adbba06e45e212b7dadb141d61e7c929c"
+  },
+  {
+    "file": "src/dao/aiSessions.database.js",
+    "sha256": "556edeafc9f24cdfe493315532532f1e0f6d282a877ad2fcb7e3ebb67f4e0c5b"
+  },
+  {
+    "file": "src/dao/security.dao.js",
+    "sha256": "878fc2e71c2b0d9ea3bc866f0bafb2ede3f19b28fe6eeed2af12e2b8136f96f3"
+  },
+  {
+    "file": "src/models/AiSession.js",
+    "sha256": "6d6d5d92f92cfe4a0b3fcada5f57238d1c6a7965291e7bc8b4cbf087a9903448"
+  },
+  {
+    "file": "src/models/AiUsageBucket.js",
+    "sha256": "8bdcbff1b5f4028049afa8694cc4a8f4a728aa44c7186c95464eefb9ac73bcd4"
+  },
+  {
+    "file": "src/models/AiUsageLease.js",
+    "sha256": "284305ec722318b12ede393863b6ce8695826779217f962755518292bb26ff3b"
+  },
+  {
+    "file": "src/models/RevokedToken.js",
+    "sha256": "8546fdb9153353d6ba220a74a521ff1b82578e6679472a5a113f2a3011faabe7"
+  },
+  {
+    "file": "src/services/imageAccess.service.js",
+    "sha256": "d223c4b2e94218e07ba570eee76221137be90ea701b1f2a70fd3c000a21ce73d"
+  },
+  {
+    "file": "src/services/security.service.js",
+    "sha256": "afe69b31a61c0d11fab64a7c16be1a862553fe3dd7090fd8cb4827b55814b857"
+  },
+  {
+    "file": "tests/security.test.js",
+    "sha256": "65b49aa031ba45cb739a8f7a3670ebe9fdce0d8f4113f9b4f55a518906bf0eaf"
+  },
+  {
+    "file": ".gitattributes",
+    "sha256": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c"
+  },
+  {
+    "file": ".github/pull_request_template.md",
+    "sha256": "5a3f3090d2c55eda8aa04bac307bf065502c6854dd2648f37414f2ed2ba4002a"
+  },
+  {
+    "file": ".github/workflows/ci.yml",
+    "sha256": "fb26c1c1c00cb78038558b990a9033016028ae621f3c6a6484ea5612dc436844"
+  },
+  {
+    "file": ".gitignore",
+    "sha256": "82c317bb3668f630ffcac6afc509c0786a83002ed2d67c2dbbfbcc5494a6e1ef"
+  },
+  {
+    "file": ".sequelizerc",
+    "sha256": "3fd2c19dc1fc66a1b29762c470ebefacdfc7e978f7b8fc7ecf8bb335b0f9d088"
+  },
+  {
+    "file": "CLAUDE.md",
+    "sha256": "3b251a0aa3ce047f0b0156ae0bb673ac18d94ac20894cb6830e74228b0f0571e"
+  },
+  {
+    "file": "CONTRIBUTING.md",
+    "sha256": "add62f1765f1951f6fbdcf02f3d8794ed1ebfc51a2194ca06fdda632167575f4"
+  },
+  {
+    "file": "ERD_테이블정리_수정본.md",
+    "sha256": "4b0ede316227141c73ba593d37a41188895e6d061edc08e1db7275f4adcb2258"
+  },
+  {
+    "file": "README.md",
+    "sha256": "1a4c40d9f526aace5bca79a2e0686da33eb09abf760117369887ad0ab9166252"
+  },
+  {
+    "file": "config/config.cjs",
+    "sha256": "72cabffaa489f071b4fbfd89c0d2176c3150122c4940db673d0fbe65e98e4bbb"
+  },
+  {
+    "file": "docs/API_명세서_v0.3.md",
+    "sha256": "2547fa83630a43404d4c535e336ab108ab7ff90ce308cec7034e22ecc9112811"
+  },
+  {
+    "file": "docs/Material_Loop_API_명세서_v0.3.docx",
+    "sha256": "cd83feaa75e881cb71a9925f880ea491357f607fb30a3bc1692d75b923cf2244"
+  },
+  {
+    "file": "docs/factories/DEPLOYMENT.md",
+    "sha256": "dc273d39eca3e576a00de8323115a476d5b2424f5ea8250aa632b7771a2811b2"
+  },
+  {
+    "file": "docs/factories/README.md",
+    "sha256": "ded07fc8c29ebc7633cad213183b359dd7e5bb34faa9ebb380faf64c25f196ff"
+  },
+  {
+    "file": "docs/factories/TEAM_HANDOFF.md",
+    "sha256": "83326a1f7e405ae84ae2d9cbc29b6f8e73d9fe31a1608a660747ca1fbd2708b9"
+  },
+  {
+    "file": "docs/factories/yangju-2026-09-source.json",
+    "sha256": "242f37abde553c9e78ce2c1359e6fd08ff0db135a98478456aa1c837f96c5c45"
+  },
+  {
+    "file": "docs/담당표.md",
+    "sha256": "08ea4a5938a4bcb9f5e53b88654ec8eb189646b9878b33a00525b43808d4d75c"
+  },
+  {
+    "file": "docs/서브_시작_가이드.md",
+    "sha256": "2b88fbd4e6605afdef0b1719fb553f7e1f8ff20d14dd6f36965aea0c82c0c832"
+  },
+  {
+    "file": "eslint.config.js",
+    "sha256": "03c25b0b2a04d697ca90c0b09bd399f05776202ef9a8afb67e47d9f0a027afd5"
+  },
+  {
+    "file": "migrations/20261011000000-create-initial-schema.cjs",
+    "sha256": "aa15e5d81fab3c7536edbcacf384ff8784128af0bc504a95de2820fa5de70bd6"
+  },
+  {
+    "file": "migrations/20261013000000-preserve-factory-source.cjs",
+    "sha256": "112c42485132fc80482d6f69a5a8d7468f0c750004899e707f1f52fc1a874410"
+  },
+  {
+    "file": "package-lock.json",
+    "sha256": "8be6882b90abf7a91c41e0cd4d9645404a6dca710733309a19435303e057bb46"
+  },
+  {
+    "file": "package.json",
+    "sha256": "0858df9437788f5d4446b0037fa3316f75f4c5bf3b30e3705aca87de2180024d"
+  },
+  {
+    "file": "scripts/build-openapi.js",
+    "sha256": "cd0d7a1e349dfcc08f3da663ffe6f507479eaa3a744ab01d63e14fc7e9d6d143"
+  },
+  {
+    "file": "scripts/docx-to-md.py",
+    "sha256": "904213be8c90b25225a83d9502b3ca1eaafcc4697fa8b23037a970355730a32b"
+  },
+  {
+    "file": "scripts/ensure-database.js",
+    "sha256": "86b30f6bdc3afe85802a3dcc61c9f85b710820dac84c6f2b8f1384baf7e28165"
+  },
+  {
+    "file": "scripts/factoryImport.js",
+    "sha256": "8cc68b71e71f8e10ebd9ac99d1f50167c7628c67605a48613870a2f8ab57fe48"
+  },
+  {
+    "file": "scripts/factoryPreparation.js",
+    "sha256": "90b949a02585ec350aa2f3875185ad80fea72a99473bf71c48ddd802b2d5a514"
+  },
+  {
+    "file": "scripts/factorySync.js",
+    "sha256": "0c8f230e5f589dac955c47e7981a76bcaf2c7458867c5cc14f07437ebbf44480"
+  },
+  {
+    "file": "scripts/geocode-supply-factories.js",
+    "sha256": "24471325e9b2f49333053bc503dd776db588a4b31a410512644a42d72880ec2f"
+  },
+  {
+    "file": "scripts/import-prepared-yangju-factories.js",
+    "sha256": "c1dd160bf7ce58cffb8fc5cb991e6e7275f80a2afc9e85bd9e5897fefee8e584"
+  },
+  {
+    "file": "scripts/import-yangju-factories.js",
+    "sha256": "9fc970dfb47751daa920663b29d75d6b49869f8f2d27d1825cf66ee17b055ae0"
+  },
+  {
+    "file": "scripts/inspect-database.js",
+    "sha256": "ef5ab449d03c825a4b73d4f74d8c63b3ec84daa389bb91186d3ab150c3a05268"
+  },
+  {
+    "file": "scripts/prepare-yangju-factories.js",
+    "sha256": "fbf7b2ca20e4db1db38dc75b3824db732d1045e90eeaf49a68e707c5ce3181e2"
+  },
+  {
+    "file": "scripts/pull-yangju-factories.cmd",
+    "sha256": "181f2932ef0225dc8e4be53caa37b87e615c512c80ee11429c80b5d944b54081"
+  },
+  {
+    "file": "scripts/pull-yangju-factories.js",
+    "sha256": "01a8884f45e517997c3852e38dff20dec7912cfb680ab5a53674f94d880a0a3a"
+  },
+  {
+    "file": "scripts/seed.js",
+    "sha256": "78df304d93dcd3ef3cf796a5a7c03330f4de8635e7880ca4d538d80a24653936"
+  },
+  {
+    "file": "scripts/verify-factory-import.js",
+    "sha256": "389cdbd9f4358e03219fdafcd0b2d34b191c3add4bd5fc8f0fb5137cf2e944c4"
+  },
+  {
+    "file": "src/ai/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "src/ai/claudeProvider.js",
+    "sha256": "6f9a10e714b8099587bddee6d47dc02d6a85e732658b0c039600a30aac4c851f"
+  },
+  {
+    "file": "src/ai/fakeProvider.js",
+    "sha256": "79779c2e039708dfbc355dc799e62af8e03ba9bd69a252174691f2dd66ee736e"
+  },
+  {
+    "file": "src/ai/flow.js",
+    "sha256": "2c09629c693456ca614dcbc6e68b4dbdb13ec5604794b17a401b18fb0a99cda8"
+  },
+  {
+    "file": "src/ai/index.js",
+    "sha256": "55fef41971f9f7dbc1b8ccd800929e13b587ae445d78add421829152eeb744ee"
+  },
+  {
+    "file": "src/ai/prompts.js",
+    "sha256": "4e40e08a8b22d3f266dea3aadafbf5411f241e1398b3dc173e3d127eeadb0480"
+  },
+  {
+    "file": "src/app.js",
+    "sha256": "54326d3a62888d0a6807314fff77e191efad1262167638e60d7c6a48f2c31d08"
+  },
+  {
+    "file": "src/config/env.js",
+    "sha256": "fe8838126f399351afcfea073652f64966e4d65b84f1c56a9f9fefdb43f6f24b"
+  },
+  {
+    "file": "src/controllers/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "src/controllers/admin.controller.js",
+    "sha256": "a585dc6f4225f51bd4e80a3f83c1d1ca3b6f55b8a78c91cb5523b195f0a6ec62"
+  },
+  {
+    "file": "src/controllers/aiSessions.controller.js",
+    "sha256": "9a62eb826791d691920a48a098212e0f58d3c744843288da99dd89eebe56b837"
+  },
+  {
+    "file": "src/controllers/auth.controller.js",
+    "sha256": "7978d277e76719812be1edebecdec2abab821960f82d2a2671a239b5ac562ce4"
+  },
+  {
+    "file": "src/controllers/fabrics.controller.js",
+    "sha256": "ecc268f3869e2235cd1b8447f11cf277c52b77003fb1cc452bcdf2805f13e62d"
+  },
+  {
+    "file": "src/controllers/fabricsRead.controller.js",
+    "sha256": "0dbf9a00b9080ff879b99dbb4d77b17ac1c8581f7d0f82a6ca6673ce7e7de0d9"
+  },
+  {
+    "file": "src/controllers/factories.controller.js",
+    "sha256": "39c8b2b6ca6ca9b8f3fa473f64089f2cb87299758eca0291a95400a286f7fc45"
+  },
+  {
+    "file": "src/controllers/favorites.controller.js",
+    "sha256": "3c79eff778ade22a6d30d35fe49fe11548ea14f19f43cd559b65becfa23a7088"
+  },
+  {
+    "file": "src/controllers/images.controller.js",
+    "sha256": "1a8fdd99884fc42f5a0e633eb96594489657a3d6a5af3f006a705a79fd01abea"
+  },
+  {
+    "file": "src/controllers/inquiries.controller.js",
+    "sha256": "ed43f949b9e9cad6e76eb902f1528055c8c04dd27803079e390742f46d3037a4"
+  },
+  {
+    "file": "src/controllers/patterns.controller.js",
+    "sha256": "7691d928ede3f49fb3e21e16a1f0bdcd64208369fee2a3df5aebc6f1dfd42872"
+  },
+  {
+    "file": "src/controllers/recommendations.controller.js",
+    "sha256": "940856d10169a35022d059b694ff9c85d3301f555991d8cb5151682beb762002"
+  },
+  {
+    "file": "src/controllers/reservations.controller.js",
+    "sha256": "502d5c6c5c88a9ceff3051ecaa58dda2f9a5b3b1b2815a43406320de4767653d"
+  },
+  {
+    "file": "src/controllers/stores.controller.js",
+    "sha256": "6b34be038c29c490c641b21436aa32a5d478bba2572bca5a8844de035885b873"
+  },
+  {
+    "file": "src/controllers/users.controller.js",
+    "sha256": "5f1410cebc57953c0874d3db9488a9ceeceb58df3ed0549782eda1d2f58ae005"
+  },
+  {
+    "file": "src/dao/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "src/dao/aiSessions.dao.js",
+    "sha256": "22f71545b161b921c549ef8212f75ccece642134235f6a5b80f76aadf2b1f356"
+  },
+  {
+    "file": "src/dao/aiSessions.memory.js",
+    "sha256": "15d9a927cb392adddda54077019e2e04f1f30bc941353aa8a67d2b490c7bad26"
+  },
+  {
+    "file": "src/dao/fabrics.dao.js",
+    "sha256": "11352f01513aeada24543c9f466ad0d583f39279f864bd3572b4a43e333a760d"
+  },
+  {
+    "file": "src/dao/fabricsRead.dao.js",
+    "sha256": "5f8ca31658a35a68b40091062c3e0a2bdf95225b0d31eb0416e1d34d3a3144a3"
+  },
+  {
+    "file": "src/dao/factories.dao.js",
+    "sha256": "a4f299e6b74574b5986a87d3e42918d78c25f927ac0389e57f22e40f4a3f86ca"
+  },
+  {
+    "file": "src/dao/favorites.dao.js",
+    "sha256": "6c658cb140d67f3baf0777efb371b311580cf71594ac4be36e6d37964ab87639"
+  },
+  {
+    "file": "src/dao/images.dao.js",
+    "sha256": "0e1057c343c9d11d59033078911f667f4478a39d7a82fc1938220a9027ded1ff"
+  },
+  {
+    "file": "src/dao/inquiries.dao.js",
+    "sha256": "bcff9a1d87a0999d10ee51d0200bebafd6c8d7b05b2aba9af3800e1ef352a1f1"
+  },
+  {
+    "file": "src/dao/patterns.dao.js",
+    "sha256": "e12cacb5ca7c48148286c7314e4ade60dc47fab946379b1379c3364ab13231e7"
+  },
+  {
+    "file": "src/dao/recommendations.dao.js",
+    "sha256": "c71eb9597dbcd5be5da9d3e5d63a6fc8774c99400023aa4e73dd3ce43022dec6"
+  },
+  {
+    "file": "src/dao/reservations.dao.js",
+    "sha256": "cff7a26657b20f0fa4456f30e22b41a2c849e09c53497f27ea59b4b2494e83c9"
+  },
+  {
+    "file": "src/dao/stores.dao.js",
+    "sha256": "c198c1550b1c0dd0dc20ad44923bc4dc15233dbebbc63a52ed2d8edf14b4320c"
+  },
+  {
+    "file": "src/dao/users.dao.js",
+    "sha256": "9b5724acda9c36f9ff4a8cfeb89df81ac5c8a91ee773ba862d25385a547b7e0a"
+  },
+  {
+    "file": "src/db/connection.js",
+    "sha256": "7373d7812aa3c804c7cf28a1a935304b1ed5179f468dd60c704e8ae9b9849283"
+  },
+  {
+    "file": "src/db/seedAdmin.js",
+    "sha256": "4649e3e02c516c8ce7e99f6bbbab563ba31ca588cd5f1ce0d23f18c2c54d6aa6"
+  },
+  {
+    "file": "src/docs/buildOpenApi.js",
+    "sha256": "d567ab9fc0dabff317475656bd2aa0e762eb1135effde756605006b20c8573df"
+  },
+  {
+    "file": "src/docs/openapi.json",
+    "sha256": "5e89ec4f4cbbc4af4d18c03466312653a6fbf346eb29eb513cecf9b940bb7663"
+  },
+  {
+    "file": "src/docs/swagger.js",
+    "sha256": "b00626177f4f5d357e4a7783c9d2097acea5543eabce399da455d7478d6aabb4"
+  },
+  {
+    "file": "src/factories/categories.js",
+    "sha256": "ad771e63fa54896cfcf0dcdb74d88b84877b3f25caa92dd69858147e453ed64b"
+  },
+  {
+    "file": "src/factories/geocoding.js",
+    "sha256": "2a4356ac715fce08ca451c7471f64d19495c418b2f7e38487d31a90e57e6fbdc"
+  },
+  {
+    "file": "src/middlewares/auth.js",
+    "sha256": "181227051c6935d6f9a524f263eae50be4792e9d43f86b80f3a60b1687f6ac0e"
+  },
+  {
+    "file": "src/middlewares/errorHandler.js",
+    "sha256": "33589e5f3c80b2fde2a7718de213c30b284c8592b478c9aa6d23a71fd717089b"
+  },
+  {
+    "file": "src/middlewares/notFound.js",
+    "sha256": "7edfd963eb9c9620f94fb7829ab3a6ca723d3fe04c02d8cb3cd2bc937e673214"
+  },
+  {
+    "file": "src/middlewares/rateLimiters.js",
+    "sha256": "d94431b82c95726a515c816a6fbca9e118f48beeb5a7fc2abee9afb4543c3c9e"
+  },
+  {
+    "file": "src/middlewares/uploadImage.js",
+    "sha256": "d9afea94920c5e625bd3e7e4745b0c4042a1b03d0dcd2b841d6aac4dc804564f"
+  },
+  {
+    "file": "src/middlewares/validate.js",
+    "sha256": "f450a21fa5c954c2d159f09a8b9858a4dbb1b000a01af5a28da70b707de0bdc0"
+  },
+  {
+    "file": "src/models/Fabric.js",
+    "sha256": "96a7af49e2fc5d2438619f885d7f212f218cbf427004200df4e1a11479e89136"
+  },
+  {
+    "file": "src/models/FabricDetail.js",
+    "sha256": "8c23caa586ea5e2dc964fb91ea212a406ba39dac9a9a181c34537a91a3324c75"
+  },
+  {
+    "file": "src/models/FabricImage.js",
+    "sha256": "dfbad9272ba4b1a58a5daa2cc805947f81516d691d23a9dec8ea3b9b4e222d5e"
+  },
+  {
+    "file": "src/models/Factory.js",
+    "sha256": "1b1942f5cca4ab619644916962382d4727d63c8c96671defee46eb7e8db3eb86"
+  },
+  {
+    "file": "src/models/FactoryDataset.js",
+    "sha256": "cfcee915b6007bbca0de1bc1ca987dc9663605ad17bb9a79e80442b2af656c88"
+  },
+  {
+    "file": "src/models/Favorite.js",
+    "sha256": "578c95fcc7e58afc8237d8c942b0eae3e146ee4f031845c419d8334bd898b8c5"
+  },
+  {
+    "file": "src/models/Inquiry.js",
+    "sha256": "ad9b893efe0eccd249ee863d414b7942210db4e54622de29f9ddf181e5269f41"
+  },
+  {
+    "file": "src/models/Pattern.js",
+    "sha256": "384e11a8dde9b832bd94ec25a27b026260c748b44c0ca6d7ef28d56a3cc66f11"
+  },
+  {
+    "file": "src/models/PatternPart.js",
+    "sha256": "c00d1f9c1d031f980e21c40826ebe81f83b7c7f39f6f70bb0e008e3796dfc41e"
+  },
+  {
+    "file": "src/models/Reservation.js",
+    "sha256": "a525a4193a1e6217d5e5c56f55432de1076dbd8c230592e7ccb863caba19bcd4"
+  },
+  {
+    "file": "src/models/Store.js",
+    "sha256": "60e5d4cde96b6c95754a5e6d8f3b88daaee7172fc4c69c078cf472b0b742e6e3"
+  },
+  {
+    "file": "src/models/User.js",
+    "sha256": "8b95e5f28823c8aeacb7480d6030a7e51227e60f3d9a75b4ca9662e28f2e43ab"
+  },
+  {
+    "file": "src/models/index.js",
+    "sha256": "096755552a5f0f958eece935d63df51088771edd9ca2bb3ba4267ab1082a714b"
+  },
+  {
+    "file": "src/routes/admin.routes.js",
+    "sha256": "e7c32616ace61065352d1ccb7c4c8f26c0f62e0fbd5bc8b9b56f635167453263"
+  },
+  {
+    "file": "src/routes/aiSessions.routes.js",
+    "sha256": "cb636ff6cbcbb508ed0c7baec5241ff9d50e82df31144b57eaeb5f57389939ea"
+  },
+  {
+    "file": "src/routes/auth.routes.js",
+    "sha256": "3a59627e6e4bb3bb08a077f1b77c3a437f2ebd22b3180771284bebe2fed518a7"
+  },
+  {
+    "file": "src/routes/fabrics.routes.js",
+    "sha256": "340b7dd73012de2105d7c9d5cc1652dc7fd6028950a741cecb35d9589435bb2c"
+  },
+  {
+    "file": "src/routes/fabricsRead.routes.js",
+    "sha256": "a0b35ec89b65ea3730d7ce4602333198214ab6c4143288f231a3ea57c59409e7"
+  },
+  {
+    "file": "src/routes/factories.routes.js",
+    "sha256": "30f64f8033a59ec1eb06d898a45cdd652f03dbf507c4ae78454454544fbadbf4"
+  },
+  {
+    "file": "src/routes/favorites.routes.js",
+    "sha256": "37817601543493f5a55d7f60a2ad90c9a9538f904bd10a1dec65d657685de4f5"
+  },
+  {
+    "file": "src/routes/health.routes.js",
+    "sha256": "6136833c4b7871c19983f204ad3a915b396e6909601e27dd66b0562be3928a50"
+  },
+  {
+    "file": "src/routes/images.routes.js",
+    "sha256": "5efad847d0c1f83decee8b6504304307ee859a7f1ef5c2d589079af2c5d4e1b8"
+  },
+  {
+    "file": "src/routes/index.js",
+    "sha256": "d67e9ab94747c8f09d5974a9500b1f16befb6695626f120adc1bbec9549535e3"
+  },
+  {
+    "file": "src/routes/inquiries.routes.js",
+    "sha256": "b5e3f1a017a4c4f3e9d064069b82a565dcb9c289a8c4fc49a58e13973d382f86"
+  },
+  {
+    "file": "src/routes/patterns.routes.js",
+    "sha256": "252a351f226ca2c402a54ee2dbf504fa19ee057edfc631d2650adf324e72e2a1"
+  },
+  {
+    "file": "src/routes/recommendations.routes.js",
+    "sha256": "1b18134303bb87e703dbcced51bc942743dc26afe74e44ac6fe4b87ea5e89f9d"
+  },
+  {
+    "file": "src/routes/reservations.routes.js",
+    "sha256": "6d05a8c34c249a5b6fac542467304af6a23ec245c53fc1cb89110ab3b5424d66"
+  },
+  {
+    "file": "src/routes/stores.routes.js",
+    "sha256": "85fba2e0984a354934c2e9ac5b51fd50d398874388a619b22e86cd2f78853067"
+  },
+  {
+    "file": "src/routes/users.routes.js",
+    "sha256": "35b8b7fc8716471ada95d7b818c344c20a2ae8e03f43056685cd095a88eaafc0"
+  },
+  {
+    "file": "src/server.js",
+    "sha256": "0d50aa0c216ccb0b6740c1d23ac12de2e18f9b77410fa010e1fe59afc4555eaf"
+  },
+  {
+    "file": "src/services/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "src/services/admin.service.js",
+    "sha256": "7df9f5df2e29e07b5695efc64391902a0530b7ff3642dfa13a596a56632f1827"
+  },
+  {
+    "file": "src/services/aiPhoto.service.js",
+    "sha256": "59d1bf14060127a6a42a6c632bc6a661a873d2c60bc8c34555c172365331b596"
+  },
+  {
+    "file": "src/services/aiRegistration.service.js",
+    "sha256": "3edabcf8eb07f04d272a32a375f9da8e1723244f1cabafe2509058b94508fadc"
+  },
+  {
+    "file": "src/services/auth.service.js",
+    "sha256": "ee0d7e987005897e833a613a84fe5957bf2e0d63454330e66c8c3be8879f099c"
+  },
+  {
+    "file": "src/services/fabricAccess.js",
+    "sha256": "8e92bd88bb973cfd2ce4fc25a12c0e44060afbfda1899651231a88ffefe7d553"
+  },
+  {
+    "file": "src/services/fabricRules.js",
+    "sha256": "924fba0ee0c13dd2159ff934f15496a92dc50f23929adb2f4df15e0cf538f935"
+  },
+  {
+    "file": "src/services/fabrics.service.js",
+    "sha256": "e02004bbf6869c2417036ca71b9c5f31c158bf3ba08b0df1f1a673435f088eed"
+  },
+  {
+    "file": "src/services/fabricsRead.service.js",
+    "sha256": "598b4fb139604209185d866c2b51bf5f2d64d873872ede31d2397d7848ab12cc"
+  },
+  {
+    "file": "src/services/factories.service.js",
+    "sha256": "14c453046111aee3f77ba4c03b36a3a9c10a0415f2e78370003c74c3c87c9fc5"
+  },
+  {
+    "file": "src/services/favorites.service.js",
+    "sha256": "16336b69f7d285e4dfcf729941cd6017bfcefc190d4486b009e9cc1773f1730e"
+  },
+  {
+    "file": "src/services/images.service.js",
+    "sha256": "ff1c7af0f8462e9f9332708dca7443de69140cf71bcb342e6ff6184ddb154a18"
+  },
+  {
+    "file": "src/services/inquiries.service.js",
+    "sha256": "a7110ccd744ae3b756ff03cdf1a0c434774a7b36519abe4f99870593098ca550"
+  },
+  {
+    "file": "src/services/patterns.service.js",
+    "sha256": "fda6a45ca6524745e22ab2e880c3cf17a542a04fc1fd587549c028391275366c"
+  },
+  {
+    "file": "src/services/recommendation.rules.js",
+    "sha256": "4d47087744721ded7c03decf5e6d4bad41101df8f4ac27af862aa16d8360a9ab"
+  },
+  {
+    "file": "src/services/recommendations.service.js",
+    "sha256": "42e122d0bacce5c483ea103450755a796a0d0d342228a136f436fd1044bdc087"
+  },
+  {
+    "file": "src/services/reservations.service.js",
+    "sha256": "857dd63cced2a8d8d84ca6214920af270616313027c514c2f20ce4abfcede6bc"
+  },
+  {
+    "file": "src/services/stores.service.js",
+    "sha256": "d20eaf34325f1a9b5e593caa0ff89115fbd189abd355d34754ca1233971b8b69"
+  },
+  {
+    "file": "src/services/users.service.js",
+    "sha256": "6a8cc8f39b6ea48dcbab782559923a87a604ef05ca281dd91fa068ba5c103ba6"
+  },
+  {
+    "file": "src/storage/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "src/storage/index.js",
+    "sha256": "eed526d9dad591653fa43ed62bddb3bd371dcdd3647ec5f22af5d8e53f71e845"
+  },
+  {
+    "file": "src/storage/local.js",
+    "sha256": "30bd0aebe2637a46995ba9f3802c527dcabf05b13f697eb8205c806044d30398"
+  },
+  {
+    "file": "src/utils/codes.js",
+    "sha256": "a87318b7634e92a5b636c45f8c159966020df4dfd09f7661e0c5b39fac5f9e99"
+  },
+  {
+    "file": "src/utils/errors.js",
+    "sha256": "595c004ebe53cf6c28bad35fe744d086d3a9231793f29e5fecf7701213c79c5f"
+  },
+  {
+    "file": "src/utils/keyedMutex.js",
+    "sha256": "c043a49f1fc305dc20b0e6cd92e7e2656507096b9f80604eb523398d125eb29f"
+  },
+  {
+    "file": "src/utils/response.js",
+    "sha256": "1c1ff05ef2a341baca8e6104ab2e99689868720ea9889016dfd45b2e34db58c2"
+  },
+  {
+    "file": "src/validators/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "src/validators/admin.schema.js",
+    "sha256": "9ccc620df4ec31ebeb1c05cb8032ccb8101d5f3d62ba1fa964df7349c04dc839"
+  },
+  {
+    "file": "src/validators/aiSessions.schema.js",
+    "sha256": "5f2f7a6b3cd62f79bd5eb6d7b837d95dabb4cf442fe9eba6922716e8449feb05"
+  },
+  {
+    "file": "src/validators/auth.schema.js",
+    "sha256": "3aef1e4b75f1ed4f6d9d21c10a102c9a3cee50c6bed91839e8db86f8d4abf5de"
+  },
+  {
+    "file": "src/validators/common.schema.js",
+    "sha256": "7cfc4118a9e5b3dd9b60316e9dbbba76705525607fa5dddd04a58269062dc644"
+  },
+  {
+    "file": "src/validators/fabrics.schema.js",
+    "sha256": "c5abbd042b6f72d1328a23d57c097cb43ab2e81084206c3e244ab27e8e111462"
+  },
+  {
+    "file": "src/validators/fabricsRead.schema.js",
+    "sha256": "d524638cc27c151c3ddfd2b3d07490a83024afa5115ce0d490c652e93f8cde91"
+  },
+  {
+    "file": "src/validators/factories.schema.js",
+    "sha256": "999834d992ae915e6238e0e9c35ec2cae9a2e51fbff755397a118a3a436c7c0b"
+  },
+  {
+    "file": "src/validators/favorites.schema.js",
+    "sha256": "794b0ff99811ecc47fa19252684116e852e180d1a9a3547a2c132200868e5f97"
+  },
+  {
+    "file": "src/validators/images.schema.js",
+    "sha256": "ccec94120a82a1943a775b8c51c9852b010fb2915bbc9a78d6493137ad273ce9"
+  },
+  {
+    "file": "src/validators/inquiries.schema.js",
+    "sha256": "34cc8982d32a6ea9ddebcaf6eac248bcb0814d517338cf3c43f3e29989039678"
+  },
+  {
+    "file": "src/validators/patterns.schema.js",
+    "sha256": "65f0e94f58b2e2bda3343914da11b86dcf81f875035b566f79dbd5fcea88d1c1"
+  },
+  {
+    "file": "src/validators/recommendations.schema.js",
+    "sha256": "6a22a0d6141f79f1dd6f8d5d2294c0226ff0733e6daa6a63e65aaa357d50317a"
+  },
+  {
+    "file": "src/validators/reservations.schema.js",
+    "sha256": "fb9875466a889c0d2f5f0245e59ca2f30afc87af8f4455a182f25aa7720aa7e7"
+  },
+  {
+    "file": "src/validators/stores.schema.js",
+    "sha256": "ab1e609aa44a44334cf2f970ddb4438216fdbb98911907972cb170b7214f3226"
+  },
+  {
+    "file": "src/validators/users.schema.js",
+    "sha256": "d56e79d4b70fb0a58b6e14931f1e6acd63aae4ae129f140e81b3087666b4c90f"
+  },
+  {
+    "file": "tests/admin.test.js",
+    "sha256": "07fd9c8bbd6448c4000e772ebc79ac3dd33086f884779ca60a0a37d82c29d368"
+  },
+  {
+    "file": "tests/aiFlow.test.js",
+    "sha256": "9f0a9121307ba6b5cb3be441f54b0681272dc1b128495d8f6d5b7f1dc57894b3"
+  },
+  {
+    "file": "tests/aiPhoto.test.js",
+    "sha256": "97ec5147e736e70b03aac0382948ca04f9c9001a7326ad31dfba11ba2dc8d977"
+  },
+  {
+    "file": "tests/aiSessions.test.js",
+    "sha256": "b24183f59109fda58e1beea250148cf6903d2b879caffc16f7660f5cc880af71"
+  },
+  {
+    "file": "tests/auth.test.js",
+    "sha256": "d864d90f9ad1e2e4112ba7c19e6e807b7f20535f2d84dc98464d83061bb1007e"
+  },
+  {
+    "file": "tests/docs.test.js",
+    "sha256": "bd059c2aea67cc42c0c862b5ff9827778a47ac95cfc7020f4541ef7be9c3543f"
+  },
+  {
+    "file": "tests/fabrics-read.test.js",
+    "sha256": "3bbab61c1d6e3cbcccf346df433c4538ebee4c1220f0d4594a38a6497f7d089e"
+  },
+  {
+    "file": "tests/fabrics-update-delete.test.js",
+    "sha256": "00898078bddf702269b02eecf7f7a5c557660dd88e82b3a277def2cfe3692836"
+  },
+  {
+    "file": "tests/fabrics.test.js",
+    "sha256": "6e6e708e3fd547f3a34980e359b0d082f7b2cbbffec46c081716443c7bc0b612"
+  },
+  {
+    "file": "tests/factories.test.js",
+    "sha256": "9ded3f1a2864c3da8b431cdb97e974d07361d6be6094046909cd1da06cbc37c1"
+  },
+  {
+    "file": "tests/factoryGeocoding.test.js",
+    "sha256": "e167d8796652e7549dc8facc420ae0dca9b3bf79c911dca6dc789e9f940a33d1"
+  },
+  {
+    "file": "tests/factoryImport.test.js",
+    "sha256": "21f73b86bf2db86145cb9da93cffad8ab5fe48a52453087793804be1387c5921"
+  },
+  {
+    "file": "tests/factoryPreparation.test.js",
+    "sha256": "a260420ebdc80e4b841903a36a4ab732d308ed19a911eef42f54b10cb10b992d"
+  },
+  {
+    "file": "tests/factorySync.test.js",
+    "sha256": "e33a8ff37308b1f3f4e85e59fc423e46d651405563a978a39108497b2985ef8d"
+  },
+  {
+    "file": "tests/favorites.test.js",
+    "sha256": "e818bbdfee234d67bbacf232c9640d6938ffa97d2f6a6821db268bfdaa913f86"
+  },
+  {
+    "file": "tests/health.test.js",
+    "sha256": "5699ef14151f960915acbc2213d48ca42aa35c88ae07f2ed2e895c594dfa0109"
+  },
+  {
+    "file": "tests/helpers.js",
+    "sha256": "312d879a96e347e56b2964a6533bba30668af722da557590369917db0e2cf4d1"
+  },
+  {
+    "file": "tests/images.test.js",
+    "sha256": "9b5f1d2cd881387775c2594bb651bbbb3514847096e8f73c99f2fdb9e3412866"
+  },
+  {
+    "file": "tests/inquiries.test.js",
+    "sha256": "f234c2f0fd3ccb75282dbc49f3eb2b46910a2154b494ec9c37753c27f3a96b49"
+  },
+  {
+    "file": "tests/patterns.test.js",
+    "sha256": "ae60c65999c1565ceaff3f319100c1047eda9aaef4b73013d4723402e0b7fdf8"
+  },
+  {
+    "file": "tests/rateLimit.test.js",
+    "sha256": "12d3491fe49102339f571255e361d3ae0ef1dbddbe2e996fe7de18b40faa036c"
+  },
+  {
+    "file": "tests/recommendations.test.js",
+    "sha256": "ed6de1d061befe8777cb6d56997918a332625d8001e6212c8f8a9e70e08f75db"
+  },
+  {
+    "file": "tests/reservations.test.js",
+    "sha256": "598bb4ffddc1bd96ea136af340a93f8b234151f2a5d4e2abb1f4101253d5054f"
+  },
+  {
+    "file": "tests/rules.test.js",
+    "sha256": "3d0dfe592d41ba854bc6e962e351ec71036d26294d8d71f43c67805c4d7965d3"
+  },
+  {
+    "file": "tests/schema.test.js",
+    "sha256": "43e91afebe0494688d5b363e4a400693e5f29eafd3f73b39778f35aec8bf8202"
+  },
+  {
+    "file": "tests/seed.test.js",
+    "sha256": "e3e6a51cbad356073d489269ebb0f084afefe242d6a2a2565997e9f6d895ccb9"
+  },
+  {
+    "file": "tests/setup.js",
+    "sha256": "b77c10d4b6c1cb51c70f541025a9c9df1ef3a0f7988bf3b26d52eb5929d71309"
+  },
+  {
+    "file": "tests/stores.test.js",
+    "sha256": "e584dbeebd87382b87fdac7f7e05750f9941d13622f0116e8f005b37f9217b22"
+  }
+]

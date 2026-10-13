@@ -1,0 +1,60 @@
+{
+  "tool": "Strix",
+  "version": "1.7.0",
+  "sourceCommit": "d8c00a8f4ebadec265582fb777081067a35f79d3",
+  "model": "chatgpt/gpt-6.1-sol",
+  "auth": "separate user-authorized ChatGPT subscription OAuth",
+  "comparisonCompletedByStrix": false,
+  "before": {
+    "run": "before_5e1b",
+    "status": "failed",
+    "start": "2026-10-13T17:45:28.033084+00:00",
+    "end": "2026-10-13T17:52:31.094168+00:00",
+    "complete": false,
+    "reason": "OpenAI cybersecurity content guardrail stopped the autonomous scan",
+    "error": "CodexContentGuardrailError",
+    "verifiedFindingCount": null,
+    "meaning": "Unassessed; no completed dynamic vulnerability validation",
+    "sourceReviewRecorded": true,
+    "sourceReviewOutcome": "needs_follow_up",
+    "coverageGaps": 9,
+    "llmRequestsRecorded": 48,
+    "artifacts": [
+      "before/strix_runs/before_5e1b/run.json",
+      "before/strix_runs/before_5e1b/coverage.json",
+      "before/strix_runs/before_5e1b/findings.sarif",
+      "before/scan.txt"
+    ]
+  },
+  "after": {
+    "status": "not_run",
+    "reason": "The selected autonomous model workflow was stopped by the provider guardrail",
+    "verifiedFindingCount": null
+  },
+  "independentReplay": {
+    "completed": true,
+    "before": {
+      "pass": 5,
+      "fail": 0
+    },
+    "after": {
+      "pass": 5,
+      "fail": 0
+    },
+    "scope": "Four P0 areas, five scenarios; actual Docker apps and frontend logout adapter",
+    "paidApplicationAiCalls": 0
+  },
+  "isolation": {
+    "networksInternal": true,
+    "sourceMount": "sanitized disposable copy only",
+    "hostGatewayNewConnectionsBlocked": true,
+    "sandboxCapabilities": "ALL dropped",
+    "noNewPrivileges": true,
+    "noDockerSocketInsideAgent": true,
+    "actualEnvUsed": false,
+    "realPersonalDataUsed": false,
+    "baseSandboxDigest": "sha256:f6906c3114e504fd1a218fcf028d7a0e46851118403a438b63956de6ea7c4331",
+    "scopedSandboxImage": "fabring-strix-sandbox:20261014",
+    "scopedSandboxId": "sha256:7fcf099378fee698f44b375ddb260b0129dedfec3d9794353599f2f456a39537"
+  }
+}

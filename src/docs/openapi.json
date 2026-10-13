@@ -3,7 +3,7 @@
   "info": {
     "title": "Material Loop API",
     "version": "v0.3",
-    "description": "양주시 자투리 원단 거래 웹 서비스 API. **API 명세서(docs/Material_Loop_API_명세서_v0.3.docx)가 정답**이고, 이 문서는 명세서에서 자동으로 만들어요.\n\n- 성공 응답은 `{ \"success\": true, \"data\": ... }`, 실패는 `{ \"success\": false, \"error\": { \"code\", \"message\", \"details?\" } }` 예요.\n- 로그인 후 받은 `accessToken` 을 오른쪽 위 **Authorize** 에 붙여 넣으면 로그인이 필요한 API 를 호출해 볼 수 있어요.\n- 식별자(`userId`, `fabricId` 등)는 camelCase, 그 밖의 항목은 snake_case 예요."
+    "description": "양주시 자투리 원단 거래 웹 서비스 API. 기본 계약은 v0.3이며 2026-10-14 보안 확장(API_SECURITY_2026-10-14.md)이 우선 적용됩니다. 이 문서는 API_명세서_v0.3.md에서 자동 생성합니다.\n\n- 성공 응답은 `{ \"success\": true, \"data\": ... }`, 실패는 `{ \"success\": false, \"error\": { \"code\", \"message\", \"details?\" } }` 예요.\n- 로그인 후 받은 `accessToken` 을 오른쪽 위 **Authorize** 에 붙여 넣으면 로그인이 필요한 API 를 호출해 볼 수 있어요.\n- 식별자(`userId`, `fabricId` 등)는 camelCase, 그 밖의 항목은 snake_case 예요."
   },
   "servers": [
     {
@@ -44,6 +44,9 @@
     },
     {
       "name": "공장"
+    },
+    {
+      "name": "보안 확장 2026년 10월 14일"
     }
   ],
   "paths": {
@@ -185,7 +188,7 @@
                     "type": "string",
                     "minLength": 8,
                     "maxLength": 72,
-                    "description": "비밀번호 (8~72자) / 최소 8자, 최대 72자"
+                    "description": "비밀번호 / 최소 8자, 최대 72자이며 UTF-8 인코딩 기준 최대 72바이트. 입력을 잘라서 저장하지 않음"
                   },
                   "nickname": {
                     "type": "string",
@@ -241,7 +244,7 @@
             }
           }
         },
-        "description": "판매자 또는 구매자로 가입해요. 운영팀(ADMIN) 계정은 이 API로 만들 수 없어요.\n\n**권한:** 공개 · **구분:** 필수\n\n**처리 규칙**\n\n- 이메일은 앞뒤 공백을 지우고 소문자로 저장해요. 대소문자만 다른 이메일도 중복으로 봐요.\n- 비밀번호는 8~72자이고 암호화(bcrypt)해서 저장해요.\n- privacy_agreed, terms_agreed 가 둘 다 true 여야 가입돼요.\n- 판매자(SELLER)는 seller_approval_status 가 PENDING 으로 시작하고, 구매자는 null 이에요.\n- 판매자는 운영팀이 승인(APPROVED)해야 원단을 등록할 수 있어요.\n- 같은 주소에서 15분에 20번까지만 시도할 수 있어요."
+        "description": "판매자 또는 구매자로 가입해요. 운영팀(ADMIN) 계정은 이 API로 만들 수 없어요.\n\n**권한:** 공개 · **구분:** 필수\n\n**처리 규칙**\n\n- 이메일은 앞뒤 공백을 지우고 소문자로 저장해요. 대소문자만 다른 이메일도 중복으로 봐요.\n- 비밀번호는 8자 이상이며 UTF-8 기준 72바이트 이하이고 bcrypt 해시로 저장해요. 원래 길이가 확인되지 않은 기존 계정은 72바이트 입력도 거절하며 본인 확인 후 재설정이 필요합니다. [보안 추가사항](API_SECURITY_2026-10-14.md)을 참고하세요.\n- privacy_agreed, terms_agreed 가 둘 다 true 여야 가입돼요.\n- 판매자(SELLER)는 seller_approval_status 가 PENDING 으로 시작하고, 구매자는 null 이에요.\n- 판매자는 운영팀이 승인(APPROVED)해야 원단을 등록할 수 있어요.\n- 같은 주소에서 15분에 20번까지만 시도할 수 있어요."
       }
     },
     "/auth/login": {
@@ -398,7 +401,8 @@
                   "password": {
                     "type": "string",
                     "minLength": 1,
-                    "description": "비밀번호 (8~72자) / 최소 1자"
+                    "maxLength": 72,
+                    "description": "비밀번호 / 최소 1자, 최대 72자이며 UTF-8 기준 최대 72바이트"
                   }
                 },
                 "required": [
@@ -9958,6 +9962,70 @@
         "x-priority": "선택",
         "x-permission": "공개",
         "description": "양주시 공장 목록을 누구나 볼 수 있어요. 생산품 문장을 업종 카테고리로 묶어, 한 업종만 골라 볼 수 있어요.\n\n**권한:** 공개 · **구분:** 선택\n\n**처리 규칙**\n\n- category 를 주면 그 업종만 돌려줘요. 없으면 모든 공장을 돌려줘요.\n- category 는 생산품(industry) 문장으로 정해요. 따로 저장된 값이 아니에요.\n- 정렬은 등록 순(factory_id 오름차순)이에요.\n- 위도·경도가 없으면 null 이에요."
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "보안 확장 2026년 10월 14일"
+        ],
+        "summary": "50. 로그아웃",
+        "operationId": "api50",
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "**UNAUTHORIZED** — Bearer 토큰이 없거나 유효하지 않거나 이미 폐기됐습니다.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "summary": "UNAUTHORIZED",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "다시 로그인해 주세요"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-api-no": 50,
+        "x-priority": "필수",
+        "x-permission": "BUYER, SELLER, ADMIN",
+        "description": "현재 Bearer JWT를 DB 폐기 목록에 기록하고 같은 토큰의 사용을 중단합니다.\n\n**권한:** BUYER, SELLER, ADMIN · **구분:** 필수\n\n**처리 규칙**\n\n- 서버는 토큰 원문 대신 SHA-256 지문과 만료시각을 저장합니다. 이후 보호 API와 선택 인증 API에서 같은 토큰을 거절합니다. 폐기 상태는 DB에 남아 서버 재시작과 여러 서버에서도 공유됩니다. 이미 폐기되거나 만료된 토큰은 401입니다. 연결 실패 시 클라이언트 저장소 제거와 서버 폐기 확인은 구분합니다."
       }
     }
   },

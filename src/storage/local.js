@@ -1,7 +1,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-// 사진을 내 컴퓨터 폴더에 저장한다. 파일은 /uploads/... 주소로 보여 준다. (app.js 의 express.static)
+// 사진을 내 컴퓨터 폴더에 저장한다. /uploads/... 응답은 app.js에서 DB 권한을 검사한다.
 // 다른 저장소(클라우드)도 같은 모양(put, remove, keyOf)으로 만들면 services 를 고치지 않고 바꿀 수 있다.
 export function createLocalStorage({ rootDir, publicUrl }) {
   const root = path.resolve(rootDir);

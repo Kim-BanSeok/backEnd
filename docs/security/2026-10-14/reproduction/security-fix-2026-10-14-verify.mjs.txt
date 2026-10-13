@@ -1,0 +1,30 @@
+import { loadEnvFile } from 'node:process';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import assert from 'node:assert/strict';
+const root = fileURLToPath(new URL('../../', import.meta.url));
+loadEnvFile(path.join(root, 'backend-local/.env'));
+const run = JSON.parse(await fs.readFile(path.join(root, '.local-runtime/security-fix-2026-10-14/manifest.json'), 'utf8'));
+assert.match(run.database, /^material_loop_security_20261014_\d+_test$/);
+assert.equal(run.host, '127.0.0.1'); assert.equal(run.port, 54329);
+const childEnv = { ...process.env, NODE_ENV: 'test', DB_HOST: run.host, DB_PORT: String(run.port), DB_DATABASE_TEST: run.database, AI_PROVIDER: 'fake', AI_SESSION_STORE: 'database', UPLOAD_DIR: run.uploads };
+const checks = [
+  ['migration-update', run.backend, ['node_modules/sequelize-cli/lib/sequelize', 'db:migrate', '--env', 'test']],
+  ['backend-tests', run.backend, ['--import', './tests/setup.js', '--test', '--test-concurrency=1', 'tests/**/*.test.js']],
+  ['backend-lint', run.backend, ['node_modules/eslint/bin/eslint.js', '.']],
+  ['frontend-tests', path.join(root, 'frontend'), ['--test', 'tests/*.test.js']],
+  ['frontend-lint', path.join(root, 'frontend'), ['node_modules/oxlint/bin/oxlint', '.']],
+  ['frontend-build', path.join(root, 'frontend'), ['node_modules/vite/bin/vite.js', 'build']],
+];
+const results = [];
+for (const [name, cwd, args] of checks) {
+  const result = spawnSync(process.execPath, args, { cwd, env: childEnv, encoding: 'utf8', timeout: 180000, maxBuffer: 8 * 1024 * 1024 });
+  const output = `${result.stdout || ''}${result.stderr || ''}`;
+  await fs.writeFile(path.join(run.output, `${name}.log`), output);
+  const check = { name, status: result.status, error: result.error?.code ?? null, summary: output.split('\n').filter(line => /^# (tests|pass|fail|duration_ms)|^ℹ (tests|pass|fail|duration_ms)|^✔/.test(line)).slice(-6) };
+  results.push(check); console.log(JSON.stringify(check));
+}
+await fs.writeFile(path.join(run.output, 'verification-results.json'), JSON.stringify(results, null, 2));
+if (results.some(check => check.name !== 'frontend-tests' && check.status !== 0)) process.exitCode = 1;

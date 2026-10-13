@@ -1,0 +1,14 @@
+2026-10-14 02:38:53.680 ERROR   - - openai.agents: Error getting response
+
+
+╭─ STRIX ──────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  MODEL NOT AVAILABLE ON SUBSCRIPTION                                         │
+│                                                                              │
+│  This model isn't available on your ChatGPT subscription. Set STRIX_LLM to   │
+│  a model your plan includes (e.g. chatgpt/gpt-5.4).                          │
+│                                                                              │
+│  Details: Error code: 400 - {'detail': "The 'gpt-5.4' model is not           │
+│  supported when using Codex with a ChatGPT account."}                        │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯

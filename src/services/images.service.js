@@ -6,6 +6,7 @@ import { storage } from '../storage/index.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
 import * as imagesDao from '../dao/images.dao.js';
 import { assertFabricOwner } from './fabricAccess.js';
+import { signedImageUrl } from './imageAccess.service.js';
 
 const MAX_IMAGES = 3;
 const THUMBNAIL_WIDTH = 400;
@@ -17,6 +18,7 @@ async function assertOwnFabric(userId, fabricId) {
   const fabric = await fabricsDao.findById(fabricId);
   if (!fabric) throw fail('NOT_FOUND');
   await assertFabricOwner(userId, fabric);
+  return fabric;
 }
 
 // 파일 내용을 실제로 읽어서 jpg·png·webp 인지 확인하고 썸네일(가로 400px webp)을 만든다.
@@ -33,24 +35,25 @@ async function inspectImage(buffer) {
       .resize({ width: THUMBNAIL_WIDTH, withoutEnlargement: true })
       .webp()
       .toBuffer();
-    return { ext, thumbnail };
+    const cleanOriginal = await image.clone().rotate().toFormat(format).toBuffer();
+    return { ext, thumbnail, cleanOriginal };
   } catch {
     throw fail('IMAGE_TOO_LARGE');
   }
 }
 
 export async function addImage(userId, fabricId, { buffer, imageType }) {
-  await assertOwnFabric(userId, fabricId);
+  const fabric = await assertOwnFabric(userId, fabricId);
   // 3장이면 파일을 처리하기 전에 빨리 거절한다. (아래 트랜잭션 안에서 한 번 더 확인한다)
   if ((await imagesDao.countByFabric(fabricId)) >= MAX_IMAGES) throw fail('IMAGE_LIMIT_EXCEEDED');
 
-  const { ext, thumbnail } = await inspectImage(buffer);
+  const { ext, thumbnail, cleanOriginal } = await inspectImage(buffer);
   const id = randomUUID();
   const imageKey = `fabrics/${fabricId}/${id}.${ext}`;
   const thumbnailKey = `fabrics/${fabricId}/thumbs/${id}.webp`;
 
   try {
-    const imageUrl = await storage.put(imageKey, buffer);
+    const imageUrl = await storage.put(imageKey, cleanOriginal);
     const thumbnailUrl = await storage.put(thumbnailKey, thumbnail);
 
     const image = await sequelize.transaction(async (transaction) => {
@@ -72,8 +75,8 @@ export async function addImage(userId, fabricId, { buffer, imageType }) {
 
     return {
       imageId: image.image_id,
-      image_url: image.image_url,
-      thumbnail_url: image.thumbnail_url,
+      image_url: signedImageUrl(image.image_url, fabric.status),
+      thumbnail_url: signedImageUrl(image.thumbnail_url, fabric.status),
       sort_order: image.sort_order,
     };
   } catch (err) {

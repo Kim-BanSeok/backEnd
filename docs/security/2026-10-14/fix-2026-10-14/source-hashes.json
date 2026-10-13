@@ -1,0 +1,226 @@
+[
+  {
+    "file": "backend-local/.env.example",
+    "sha256": "cbfc8879d72156ac00496a2f0f98fdece66188a851e4c6337dad35a969a8ac84"
+  },
+  {
+    "file": "backend-local/.env.team.example",
+    "sha256": "b302dae6f63733757b911a55699721abb3172fe270ecaa010119da3aadfbf4a5"
+  },
+  {
+    "file": "backend-local/README.md",
+    "sha256": "1a4c40d9f526aace5bca79a2e0686da33eb09abf760117369887ad0ab9166252"
+  },
+  {
+    "file": "backend-local/docs/API_명세서_v0.3.md",
+    "sha256": "2547fa83630a43404d4c535e336ab108ab7ff90ce308cec7034e22ecc9112811"
+  },
+  {
+    "file": "backend-local/src/ai/claudeProvider.js",
+    "sha256": "6f9a10e714b8099587bddee6d47dc02d6a85e732658b0c039600a30aac4c851f"
+  },
+  {
+    "file": "backend-local/src/app.js",
+    "sha256": "54326d3a62888d0a6807314fff77e191efad1262167638e60d7c6a48f2c31d08"
+  },
+  {
+    "file": "backend-local/src/config/env.js",
+    "sha256": "fe8838126f399351afcfea073652f64966e4d65b84f1c56a9f9fefdb43f6f24b"
+  },
+  {
+    "file": "backend-local/src/controllers/auth.controller.js",
+    "sha256": "7978d277e76719812be1edebecdec2abab821960f82d2a2671a239b5ac562ce4"
+  },
+  {
+    "file": "backend-local/src/dao/aiSessions.dao.js",
+    "sha256": "22f71545b161b921c549ef8212f75ccece642134235f6a5b80f76aadf2b1f356"
+  },
+  {
+    "file": "backend-local/src/db/seedAdmin.js",
+    "sha256": "4649e3e02c516c8ce7e99f6bbbab563ba31ca588cd5f1ce0d23f18c2c54d6aa6"
+  },
+  {
+    "file": "backend-local/src/docs/buildOpenApi.js",
+    "sha256": "d567ab9fc0dabff317475656bd2aa0e762eb1135effde756605006b20c8573df"
+  },
+  {
+    "file": "backend-local/src/docs/openapi.json",
+    "sha256": "5e89ec4f4cbbc4af4d18c03466312653a6fbf346eb29eb513cecf9b940bb7663"
+  },
+  {
+    "file": "backend-local/src/middlewares/auth.js",
+    "sha256": "181227051c6935d6f9a524f263eae50be4792e9d43f86b80f3a60b1687f6ac0e"
+  },
+  {
+    "file": "backend-local/src/models/User.js",
+    "sha256": "8b95e5f28823c8aeacb7480d6030a7e51227e60f3d9a75b4ca9662e28f2e43ab"
+  },
+  {
+    "file": "backend-local/src/models/index.js",
+    "sha256": "096755552a5f0f958eece935d63df51088771edd9ca2bb3ba4267ab1082a714b"
+  },
+  {
+    "file": "backend-local/src/routes/auth.routes.js",
+    "sha256": "3a59627e6e4bb3bb08a077f1b77c3a437f2ebd22b3180771284bebe2fed518a7"
+  },
+  {
+    "file": "backend-local/src/services/admin.service.js",
+    "sha256": "7df9f5df2e29e07b5695efc64391902a0530b7ff3642dfa13a596a56632f1827"
+  },
+  {
+    "file": "backend-local/src/services/aiPhoto.service.js",
+    "sha256": "59d1bf14060127a6a42a6c632bc6a661a873d2c60bc8c34555c172365331b596"
+  },
+  {
+    "file": "backend-local/src/services/aiRegistration.service.js",
+    "sha256": "3edabcf8eb07f04d272a32a375f9da8e1723244f1cabafe2509058b94508fadc"
+  },
+  {
+    "file": "backend-local/src/services/auth.service.js",
+    "sha256": "ee0d7e987005897e833a613a84fe5957bf2e0d63454330e66c8c3be8879f099c"
+  },
+  {
+    "file": "backend-local/src/services/fabricsRead.service.js",
+    "sha256": "598b4fb139604209185d866c2b51bf5f2d64d873872ede31d2397d7848ab12cc"
+  },
+  {
+    "file": "backend-local/src/services/favorites.service.js",
+    "sha256": "16336b69f7d285e4dfcf729941cd6017bfcefc190d4486b009e9cc1773f1730e"
+  },
+  {
+    "file": "backend-local/src/services/images.service.js",
+    "sha256": "ff1c7af0f8462e9f9332708dca7443de69140cf71bcb342e6ff6184ddb154a18"
+  },
+  {
+    "file": "backend-local/src/services/reservations.service.js",
+    "sha256": "857dd63cced2a8d8d84ca6214920af270616313027c514c2f20ce4abfcede6bc"
+  },
+  {
+    "file": "backend-local/src/storage/local.js",
+    "sha256": "30bd0aebe2637a46995ba9f3802c527dcabf05b13f697eb8205c806044d30398"
+  },
+  {
+    "file": "backend-local/src/validators/auth.schema.js",
+    "sha256": "3aef1e4b75f1ed4f6d9d21c10a102c9a3cee50c6bed91839e8db86f8d4abf5de"
+  },
+  {
+    "file": "backend-local/tests/docs.test.js",
+    "sha256": "bd059c2aea67cc42c0c862b5ff9827778a47ac95cfc7020f4541ef7be9c3543f"
+  },
+  {
+    "file": "backend-local/tests/images.test.js",
+    "sha256": "9b5f1d2cd881387775c2594bb651bbbb3514847096e8f73c99f2fdb9e3412866"
+  },
+  {
+    "file": "backend-local/docs/API_SECURITY_2026-10-14.md",
+    "sha256": "0789f89998223f6bd61b19072dc899aa8d24be5bcba95ee90d793a35658f7a18"
+  },
+  {
+    "file": "backend-local/migrations/20261014000000-security-state.cjs",
+    "sha256": "5add8e6f13b6e156507270ca990a7151edbf3236a3253304b094d642f4983281"
+  },
+  {
+    "file": "backend-local/migrations/20261014000001-password-input-length.cjs",
+    "sha256": "1464542b2d321ef39f60092071ee0a7adbba06e45e212b7dadb141d61e7c929c"
+  },
+  {
+    "file": "backend-local/src/dao/aiSessions.database.js",
+    "sha256": "556edeafc9f24cdfe493315532532f1e0f6d282a877ad2fcb7e3ebb67f4e0c5b"
+  },
+  {
+    "file": "backend-local/src/dao/security.dao.js",
+    "sha256": "878fc2e71c2b0d9ea3bc866f0bafb2ede3f19b28fe6eeed2af12e2b8136f96f3"
+  },
+  {
+    "file": "backend-local/src/models/AiSession.js",
+    "sha256": "6d6d5d92f92cfe4a0b3fcada5f57238d1c6a7965291e7bc8b4cbf087a9903448"
+  },
+  {
+    "file": "backend-local/src/models/AiUsageBucket.js",
+    "sha256": "8bdcbff1b5f4028049afa8694cc4a8f4a728aa44c7186c95464eefb9ac73bcd4"
+  },
+  {
+    "file": "backend-local/src/models/AiUsageLease.js",
+    "sha256": "284305ec722318b12ede393863b6ce8695826779217f962755518292bb26ff3b"
+  },
+  {
+    "file": "backend-local/src/models/RevokedToken.js",
+    "sha256": "8546fdb9153353d6ba220a74a521ff1b82578e6679472a5a113f2a3011faabe7"
+  },
+  {
+    "file": "backend-local/src/services/imageAccess.service.js",
+    "sha256": "d223c4b2e94218e07ba570eee76221137be90ea701b1f2a70fd3c000a21ce73d"
+  },
+  {
+    "file": "backend-local/src/services/security.service.js",
+    "sha256": "afe69b31a61c0d11fab64a7c16be1a862553fe3dd7090fd8cb4827b55814b857"
+  },
+  {
+    "file": "backend-local/tests/security.test.js",
+    "sha256": "65b49aa031ba45cb739a8f7a3670ebe9fdce0d8f4113f9b4f55a518906bf0eaf"
+  },
+  {
+    "file": "frontend/src/react/app/store.js",
+    "sha256": "faa741712093b57f4a9966a04c6e9f054c01c12040a7fb6bb616568fdd9e395c"
+  },
+  {
+    "file": "frontend/src/react/pages/AuthPage.jsx",
+    "sha256": "ebe5af25e01de5ba031897018224aea5f47044ab3b660f72cf4eb0312aa242f0"
+  },
+  {
+    "file": "frontend/src/react/services/live-api.js",
+    "sha256": "51be524ecebdbcfe66156b1872226fcf99d9780fd5f242b53aeed3afda93e040"
+  },
+  {
+    "file": "frontend/tests/admin-api.test.js",
+    "sha256": "184dc3f035cc7f5042b445bae52caacc17e45c98b12ec92a5d4171591043037a"
+  },
+  {
+    "file": "frontend/tests/ai-api.test.js",
+    "sha256": "426c03d2b75b0143f59fe05007c1ac1db69cd0ccab12adf7efa6274c78abb12b"
+  },
+  {
+    "file": "frontend/tests/auth-api.test.js",
+    "sha256": "3b5996756826437cfde9cdcb123b0c7c5a24e17be0b57f88ae7c20aca3745a3a"
+  },
+  {
+    "file": "frontend/tests/fabric-api.test.js",
+    "sha256": "18b89791ec3763b0ca280a667da98eb40791b603541daaea9bc5c526b5034112"
+  },
+  {
+    "file": "frontend/tests/favorite-api.test.js",
+    "sha256": "1ca5edfd7600c05735d7550caaf946edeb9b8eaaf221c0dbfcba6f1dc459ef08"
+  },
+  {
+    "file": "frontend/tests/inquiry-profile-api.test.js",
+    "sha256": "caad94f75e671b890000c066dd12487bec6940c8ff14ea02339482248eb06d8f"
+  },
+  {
+    "file": "frontend/tests/recommendation-api.test.js",
+    "sha256": "0e64cc5980700f373de0612b5190615b10f8f742018303fde7ed2f6ab1aa3bf8"
+  },
+  {
+    "file": "frontend/tests/reservation-api.test.js",
+    "sha256": "8e7dc0ad87444d52074614dafb86c604ea2a58827482fbaee1a2d4c568b69c86"
+  },
+  {
+    "file": "frontend/tests/seller-dashboard-api.test.js",
+    "sha256": "54fe007eb17218ed39ed1262310c96261e778092b3cf103e522b91070aa134ab"
+  },
+  {
+    "file": "frontend/tests/seller-fabric-api.test.js",
+    "sha256": "0f89d54457dc1684f945cead4152e981fab5c8e99f1dddfeaa0098e8430472eb"
+  },
+  {
+    "file": "frontend/tests/seller-reservation-api.test.js",
+    "sha256": "b08b2da93604bd6890ff5e774e6c1779975e9b1ed3697ff2d259ff6a826b63cb"
+  },
+  {
+    "file": "frontend/tests/store-api.test.js",
+    "sha256": "efe754c6de2b0a20fbee2f11b831f1b39312fa02b8310bec224ca477e05860f7"
+  },
+  {
+    "file": "frontend/tests/security-auth.test.js",
+    "sha256": "4012a4ae490fd11bc34578c731b681106c69380187a0d05e74cd409586df4322"
+  }
+]

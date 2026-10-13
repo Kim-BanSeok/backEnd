@@ -5,6 +5,7 @@ import * as fabricsDao from '../dao/fabrics.dao.js';
 import * as imagesDao from '../dao/images.dao.js';
 import * as usersDao from '../dao/users.dao.js';
 import { toStoreResponse } from './stores.service.js';
+import { signedImageUrl } from './imageAccess.service.js';
 
 const pageOf = ({ rows, count }, page, size, toItem) => ({
   content: rows.map(toItem),
@@ -43,8 +44,8 @@ const toAdminFabric = (fabric) => {
     },
     images: fabric.images.map((image) => ({
       imageId: image.image_id,
-      image_url: image.image_url,
-      thumbnail_url: image.thumbnail_url,
+      image_url: signedImageUrl(image.image_url, fabric.status),
+      thumbnail_url: signedImageUrl(image.thumbnail_url, fabric.status),
       image_type: image.image_type,
       sort_order: image.sort_order,
     })),

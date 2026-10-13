@@ -4,6 +4,7 @@ import { MATERIALS, THICKNESSES, COLOR_FAMILIES } from '../utils/codes.js';
 import { getProvider } from '../ai/index.js';
 import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { withAiCall } from './security.service.js';
 
 const MAX_AI_ATTEMPTS = 2;
 const MEDIA_TYPES = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
@@ -41,15 +42,16 @@ async function mediaTypeOf(buffer) {
   }
 }
 
-async function describeWithRetry(buffer, mediaType) {
+async function describeWithRetry(userId, buffer, mediaType) {
   const provider = getProvider();
   let lastError;
   for (let attempt = 1; attempt <= MAX_AI_ATTEMPTS; attempt += 1) {
     try {
-      const result = await provider.describeImage({ mediaType, data: buffer.toString('base64') });
+      const result = await withAiCall(userId, () => provider.describeImage({ mediaType, data: buffer.toString('base64') }));
       if (!result || typeof result.values !== 'object' || result.values === null) throw new Error('AI 응답 형식이 올바르지 않아요');
       return result.values;
     } catch (error) {
+      if (error.code === 'TOO_MANY_REQUESTS') throw error;
       lastError = error;
     }
   }
@@ -65,5 +67,5 @@ export async function estimateFromPhoto(userId, buffer) {
   if (!(await storesDao.findByUserId(userId))) throw fail('STORE_REQUIRED');
 
   const mediaType = await mediaTypeOf(buffer);
-  return sanitizePhotoDraft(await describeWithRetry(buffer, mediaType));
+  return sanitizePhotoDraft(await describeWithRetry(userId, buffer, mediaType));
 }

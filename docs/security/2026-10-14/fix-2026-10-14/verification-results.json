@@ -1,0 +1,52 @@
+[
+  {
+    "name": "migration-update",
+    "status": 0,
+    "error": null,
+    "summary": []
+  },
+  {
+    "name": "backend-tests",
+    "status": 0,
+    "error": null,
+    "summary": [
+      "✔ 매장 정보 조회 오류: 없는 매장 404, 숫자가 아닌 id 400 (163.366ms)",
+      "✔ 공개 API 라도 잘못된 토큰이면 401 (명세서 2.3) (151.4405ms)",
+      "ℹ tests 520",
+      "ℹ pass 520",
+      "ℹ fail 0",
+      "ℹ duration_ms 119387.9079"
+    ]
+  },
+  {
+    "name": "backend-lint",
+    "status": 0,
+    "error": null,
+    "summary": []
+  },
+  {
+    "name": "frontend-tests",
+    "status": 1,
+    "error": null,
+    "summary": [
+      "✔ explicit view abort discards writes, and timeout remains uncertain (7.1975ms)",
+      "✔ reads begun during a write cannot undo its later confirmed snapshot or hasStore (1.3724ms)",
+      "ℹ tests 395",
+      "ℹ pass 393",
+      "ℹ fail 2",
+      "ℹ duration_ms 837.5189"
+    ]
+  },
+  {
+    "name": "frontend-lint",
+    "status": 0,
+    "error": null,
+    "summary": []
+  },
+  {
+    "name": "frontend-build",
+    "status": 0,
+    "error": null,
+    "summary": []
+  }
+]

@@ -1,5 +1,6 @@
 import { fail } from '../utils/errors.js';
 import { toKstIso } from '../utils/response.js';
+import { signedImageUrl } from './imageAccess.service.js';
 import * as favoritesDao from '../dao/favorites.dao.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
 
@@ -53,7 +54,7 @@ export const toFavoriteItem = (favorite) => {
       title: fabric.title,
       sale_type: fabric.sale_type,
       price: fabric.price,
-      thumbnail_url: fabric.images[0]?.thumbnail_url ?? null,
+      thumbnail_url: fabric.deleted_at || fabric.status !== 'POSTED' ? null : signedImageUrl(fabric.images[0]?.thumbnail_url, fabric.status),
       fabric_status: fabric.status,
       is_deleted: fabric.deleted_at !== null,
     };

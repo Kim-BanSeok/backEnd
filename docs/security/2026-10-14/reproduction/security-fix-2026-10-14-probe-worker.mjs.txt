@@ -1,0 +1,30 @@
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const root = fileURLToPath(new URL('../../', import.meta.url));
+assert.equal(process.env.NODE_ENV, 'test');
+assert.equal(process.env.DB_HOST, '127.0.0.1');
+assert.match(process.env.DB_DATABASE_TEST, /^material_loop_security_20261014_\d+_test$/);
+const moduleOf = file => import(pathToFileURL(path.join(root, 'backend-local', file)).href);
+const { default: db } = await moduleOf('src/models/index.js');
+const { createApp } = await moduleOf('src/app.js');
+const { setProvider } = await moduleOf('src/ai/index.js');
+let calls = 0, active = 0, peak = 0, hold = process.env.SECURITY_PROBE_HOLD === '1';
+const pending = [];
+setProvider({ name: 'proof-counter', model: 'fake', describeImage: async () => {
+  calls++; active++; peak = Math.max(peak, active);
+  process.send({ event: 'started', calls, active, peak });
+  try {
+    if (hold) await new Promise(resolve => pending.push(resolve));
+    return { values: { title: 'Security proof', material: 'COTTON', thickness: 'NORMAL', color_family: 'BLUE', has_defect: false } };
+  } finally { active--; }
+} });
+const server = createApp().listen(0, '127.0.0.1', () => process.send({ event: 'ready', origin: `http://127.0.0.1:${server.address().port}`, pid: process.pid }));
+process.on('message', async message => {
+  if (message.action === 'release') { hold = false; pending.splice(0).forEach(resolve => resolve()); }
+  if (message.action === 'stop') {
+    await new Promise(resolve => server.close(resolve)); await db.sequelize.close();
+    process.send({ id: message.id, stopped: true }); process.disconnect(); return;
+  }
+  process.send({ id: message.id, calls, active, peak });
+});

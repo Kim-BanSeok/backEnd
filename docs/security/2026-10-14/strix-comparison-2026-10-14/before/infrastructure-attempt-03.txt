@@ -1,0 +1,1050 @@
+
+
+╭─ STRIX ──────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Penetration test initiated                                                  │
+│                                                                              │
+│  Target  2 targets                                                           │
+│          [LOCAL_WORKSPACE]/.local-runtime/strix-com  │
+│  parison-2026-10-14/agent-input/before                                       │
+│          http://before-app:3000                                              │
+│  Output  strix_runs/before_718a                                              │
+│                                                                              │
+│  Vulnerabilities will be displayed in real-time.                             │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+2026-10-14 02:41:31.639 ERROR   before_718a - strix.core.execution: agent run failed for ae2eb9a8; marking failed
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 275, in _raise_for_status
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 515, in _exec_run
+    exec_result = await asyncio.wait_for(future, timeout=timeout)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 507, in <lambda>
+    lambda: self._container.exec_run(
+            ~~~~~~~~~~~~~~~~~~~~~~~~^
+        cmd=cmd,
+        ^^^^^^^^
+    ...<2 lines>...
+        user=user or "",
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/models/containers.py", line 209, in exec_run
+    resp = self.client.api.exec_create(
+        self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+        privileged=privileged, user=user, environment=environment,
+        workdir=workdir,
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/utils/decorators.py", line 19, in wrapped
+    return f(self, resource_id, *args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/exec_api.py", line 78, in exec_create
+    return self._result(res, True)
+           ~~~~~~~~~~~~^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 281, in _result
+    self._raise_for_status(response)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 277, in _raise_for_status
+    raise create_api_error_from_http_exception(e) from e
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/errors.py", line 39, in create_api_error_from_http_exception
+    raise cls(e, response=response, explanation=explanation) from e
+docker.errors.APIError: 409 Client Error for http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec: Conflict ("container 6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05 is not running")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1721, in _run_single_tool
+    result = await self._execute_single_tool_body(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1914, in _execute_single_tool_body
+    return await self._await_invoke_task(outer_task=outer_task, invoke_task=invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2027, in _await_invoke_task
+    return await asyncio.shield(invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1934, in _invoke_tool_and_run_post_invoke
+    invocation_result = await _invoke_function_tool_with_metadata(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/tool.py", line 2123, in _invoke_function_tool_with_metadata
+    output = await function_tool.on_invoke_tool(cast(Any, invoke_context), arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 453, in invoke
+    return await invoke_tool(ctx, raw_input)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 270, in invoke
+    return await invoke_tool(ctx, _coerce_arguments(raw_input, schema, nullish=nullish))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 182, in _invoke
+    return await self.run(self.args_model.model_validate_json(raw_input))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 211, in run
+    output, exit_code, original_token_count = await _run_one_shot_exec(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 99, in _run_one_shot_exec
+    result = await session.exec(command, timeout=timeout_s, shell=shell, user=user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 61, in _wrapped
+    return await self._annotate(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 405, in _annotate
+    value = await run()
+            ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 551, in exec
+    return await self._inner.exec(*command, timeout=timeout, shell=shell, user=user)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 595, in exec
+    return await super().exec(*command, timeout=timeout, shell=shell, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/base_sandbox_session.py", line 595, in exec
+    return await self._exec_internal(*sanitized_command, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 607, in _exec_internal
+    return await self._exec_internal_for_user(*command, timeout=timeout, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 625, in _exec_internal_for_user
+    return await self._exec_run(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 535, in _exec_run
+    raise ExecTransportError(command=command_for_errors, cause=e) from e
+agents.sandbox.errors.ExecTransportError: exec transport error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1877, in run_single_turn_streamed
+    single_step_result = await get_single_step_result_from_response(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 2981, in get_single_step_result_from_response
+    return await execute_tools_and_side_effects(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 766, in execute_tools_and_side_effects
+    ) = await _execute_tool_plan(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_planning.py", line 594, in _execute_tool_plan
+    ) = await gather_with_cancel(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/util/_asyncio_tasks.py", line 102, in gather_with_cancel
+    return tuple(gather_future.result())
+                 ~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2171, in execute_function_tool_calls
+    return await _FunctionToolBatchExecutor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ).execute()
+    ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1517, in execute
+    await self._drain_pending_tasks(pending_tool_runs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1572, in _drain_pending_tasks
+    await self._raise_failure_after_draining_siblings(failure)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1604, in _raise_failure_after_draining_siblings
+    raise merged_failure.error
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 343, in _record_completed_function_tool_tasks
+    results_by_tool_run[id(tool_run)] = task.result()
+                                        ~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1742, in _run_single_tool
+    raise UserError(f"Error running tool {func_tool.name}: {e}") from e
+agents.exceptions.UserError: Error running tool exec_command: exec transport error
+2026-10-14 02:42:35.548 ERROR   before_718a - strix.core.execution: agent run failed for 14006a61; marking failed
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 275, in _raise_for_status
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 515, in _exec_run
+    exec_result = await asyncio.wait_for(future, timeout=timeout)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 507, in <lambda>
+    lambda: self._container.exec_run(
+            ~~~~~~~~~~~~~~~~~~~~~~~~^
+        cmd=cmd,
+        ^^^^^^^^
+    ...<2 lines>...
+        user=user or "",
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/models/containers.py", line 209, in exec_run
+    resp = self.client.api.exec_create(
+        self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+        privileged=privileged, user=user, environment=environment,
+        workdir=workdir,
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/utils/decorators.py", line 19, in wrapped
+    return f(self, resource_id, *args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/exec_api.py", line 78, in exec_create
+    return self._result(res, True)
+           ~~~~~~~~~~~~^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 281, in _result
+    self._raise_for_status(response)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 277, in _raise_for_status
+    raise create_api_error_from_http_exception(e) from e
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/errors.py", line 39, in create_api_error_from_http_exception
+    raise cls(e, response=response, explanation=explanation) from e
+docker.errors.APIError: 409 Client Error for http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec: Conflict ("container 6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05 is not running")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1721, in _run_single_tool
+    result = await self._execute_single_tool_body(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1914, in _execute_single_tool_body
+    return await self._await_invoke_task(outer_task=outer_task, invoke_task=invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2027, in _await_invoke_task
+    return await asyncio.shield(invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1934, in _invoke_tool_and_run_post_invoke
+    invocation_result = await _invoke_function_tool_with_metadata(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/tool.py", line 2123, in _invoke_function_tool_with_metadata
+    output = await function_tool.on_invoke_tool(cast(Any, invoke_context), arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 453, in invoke
+    return await invoke_tool(ctx, raw_input)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 270, in invoke
+    return await invoke_tool(ctx, _coerce_arguments(raw_input, schema, nullish=nullish))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 182, in _invoke
+    return await self.run(self.args_model.model_validate_json(raw_input))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 211, in run
+    output, exit_code, original_token_count = await _run_one_shot_exec(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 99, in _run_one_shot_exec
+    result = await session.exec(command, timeout=timeout_s, shell=shell, user=user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 61, in _wrapped
+    return await self._annotate(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 405, in _annotate
+    value = await run()
+            ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 551, in exec
+    return await self._inner.exec(*command, timeout=timeout, shell=shell, user=user)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 595, in exec
+    return await super().exec(*command, timeout=timeout, shell=shell, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/base_sandbox_session.py", line 595, in exec
+    return await self._exec_internal(*sanitized_command, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 607, in _exec_internal
+    return await self._exec_internal_for_user(*command, timeout=timeout, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 625, in _exec_internal_for_user
+    return await self._exec_run(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 535, in _exec_run
+    raise ExecTransportError(command=command_for_errors, cause=e) from e
+agents.sandbox.errors.ExecTransportError: exec transport error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1877, in run_single_turn_streamed
+    single_step_result = await get_single_step_result_from_response(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 2981, in get_single_step_result_from_response
+    return await execute_tools_and_side_effects(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 766, in execute_tools_and_side_effects
+    ) = await _execute_tool_plan(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_planning.py", line 594, in _execute_tool_plan
+    ) = await gather_with_cancel(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/util/_asyncio_tasks.py", line 102, in gather_with_cancel
+    return tuple(gather_future.result())
+                 ~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2171, in execute_function_tool_calls
+    return await _FunctionToolBatchExecutor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ).execute()
+    ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1517, in execute
+    await self._drain_pending_tasks(pending_tool_runs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1572, in _drain_pending_tasks
+    await self._raise_failure_after_draining_siblings(failure)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1604, in _raise_failure_after_draining_siblings
+    raise merged_failure.error
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 343, in _record_completed_function_tool_tasks
+    results_by_tool_run[id(tool_run)] = task.result()
+                                        ~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1742, in _run_single_tool
+    raise UserError(f"Error running tool {func_tool.name}: {e}") from e
+agents.exceptions.UserError: Error running tool exec_command: exec transport error
+2026-10-14 02:42:42.001 ERROR   before_718a - strix.core.execution: agent run failed for 2fe1cd5e; marking failed
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 275, in _raise_for_status
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 515, in _exec_run
+    exec_result = await asyncio.wait_for(future, timeout=timeout)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 507, in <lambda>
+    lambda: self._container.exec_run(
+            ~~~~~~~~~~~~~~~~~~~~~~~~^
+        cmd=cmd,
+        ^^^^^^^^
+    ...<2 lines>...
+        user=user or "",
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/models/containers.py", line 209, in exec_run
+    resp = self.client.api.exec_create(
+        self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+        privileged=privileged, user=user, environment=environment,
+        workdir=workdir,
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/utils/decorators.py", line 19, in wrapped
+    return f(self, resource_id, *args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/exec_api.py", line 78, in exec_create
+    return self._result(res, True)
+           ~~~~~~~~~~~~^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 281, in _result
+    self._raise_for_status(response)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 277, in _raise_for_status
+    raise create_api_error_from_http_exception(e) from e
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/errors.py", line 39, in create_api_error_from_http_exception
+    raise cls(e, response=response, explanation=explanation) from e
+docker.errors.APIError: 409 Client Error for http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec: Conflict ("container 6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05 is not running")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1721, in _run_single_tool
+    result = await self._execute_single_tool_body(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1914, in _execute_single_tool_body
+    return await self._await_invoke_task(outer_task=outer_task, invoke_task=invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2027, in _await_invoke_task
+    return await asyncio.shield(invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1934, in _invoke_tool_and_run_post_invoke
+    invocation_result = await _invoke_function_tool_with_metadata(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/tool.py", line 2123, in _invoke_function_tool_with_metadata
+    output = await function_tool.on_invoke_tool(cast(Any, invoke_context), arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 453, in invoke
+    return await invoke_tool(ctx, raw_input)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 270, in invoke
+    return await invoke_tool(ctx, _coerce_arguments(raw_input, schema, nullish=nullish))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 182, in _invoke
+    return await self.run(self.args_model.model_validate_json(raw_input))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 211, in run
+    output, exit_code, original_token_count = await _run_one_shot_exec(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 99, in _run_one_shot_exec
+    result = await session.exec(command, timeout=timeout_s, shell=shell, user=user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 61, in _wrapped
+    return await self._annotate(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 405, in _annotate
+    value = await run()
+            ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 551, in exec
+    return await self._inner.exec(*command, timeout=timeout, shell=shell, user=user)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 595, in exec
+    return await super().exec(*command, timeout=timeout, shell=shell, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/base_sandbox_session.py", line 595, in exec
+    return await self._exec_internal(*sanitized_command, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 607, in _exec_internal
+    return await self._exec_internal_for_user(*command, timeout=timeout, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 625, in _exec_internal_for_user
+    return await self._exec_run(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 535, in _exec_run
+    raise ExecTransportError(command=command_for_errors, cause=e) from e
+agents.sandbox.errors.ExecTransportError: exec transport error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1877, in run_single_turn_streamed
+    single_step_result = await get_single_step_result_from_response(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 2981, in get_single_step_result_from_response
+    return await execute_tools_and_side_effects(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 766, in execute_tools_and_side_effects
+    ) = await _execute_tool_plan(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_planning.py", line 594, in _execute_tool_plan
+    ) = await gather_with_cancel(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/util/_asyncio_tasks.py", line 102, in gather_with_cancel
+    return tuple(gather_future.result())
+                 ~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2171, in execute_function_tool_calls
+    return await _FunctionToolBatchExecutor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ).execute()
+    ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1517, in execute
+    await self._drain_pending_tasks(pending_tool_runs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1572, in _drain_pending_tasks
+    await self._raise_failure_after_draining_siblings(failure)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1604, in _raise_failure_after_draining_siblings
+    raise merged_failure.error
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 343, in _record_completed_function_tool_tasks
+    results_by_tool_run[id(tool_run)] = task.result()
+                                        ~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1742, in _run_single_tool
+    raise UserError(f"Error running tool {func_tool.name}: {e}") from e
+agents.exceptions.UserError: Error running tool exec_command: exec transport error
+2026-10-14 02:42:42.025 ERROR   before_718a - strix.core.runner: Strix scan before_718a failed
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 275, in _raise_for_status
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 515, in _exec_run
+    exec_result = await asyncio.wait_for(future, timeout=timeout)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 507, in <lambda>
+    lambda: self._container.exec_run(
+            ~~~~~~~~~~~~~~~~~~~~~~~~^
+        cmd=cmd,
+        ^^^^^^^^
+    ...<2 lines>...
+        user=user or "",
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/models/containers.py", line 209, in exec_run
+    resp = self.client.api.exec_create(
+        self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+        privileged=privileged, user=user, environment=environment,
+        workdir=workdir,
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/utils/decorators.py", line 19, in wrapped
+    return f(self, resource_id, *args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/exec_api.py", line 78, in exec_create
+    return self._result(res, True)
+           ~~~~~~~~~~~~^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 281, in _result
+    self._raise_for_status(response)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 277, in _raise_for_status
+    raise create_api_error_from_http_exception(e) from e
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/errors.py", line 39, in create_api_error_from_http_exception
+    raise cls(e, response=response, explanation=explanation) from e
+docker.errors.APIError: 409 Client Error for http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec: Conflict ("container 6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05 is not running")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1721, in _run_single_tool
+    result = await self._execute_single_tool_body(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1914, in _execute_single_tool_body
+    return await self._await_invoke_task(outer_task=outer_task, invoke_task=invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2027, in _await_invoke_task
+    return await asyncio.shield(invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1934, in _invoke_tool_and_run_post_invoke
+    invocation_result = await _invoke_function_tool_with_metadata(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/tool.py", line 2123, in _invoke_function_tool_with_metadata
+    output = await function_tool.on_invoke_tool(cast(Any, invoke_context), arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 453, in invoke
+    return await invoke_tool(ctx, raw_input)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 270, in invoke
+    return await invoke_tool(ctx, _coerce_arguments(raw_input, schema, nullish=nullish))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 182, in _invoke
+    return await self.run(self.args_model.model_validate_json(raw_input))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 211, in run
+    output, exit_code, original_token_count = await _run_one_shot_exec(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 99, in _run_one_shot_exec
+    result = await session.exec(command, timeout=timeout_s, shell=shell, user=user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 61, in _wrapped
+    return await self._annotate(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 405, in _annotate
+    value = await run()
+            ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 551, in exec
+    return await self._inner.exec(*command, timeout=timeout, shell=shell, user=user)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 595, in exec
+    return await super().exec(*command, timeout=timeout, shell=shell, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/base_sandbox_session.py", line 595, in exec
+    return await self._exec_internal(*sanitized_command, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 607, in _exec_internal
+    return await self._exec_internal_for_user(*command, timeout=timeout, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 625, in _exec_internal_for_user
+    return await self._exec_run(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 535, in _exec_run
+    raise ExecTransportError(command=command_for_errors, cause=e) from e
+agents.sandbox.errors.ExecTransportError: exec transport error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/runner.py", line 608, in run_strix_scan
+    result = await run_agent_loop(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 250, in run_agent_loop
+    return await _run_agent_loop(
+           ^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 309, in _run_agent_loop
+    result = await _run_until_lifecycle(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 588, in _run_until_lifecycle
+    result = await _run_cycle(
+             ^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1877, in run_single_turn_streamed
+    single_step_result = await get_single_step_result_from_response(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 2981, in get_single_step_result_from_response
+    return await execute_tools_and_side_effects(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 766, in execute_tools_and_side_effects
+    ) = await _execute_tool_plan(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_planning.py", line 594, in _execute_tool_plan
+    ) = await gather_with_cancel(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/util/_asyncio_tasks.py", line 102, in gather_with_cancel
+    return tuple(gather_future.result())
+                 ~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2171, in execute_function_tool_calls
+    return await _FunctionToolBatchExecutor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ).execute()
+    ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1517, in execute
+    await self._drain_pending_tasks(pending_tool_runs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1572, in _drain_pending_tasks
+    await self._raise_failure_after_draining_siblings(failure)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1604, in _raise_failure_after_draining_siblings
+    raise merged_failure.error
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 343, in _record_completed_function_tool_tasks
+    results_by_tool_run[id(tool_run)] = task.result()
+                                        ~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1742, in _run_single_tool
+    raise UserError(f"Error running tool {func_tool.name}: {e}") from e
+agents.exceptions.UserError: Error running tool exec_command: exec transport error
+╭─ STRIX ──────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Penetration test in progress                                                │
+│                                                                              │
+│  Model chatgpt/gpt-6.1-sol  ·  ChatGPT subscription                          │
+│  Vulnerabilities 0                                                           │
+│                                                                              │
+│  Input Tokens 1.0M  ·  Cached Tokens 57.2K                                   │
+│  Output Tokens 1.6K  ·  Cost $0.00 (subscription)                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯Error during penetration test: Error running tool exec_command: exec transport
+error
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 275, in _raise_for_status
+    response.raise_for_status()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/requests/models.py", line 1167, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 409 Client Error: Conflict for url: http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 515, in _exec_run
+    exec_result = await asyncio.wait_for(future, timeout=timeout)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/tasks.py", line 488, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/usr/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 507, in <lambda>
+    lambda: self._container.exec_run(
+            ~~~~~~~~~~~~~~~~~~~~~~~~^
+        cmd=cmd,
+        ^^^^^^^^
+    ...<2 lines>...
+        user=user or "",
+        ^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/models/containers.py", line 209, in exec_run
+    resp = self.client.api.exec_create(
+        self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+        privileged=privileged, user=user, environment=environment,
+        workdir=workdir,
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/utils/decorators.py", line 19, in wrapped
+    return f(self, resource_id, *args, **kwargs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/exec_api.py", line 78, in exec_create
+    return self._result(res, True)
+           ~~~~~~~~~~~~^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 281, in _result
+    self._raise_for_status(response)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/api/client.py", line 277, in _raise_for_status
+    raise create_api_error_from_http_exception(e) from e
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/docker/errors.py", line 39, in create_api_error_from_http_exception
+    raise cls(e, response=response, explanation=explanation) from e
+docker.errors.APIError: 409 Client Error for http+docker://localhost/v1.56/containers/6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05/exec: Conflict ("container 6eb0f173f407311b249b6b97816ee55bd8e2b0026047efb9cb2747f141130d05 is not running")
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1721, in _run_single_tool
+    result = await self._execute_single_tool_body(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1914, in _execute_single_tool_body
+    return await self._await_invoke_task(outer_task=outer_task, invoke_task=invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2027, in _await_invoke_task
+    return await asyncio.shield(invoke_task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1934, in _invoke_tool_and_run_post_invoke
+    invocation_result = await _invoke_function_tool_with_metadata(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/tool.py", line 2123, in _invoke_function_tool_with_metadata
+    output = await function_tool.on_invoke_tool(cast(Any, invoke_context), arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 453, in invoke
+    return await invoke_tool(ctx, raw_input)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/agents/factory.py", line 270, in invoke
+    return await invoke_tool(ctx, _coerce_arguments(raw_input, schema, nullish=nullish))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 182, in _invoke
+    return await self.run(self.args_model.model_validate_json(raw_input))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 211, in run
+    output, exit_code, original_token_count = await _run_one_shot_exec(
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/capabilities/tools/shell_tool.py", line 99, in _run_one_shot_exec
+    result = await session.exec(command, timeout=timeout_s, shell=shell, user=user)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 61, in _wrapped
+    return await self._annotate(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 405, in _annotate
+    value = await run()
+            ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/sandbox_session.py", line 551, in exec
+    return await self._inner.exec(*command, timeout=timeout, shell=shell, user=user)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 595, in exec
+    return await super().exec(*command, timeout=timeout, shell=shell, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/session/base_sandbox_session.py", line 595, in exec
+    return await self._exec_internal(*sanitized_command, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 607, in _exec_internal
+    return await self._exec_internal_for_user(*command, timeout=timeout, user=None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 625, in _exec_internal_for_user
+    return await self._exec_run(
+           ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/sandbox/sandboxes/docker.py", line 535, in _exec_run
+    raise ExecTransportError(command=command_for_errors, cause=e) from e
+agents.sandbox.errors.ExecTransportError: exec transport error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.maintenance/strix-comparison-2026-10-14/strix-launch.py", line 38, in <module>
+    main()
+    ~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/interface/main.py", line 502, in main
+    asyncio.run(run_cli(args))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/interface/cli.py", line 219, in run_cli
+    await run_strix_scan(
+    ...<9 lines>...
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/runner.py", line 608, in run_strix_scan
+    result = await run_agent_loop(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 250, in run_agent_loop
+    return await _run_agent_loop(
+           ^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 309, in _run_agent_loop
+    result = await _run_until_lifecycle(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 588, in _run_until_lifecycle
+    result = await _run_cycle(
+             ^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1877, in run_single_turn_streamed
+    single_step_result = await get_single_step_result_from_response(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 2981, in get_single_step_result_from_response
+    return await execute_tools_and_side_effects(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/turn_resolution.py", line 766, in execute_tools_and_side_effects
+    ) = await _execute_tool_plan(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_planning.py", line 594, in _execute_tool_plan
+    ) = await gather_with_cancel(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<45 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/util/_asyncio_tasks.py", line 102, in gather_with_cancel
+    return tuple(gather_future.result())
+                 ~~~~~~~~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 2171, in execute_function_tool_calls
+    return await _FunctionToolBatchExecutor(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ).execute()
+    ^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1517, in execute
+    await self._drain_pending_tasks(pending_tool_runs)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1572, in _drain_pending_tasks
+    await self._raise_failure_after_draining_siblings(failure)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1604, in _raise_failure_after_draining_siblings
+    raise merged_failure.error
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 343, in _record_completed_function_tool_tasks
+    results_by_tool_run[id(tool_run)] = task.result()
+                                        ~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/tool_execution.py", line 1742, in _run_single_tool
+    raise UserError(f"Error running tool {func_tool.name}: {e}") from e
+agents.exceptions.UserError: Error running tool exec_command: exec transport error

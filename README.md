@@ -2,7 +2,7 @@
 
 양주시 자투리 원단 거래 웹 서비스의 백엔드입니다. Node.js + Express + PostgreSQL(Sequelize)로 만들고 있습니다.
 
-API는 49개(필수 38, 선택 11)이고, 기준은 **`docs/Material_Loop_API_명세서_v0.3.docx`** 입니다.
+API는 v0.3의 49개(필수 38, 선택 11)에 로그아웃 1개를 추가해 50개입니다. 기준은 **`docs/Material_Loop_API_명세서_v0.3.docx`** 와 [2026-10-14 보안 추가사항](docs/API_SECURITY_2026-10-14.md)입니다.
 (같은 내용을 읽기 쉽게 변환한 `docs/API_명세서_v0.3.md`도 있지만, 원본은 docx 입니다.)
 
 처음 참여한다면 이 문서를 위에서부터 따라 하고, 그다음 [docs/서브_시작_가이드.md](docs/서브_시작_가이드.md) 와 [CONTRIBUTING.md](CONTRIBUTING.md) 를 읽으세요.
@@ -51,8 +51,8 @@ npm run dev
 | `DB_PASS` | PostgreSQL 설치 때 정한 비밀번호 |
 | `DB_DATABASE` | 개발용 DB 이름. 테스트용 DB 는 뒤에 `_test` 를 붙인 이름을 **자동으로** 씁니다 |
 | `JWT_SECRET` | 로그인 토큰 비밀값. 개발 중에는 아무 긴 문자열이면 됩니다 |
-| `AI_PROVIDER`, `ANTHROPIC_API_KEY` | AI 보조 등록. 기본 `fake`(키 없이 쓰는 개발용 규칙)이고, 운영에서는 `claude` 와 키가 필요합니다. 세션은 서버 메모리에 저장되어 서버를 다시 켜면 사라집니다 |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | 운영팀(ADMIN) 계정. 가입 API 로는 만들 수 없어서 `npm run db:seed` 가 이 값으로 **처음 한 번** 만듭니다 (비밀번호 8~72자) |
+| `AI_PROVIDER`, `ANTHROPIC_API_KEY`, `AI_SESSION_STORE` | 기본 제공자는 `fake`(개발용), 세션 저장소는 `database`입니다. 운영에서는 `claude`와 키, DB 저장소가 필요합니다. 호출·동시성·활성 세션 한도는 보안 추가사항과 `.env.example`을 참고하세요 |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | 운영팀(ADMIN) 계정. `npm run db:seed`가 **처음 한 번** 생성합니다. 비밀번호는 8자 이상이며 UTF-8 72바이트 이하입니다 |
 
 사진은 지금 내 컴퓨터의 `uploads/` 폴더에 저장되고 `PUBLIC_URL`(기본 `http://localhost:3000`) 주소로 보입니다. 이 폴더도 Git 에 올리지 않습니다. 나중에 클라우드 저장소로 옮길 때는 `src/storage/` 에 제공자만 추가합니다.
 
@@ -107,7 +107,7 @@ docs/                    API 명세서, 담당표, 서브 시작 가이드
 
 ## 3-1. API 문서 (Swagger)
 
-서버를 켜고 <http://localhost:3000/api-docs> 를 열면 **명세서의 API 49개**가 목록으로 보이고, 요청 항목·응답 예시·오류 코드를 확인하거나 바로 호출해 볼 수 있습니다. 아직 구현되지 않은 API 도 보입니다. (프론트엔드가 서버 완성 전에 연동을 시작하는 용도)
+서버를 켜고 <http://localhost:3000/api-docs> 를 열면 **명세서와 보안 추가사항의 API 50개**가 목록으로 보이고, 요청 항목·응답 예시·오류 코드를 확인하거나 바로 호출해 볼 수 있습니다.
 
 - 로그인이 필요한 API 는 `POST /auth/login` 으로 받은 `accessToken` 을 오른쪽 위 **Authorize** 에 붙여 넣으세요.
 - 문서는 `docs/API_명세서_v0.3.md` 에서 **자동으로 만들어집니다.** 직접 고치지 마세요 (`src/docs/openapi.json` 은 생성 파일).
@@ -122,6 +122,8 @@ npm test                                                                        
 명세서만 고치고 `docs:build` 를 빼먹으면 `npm test`(CI 포함)가 실패합니다. 코드에 **명세서에 없는 API** 를 만들어도 실패합니다.
 
 ## 4. 문제가 생기면
+
+보안 수정·배포 조건·ASVS/KISA 대응표와 개선 전후 증거는 [2026년 10월 14일 보안 검증 기록](docs/security/2026-10-14/README.md)을 참고하세요. Strix 자동 점검의 중단과 독립 재현 결과를 구분해 기록했습니다.
 
 | 증상 | 확인할 것 |
 |---|---|

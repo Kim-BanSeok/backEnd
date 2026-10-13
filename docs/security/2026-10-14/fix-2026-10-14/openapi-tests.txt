@@ -1,0 +1,22 @@
+✔ 명세서와 보안 확장의 API 50개가 모두 문서에 있고 번호가 1~50 이다 (2.3492ms)
+✔ openapi.json 이 명세서와 같다 (명세서를 고치고 npm run docs:build 를 빼먹지 않았는지) (19.9521ms)
+✔ OpenAPI 문법이 올바르다 (199.3347ms)
+✔ 모든 API 에 태그·성공 응답·오류 응답이 있고, 오류 코드는 오류 코드 표에 있는 것만 쓴다 (1.0704ms)
+✔ 로그인이 필요한 API 에만 보안(Authorize)이 걸려 있다 (0.3198ms)
+✔ 회원가입 문서: 항목 이름, 필수 여부, 값 목록, 길이 제한이 명세서와 같다 (0.1553ms)
+✔ 원단 등록 문서: 안쪽 항목(detail.xxx)이 detail 안에 들어 있다 (0.1582ms)
+✔ 경로(Path)·쿼리(Query) 항목이 파라미터로 들어 있다 (0.1873ms)
+✔ 사진 업로드는 multipart/form-data 이고 file 은 파일이다 (0.8323ms)
+✔ 성공 응답 코드와 예시: 가입은 201, 삭제는 data null (0.5069ms)
+✔ /api-docs 는 Swagger 화면을 보여 주고, 화면이 쓰는 스크립트가 보안 헤더(CSP)에 막히지 않는다 (67.5985ms)
+✔ /api-docs.json 은 문서 원본을 돌려준다 (5.6321ms)
+✔ API 응답에는 여전히 보안 헤더(helmet)가 붙는다 (7.0791ms)
+✔ 구현된 모든 API 는 명세서(문서)에 있다 — 명세서에 없는 API 를 만들지 않았는지 (1.1188ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9469.4341

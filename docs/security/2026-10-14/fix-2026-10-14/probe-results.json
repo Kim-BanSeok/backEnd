@@ -1,0 +1,124 @@
+{
+  "environment": {
+    "database": "material_loop_security_20261014_35156_test",
+    "origin": "http://127.0.0.1:3979",
+    "node": "v24.18.0",
+    "sessionStore": "database",
+    "realPaidCalls": 0,
+    "baseBackendCommit": "dd1a4333c3d64af405068b8ab35662c47854046f",
+    "baseFrontendCommit": "5144a45ea8f57f4803147dbb8b60374243967838",
+    "callLimits": {
+      "userHourly": 30,
+      "globalHourly": 300,
+      "userConcurrent": 2,
+      "globalConcurrent": 4
+    },
+    "sessionLimits": {
+      "userHourly": 20,
+      "globalHourly": 200,
+      "userConcurrent": 5,
+      "globalConcurrent": 100
+    }
+  },
+  "cases": [
+    {
+      "id": "R01",
+      "title": "UTF-8 bounds and ambiguous legacy prefix",
+      "result": "pass",
+      "oversizeSignup": 400,
+      "exact72ByteSignup": 201,
+      "exact72ByteLogin": 200,
+      "legacyChangedSuffixLogin": 400,
+      "legacyPrefixOnlyLogin": 401
+    },
+    {
+      "id": "R02",
+      "title": "Live frontend logout, two processes and restart",
+      "result": "pass",
+      "frontendServerRevoked": true,
+      "storageCleared": true,
+      "before": 200,
+      "after": 401,
+      "otherProcess": 401,
+      "freshProcess": 401,
+      "onlyFingerprintsStored": true
+    },
+    {
+      "id": "R03",
+      "title": "Private originals/thumbnails, EXIF, unpublish and delete",
+      "result": "pass",
+      "unsignedPendingOriginal": 404,
+      "unsignedPendingThumbnail": 404,
+      "otherSeller": 404,
+      "owner": 200,
+      "validSigned": 200,
+      "forged": 404,
+      "expired": 404,
+      "postedPublic": 200,
+      "unpublishedPublic": 404,
+      "deletedOriginalAndThumbnail": [
+        404,
+        404,
+        404,
+        404
+      ],
+      "newUploadExifRemoved": true,
+      "historicalDownloadExifRemoved": true,
+      "favoritesDoNotGrantPrivateAccess": true,
+      "signedLinkTtlSeconds": 300
+    },
+    {
+      "id": "R04",
+      "title": "24 concurrent photo calls split across two processes",
+      "result": "pass",
+      "requests": 24,
+      "serverProcesses": 2,
+      "successful": 2,
+      "rejected429": 22,
+      "providerCalls": 2,
+      "peakConcurrentProviderCalls": 2,
+      "remainingCallLeases": 0,
+      "realPaidCalls": 0
+    },
+    {
+      "id": "R05",
+      "title": "Hourly budget persists after stopping both processes",
+      "result": "pass",
+      "usageBeforeRestart": 2,
+      "allowedAfterRestart": 28,
+      "nextRequest": 429,
+      "providerCallsAfterRestart": 28,
+      "persistedHourlyUsage": 30,
+      "configuredUserHourly": 30
+    },
+    {
+      "id": "R06",
+      "title": "Active session limit and cross-process confirmation lock",
+      "result": "pass",
+      "attemptedSessions": 24,
+      "created": 5,
+      "rejected429": 19,
+      "recoveredFromDatabase": true,
+      "otherSeller": 403,
+      "crossProcessConfirmStatuses": [
+        201,
+        409
+      ],
+      "createdFabricDelta": 1,
+      "closedSessionSlotReturned": true
+    },
+    {
+      "id": "R07",
+      "title": "Body-read timeout aborts after response headers",
+      "result": "pass",
+      "configuredTimeoutMs": 20,
+      "elapsedMs": 33,
+      "bodySignalAborted": true,
+      "realPaidCalls": 0
+    }
+  ],
+  "summary": {
+    "pass": 7,
+    "fail": 0
+  }
+}

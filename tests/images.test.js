@@ -94,22 +94,26 @@ test('업로드 성공: 201 { imageId, image_url, thumbnail_url, sort_order: 0 }
   assert.deepEqual(Object.keys(json.data).sort(), ['imageId', 'image_url', 'sort_order', 'thumbnail_url']);
   assert.equal(typeof json.data.imageId, 'number');
   assert.equal(json.data.sort_order, 0);
-  assert.match(json.data.image_url, new RegExp(`/uploads/fabrics/${fabricId}/[0-9a-f-]{36}\\.png$`));
-  assert.match(json.data.thumbnail_url, new RegExp(`/uploads/fabrics/${fabricId}/thumbs/[0-9a-f-]{36}\\.webp$`));
+  assert.match(new URL(json.data.image_url).pathname, new RegExp(`/uploads/fabrics/${fabricId}/[0-9a-f-]{36}\\.png$`));
+  assert.match(new URL(json.data.thumbnail_url).pathname, new RegExp(`/uploads/fabrics/${fabricId}/thumbs/[0-9a-f-]{36}\\.webp$`));
+  assert.ok(new URL(json.data.image_url).searchParams.has('signature'));
 
   const saved = await db.FabricImage.findByPk(json.data.imageId);
   assert.equal(saved.fabric_id, fabricId);
   assert.equal(saved.image_type, 'FULL');
-  assert.equal(saved.image_url, json.data.image_url);
+  assert.equal(new URL(saved.image_url).pathname, new URL(json.data.image_url).pathname);
 });
 
-test('원본은 그대로, 썸네일은 가로 400px 의 webp 로 저장된다', async () => {
+test('원본은 안전하게 재인코딩하고 썸네일은 가로 400px 의 webp 로 저장된다', async () => {
   const { token, fabricId } = await setup();
   const original = await makeImage('jpeg', { width: 1200, height: 900 });
   const { json } = await upload(fabricId, { token, file: original, name: 'big.jpg', type: 'image/jpeg' });
 
-  assert.match(json.data.image_url, /\.jpg$/);
-  assert.deepEqual(await readFile(fileOf(json.data.image_url)), original);
+  assert.match(new URL(json.data.image_url).pathname, /\.jpg$/);
+  const clean = await sharp(await readFile(fileOf(json.data.image_url))).metadata();
+  assert.equal(clean.width, 1200);
+  assert.equal(clean.height, 900);
+  assert.equal(clean.exif, undefined);
 
   const thumb = await sharp(await readFile(fileOf(json.data.thumbnail_url))).metadata();
   assert.equal(thumb.format, 'webp');
@@ -122,7 +126,7 @@ test('jpg, png, webp 모두 올릴 수 있다', async () => {
   for (const [format, ext] of [['jpeg', 'jpg'], ['png', 'png'], ['webp', 'webp']]) {
     const { status, json } = await upload(fabricId, { token, file: await makeImage(format), name: `a.${ext}` });
     assert.equal(status, 201, format);
-    assert.match(json.data.image_url, new RegExp(`\\.${ext}$`));
+    assert.match(new URL(json.data.image_url).pathname, new RegExp(`\\.${ext}$`));
   }
 });
 
@@ -131,7 +135,7 @@ test('확장자가 아니라 파일 내용으로 판별한다', async () => {
   // 이름은 .txt 지만 내용은 png → 올릴 수 있다 (확장자는 내용에 맞춰 .png 로 저장)
   const real = await upload(fabricId, { token, file: await makeImage('png'), name: 'photo.txt', type: 'text/plain' });
   assert.equal(real.status, 201);
-  assert.match(real.json.data.image_url, /\.png$/);
+  assert.match(new URL(real.json.data.image_url).pathname, /\.png$/);
 
   // 이름은 .png 지만 내용은 텍스트 → IMAGE_TOO_LARGE
   const fake = await upload(fabricId, { token, file: Buffer.from('이건 이미지가 아니에요'), name: 'fake.png' });
@@ -339,13 +343,16 @@ test('올린 사진은 image_url 주소로 볼 수 있고, 다른 사이트에�
   const original = await makeImage('png');
   const { json } = await upload(fabricId, { token, file: original });
 
-  const res = await fetch(origin + new URL(json.data.image_url).pathname);
+  const privateUrl = new URL(json.data.image_url);
+  assert.equal((await fetch(origin + privateUrl.pathname)).status, 404);
+  const res = await fetch(origin + privateUrl.pathname + privateUrl.search);
   assert.equal(res.status, 200);
   assert.equal(res.headers.get('content-type'), 'image/png');
   assert.equal(res.headers.get('cross-origin-resource-policy'), 'cross-origin');
-  assert.deepEqual(Buffer.from(await res.arrayBuffer()), original);
+  assert.equal((await sharp(Buffer.from(await res.arrayBuffer())).metadata()).format, 'png');
 
-  const thumb = await fetch(origin + new URL(json.data.thumbnail_url).pathname);
+  const thumbUrl = new URL(json.data.thumbnail_url);
+  const thumb = await fetch(origin + thumbUrl.pathname + thumbUrl.search);
   assert.equal(thumb.headers.get('content-type'), 'image/webp');
 });
 

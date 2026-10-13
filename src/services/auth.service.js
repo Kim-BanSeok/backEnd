@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 import { fail } from '../utils/errors.js';
 import * as usersDao from '../dao/users.dao.js';
@@ -11,12 +12,19 @@ const SALT_ROUNDS = env.isTest ? 4 : 10; // 테스트는 빠르게
 const DUMMY_HASH = bcrypt.hashSync('dummy-password', SALT_ROUNDS);
 
 // 비밀번호는 평문이 아닌 bcrypt 해시로만 저장한다. (가입과 ADMIN 시드가 같은 방식을 쓴다)
-export const hashPassword = (password) => bcrypt.hash(password, SALT_ROUNDS);
+const assertPasswordBytes = password => {
+  if (typeof password !== 'string' || Buffer.byteLength(password, 'utf8') > 72) throw fail('VALIDATION_ERROR', [{ field: 'password', message: '비밀번호는 UTF-8 기준 72바이트 이하여야 해요' }]);
+};
+export const hashPassword = (password) => {
+  assertPasswordBytes(password);
+  return bcrypt.hash(password, SALT_ROUNDS);
+};
 
 export const signToken = (user) =>
   jwt.sign({ role: user.role }, env.jwtSecret, {
     algorithm: 'HS256',
     subject: String(user.user_id),
+    jwtid: randomUUID(),
     expiresIn: env.jwtExpiresIn,
   });
 
@@ -29,6 +37,7 @@ export async function signup(input) {
     const user = await usersDao.insert({
       email: input.email,
       password_hash,
+      password_byte_length: Buffer.byteLength(input.password, 'utf8'),
       nickname: input.nickname,
       phone_number: input.phone_number ?? null,
       role: input.role,
@@ -46,9 +55,14 @@ export async function signup(input) {
 }
 
 export async function login({ email, password }) {
+  assertPasswordBytes(password);
   const user = await usersDao.findByEmail(email);
   const matched = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
   if (!user || !matched) throw fail('LOGIN_FAILED');
+  // A legacy hash cannot tell whether its 72-byte prefix came from a longer password.
+  // Do not accept that ambiguous prefix. These accounts require verified recovery.
+  const legacyInput = user.password_byte_length === null || user.password_byte_length === undefined;
+  if (legacyInput && Buffer.byteLength(password, 'utf8') === 72) throw fail('LOGIN_FAILED');
 
   const accessToken = signToken(user);
   const { iat, exp } = jwt.decode(accessToken);

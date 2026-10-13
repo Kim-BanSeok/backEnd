@@ -288,7 +288,7 @@ export function buildOpenApi(markdown) {
       title: 'Material Loop API',
       version: version.replace(/\s*\(.*\)/, ''),
       description:
-        '양주시 자투리 원단 거래 웹 서비스 API. **API 명세서(docs/Material_Loop_API_명세서_v0.3.docx)가 정답**이고, 이 문서는 명세서에서 자동으로 만들어요.\n\n' +
+        '양주시 자투리 원단 거래 웹 서비스 API. 기본 계약은 v0.3이며 2026-10-14 보안 확장(API_SECURITY_2026-10-14.md)이 우선 적용됩니다. 이 문서는 API_명세서_v0.3.md에서 자동 생성합니다.\n\n' +
         '- 성공 응답은 `{ "success": true, "data": ... }`, 실패는 `{ "success": false, "error": { "code", "message", "details?" } }` 예요.\n' +
         '- 로그인 후 받은 `accessToken` 을 오른쪽 위 **Authorize** 에 붙여 넣으면 로그인이 필요한 API 를 호출해 볼 수 있어요.\n' +
         '- 식별자(`userId`, `fabricId` 등)는 camelCase, 그 밖의 항목은 snake_case 예요.',

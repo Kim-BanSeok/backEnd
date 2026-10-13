@@ -1,0 +1,8 @@
+{
+  "result": "control_pass",
+  "scope": "React buyer home and fabric detail title and description",
+  "heading": "<img id=AUDIT-XSS src=x onerror=\"document.title='AUDIT-EXEC'\">",
+  "injectedElementCount": 0,
+  "markerVisibleAsText": true,
+  "title": "<img id=AUDIT-XSS src=x onerror=\"document.title='AUDIT-EXEC'\"> · 패브링"
+}

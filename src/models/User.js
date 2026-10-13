@@ -5,6 +5,7 @@ const User = sequelize.define('User', {
   user_id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
   email: { type: DataTypes.STRING(255), allowNull: false },
   password_hash: { type: DataTypes.STRING(255), allowNull: false },
+  password_byte_length: { type: DataTypes.SMALLINT, allowNull: true },
   nickname: { type: DataTypes.STRING(50), allowNull: false },
   phone_number: { type: DataTypes.STRING(20), allowNull: true },
   role: { type: DataTypes.STRING(10), allowNull: false },

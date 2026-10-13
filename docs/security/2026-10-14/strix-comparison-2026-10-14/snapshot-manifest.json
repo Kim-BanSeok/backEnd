@@ -1,0 +1,32 @@
+{
+  "createdAt": "2026-10-13T17:02:00.098Z",
+  "baselineKind": "Reconstructed from recorded Git commits; not a previous whole-directory backup",
+  "runtime": "[LOCAL_WORKSPACE]\\.local-runtime\\strix-comparison-2026-10-14",
+  "output": "[LOCAL_WORKSPACE]\\output\\security\\strix-comparison-2026-10-14",
+  "repositories": [
+    {
+      "folder": "backend-local",
+      "baselineCommit": "dd1a4333c3d64af405068b8ab35662c47854046f",
+      "currentHead": "dd1a4333c3d64af405068b8ab35662c47854046f",
+      "archive": "[LOCAL_WORKSPACE]\\output\\security\\strix-comparison-2026-10-14\\backups\\backend-local-before-dd1a4333c3d6.zip",
+      "archiveSha256": "b51aa43d475e5f9bb8ba78361e13de682e4f815f27a9d7f15b60242d10dcef01",
+      "before": "[LOCAL_WORKSPACE]\\.local-runtime\\strix-comparison-2026-10-14\\snapshots\\before\\backend-local",
+      "after": "[LOCAL_WORKSPACE]\\.local-runtime\\strix-comparison-2026-10-14\\snapshots\\after\\backend-local",
+      "afterFiles": 200,
+      "gitCommitCreated": false,
+      "actualEnvCopiedToAfter": false
+    },
+    {
+      "folder": "frontend",
+      "baselineCommit": "5144a45ea8f57f4803147dbb8b60374243967838",
+      "currentHead": "5144a45ea8f57f4803147dbb8b60374243967838",
+      "archive": "[LOCAL_WORKSPACE]\\output\\security\\strix-comparison-2026-10-14\\backups\\frontend-before-5144a45ea8f5.zip",
+      "archiveSha256": "a6ff781d5f91d625fd061822d3a4a63f1ee52de984b77a3d9e176700e810d014",
+      "before": "[LOCAL_WORKSPACE]\\.local-runtime\\strix-comparison-2026-10-14\\snapshots\\before\\frontend",
+      "after": "[LOCAL_WORKSPACE]\\.local-runtime\\strix-comparison-2026-10-14\\snapshots\\after\\frontend",
+      "afterFiles": 288,
+      "gitCommitCreated": false,
+      "actualEnvCopiedToAfter": false
+    }
+  ]
+}

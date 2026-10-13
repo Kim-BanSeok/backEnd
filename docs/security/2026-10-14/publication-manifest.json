@@ -1,0 +1,372 @@
+{
+  "sourceDateKst": "2026-10-14",
+  "branch": "security/p0-hardening-20261014",
+  "baseBranch": "feature/factory-data-preparation",
+  "baseCommit": "dd1a4333c3d64af405068b8ab35662c47854046f",
+  "files": [
+    {
+      "source": "output/security/패브링_P0_보안개선과_재점검_2026-10-14.md",
+      "published": "패브링_P0_보안개선과_재점검_2026-10-14.md",
+      "sourceSha256": "c0a365ee24b6b2c7e2384acd490191966b78fdeb0d372d3a785a6bd80726b7d0",
+      "publishedSha256": "4f07d6e8fe28637d5508cc25f147dcded1bc905baa5144c2ad3ad657a98ec46e",
+      "transformed": true
+    },
+    {
+      "source": "output/security/패브링_Strix_실행과_개선전후_검증_2026-10-14.md",
+      "published": "패브링_Strix_실행과_개선전후_검증_2026-10-14.md",
+      "sourceSha256": "03c8389650c4553f3ff790fe735a3b019fb824637b7a2027f7e6683ad7a7666e",
+      "publishedSha256": "178f7605a2d2f63fc4c9753e808861ff85f602e02c98a1933ab6f7af3ec74190",
+      "transformed": true
+    },
+    {
+      "source": "output/security/패브링_보안기준_선정과_적용계획_2026-10-13.md",
+      "published": "패브링_보안기준_선정과_적용계획_2026-10-13.md",
+      "sourceSha256": "c5ee930fa49970e5590a4240d734c2a0559eddb7def0d1c00d0e694d53a483b5",
+      "publishedSha256": "ed6a4356796659cd2d87818a78937f247f4ab61544ab956117ea765744938e07",
+      "transformed": true
+    },
+    {
+      "source": "output/security/패브링_보안점검결과와_개선우선순위_2026-10-13.md",
+      "published": "패브링_보안점검결과와_개선우선순위_2026-10-13.md",
+      "sourceSha256": "da9b54b16d3179bda8ef169209dbbff1ddbe0c68a26f2f07bedbe0f710d4f731",
+      "publishedSha256": "764a85fdcc11824de5855192f14b7270bcb9384a10a336e3b1067fd09f10f172",
+      "transformed": true
+    },
+    {
+      "source": "output/security/패브링_보안점검표와_증거기록_2026-10-13.md",
+      "published": "패브링_보안점검표와_증거기록_2026-10-13.md",
+      "sourceSha256": "03d36b0d90ec6989370d27d2fa4c641b91fdf1a2b06e9069be1ce47a7cacdb93",
+      "publishedSha256": "e761a39fab519a36f5069a6cf52c7bf660712211e3fe0369a80d77295ea87805",
+      "transformed": true
+    },
+    {
+      "source": "output/security/audit-2026-10-13/backend-npm-audit.json",
+      "published": "audit-2026-10-13/backend-npm-audit.json",
+      "sourceSha256": "ac593ca1cf476fc01167045d797a2f08bd644d1c51be4a13dfb27cbdc0ee3dbe",
+      "publishedSha256": "ac593ca1cf476fc01167045d797a2f08bd644d1c51be4a13dfb27cbdc0ee3dbe",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/frontend-npm-audit.json",
+      "published": "audit-2026-10-13/frontend-npm-audit.json",
+      "sourceSha256": "acb31b2c356c64dc4e0c276d461689c684e982161101d73089dac012b902c2ef",
+      "publishedSha256": "acb31b2c356c64dc4e0c276d461689c684e982161101d73089dac012b902c2ef",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/probe-results.json",
+      "published": "audit-2026-10-13/probe-results.json",
+      "sourceSha256": "20695b0abfaa55c1cac451573ed44417df274dd4d48209a2a5e4a982fa572982",
+      "publishedSha256": "20695b0abfaa55c1cac451573ed44417df274dd4d48209a2a5e4a982fa572982",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/static-check-results.json",
+      "published": "audit-2026-10-13/static-check-results.json",
+      "sourceSha256": "ecbdc1339507b7ddb5fb92a5677e9c31900ac517c341c981e0e1ea038315bcad",
+      "publishedSha256": "ecbdc1339507b7ddb5fb92a5677e9c31900ac517c341c981e0e1ea038315bcad",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/browser-results.json",
+      "published": "audit-2026-10-13/browser-results.json",
+      "sourceSha256": "fa86f0f4adbea10abd717e635292e28e83b55df5f29354403b8c25c2f20e490d",
+      "publishedSha256": "fa86f0f4adbea10abd717e635292e28e83b55df5f29354403b8c25c2f20e490d",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/xss-rendering.png",
+      "published": "audit-2026-10-13/xss-rendering.png",
+      "sourceSha256": "43408e04f8870ba11d8811a2f33fef8c73cd12f34c18e0a24fbb9e3d20c46f3c",
+      "publishedSha256": "43408e04f8870ba11d8811a2f33fef8c73cd12f34c18e0a24fbb9e3d20c46f3c",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/backend-tests.log",
+      "published": "audit-2026-10-13/backend-tests.txt",
+      "sourceSha256": "fae936eedb2a5b1e5717c0c9ddc8711e3fb274d82b9fca98c3210b48b9c1b83e",
+      "publishedSha256": "fb0cd92d981b7c4a3f9aeaf17ac4ad7ae14b4cb39fac2c45fadea268c68ebe84",
+      "transformed": true
+    },
+    {
+      "source": "output/security/audit-2026-10-13/backend-lint.log",
+      "published": "audit-2026-10-13/backend-lint.txt",
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformed": false
+    },
+    {
+      "source": "output/security/audit-2026-10-13/frontend-tests.log",
+      "published": "audit-2026-10-13/frontend-tests.txt",
+      "sourceSha256": "ebe2d39020018f25fb802dd2db9fdd056c039eedcad4ccd9dd138d021c7d7eee",
+      "publishedSha256": "35be121823977c1a73cc6401c541898c23c582275165b966114910fa8366c743",
+      "transformed": true
+    },
+    {
+      "source": "output/security/fix-2026-10-14/backend-tests.log",
+      "published": "fix-2026-10-14/backend-tests.txt",
+      "sourceSha256": "82b09636263155f7ac9bd49a1267671caf96bf92318f405fee9fe8f9079fc8ac",
+      "publishedSha256": "eb30def3feb244d34083d2b705b2b13f4f6902e7bf1ca7d4333a5c78d61fed55",
+      "transformed": true
+    },
+    {
+      "source": "output/security/fix-2026-10-14/backend-lint.log",
+      "published": "fix-2026-10-14/backend-lint.txt",
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publishedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/frontend-tests.log",
+      "published": "fix-2026-10-14/frontend-tests.txt",
+      "sourceSha256": "dbcfe58f39ca2f7430a54551c701126bf4ef430fbfe2b5c2a357520d46e26f06",
+      "publishedSha256": "9bfe03551d8d55c3eef00168501fe5a4c339101932e5b17128fe80bc00f86560",
+      "transformed": true
+    },
+    {
+      "source": "output/security/fix-2026-10-14/frontend-security-tests.log",
+      "published": "fix-2026-10-14/frontend-security-tests.txt",
+      "sourceSha256": "be5073afb152c1692a0f5ad93134e7f286484369ac44b16b463a15e7ef851a15",
+      "publishedSha256": "be5073afb152c1692a0f5ad93134e7f286484369ac44b16b463a15e7ef851a15",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/frontend-lint.log",
+      "published": "fix-2026-10-14/frontend-lint.txt",
+      "sourceSha256": "1b9e5f21dd53fcfa02e13aecbd63c3efc8cb93586813c9a13dfa86e96a6145d1",
+      "publishedSha256": "1b9e5f21dd53fcfa02e13aecbd63c3efc8cb93586813c9a13dfa86e96a6145d1",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/frontend-build.log",
+      "published": "fix-2026-10-14/frontend-build.txt",
+      "sourceSha256": "8115870bcebce985d9523267c657dd46b21f465f9338af5abd910135dee76824",
+      "publishedSha256": "8115870bcebce985d9523267c657dd46b21f465f9338af5abd910135dee76824",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/openapi-tests.log",
+      "published": "fix-2026-10-14/openapi-tests.txt",
+      "sourceSha256": "541fe65a46eb4ded91f128fe7169f72eacd77b96da3fcd905eed78a22d3549d1",
+      "publishedSha256": "541fe65a46eb4ded91f128fe7169f72eacd77b96da3fcd905eed78a22d3549d1",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/local-migration.log",
+      "published": "fix-2026-10-14/local-migration.txt",
+      "sourceSha256": "6964c156483d2e8dc7dd1aa0c9582bc8e73ee42f6403752976c2f49a4201249a",
+      "publishedSha256": "b8d7195628022b908bf635efb1cd5c79bdaaae6cc6be101161504449cd3a5f35",
+      "transformed": true
+    },
+    {
+      "source": "output/security/fix-2026-10-14/probe-results.json",
+      "published": "fix-2026-10-14/probe-results.json",
+      "sourceSha256": "3ef6cfaa4810cab7908f5c8982973173da9c97ad8dc482d530430f2123307468",
+      "publishedSha256": "3ef6cfaa4810cab7908f5c8982973173da9c97ad8dc482d530430f2123307468",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/source-hashes.json",
+      "published": "fix-2026-10-14/source-hashes.json",
+      "sourceSha256": "0d92d7035ebc695f0cac5b53ec3b359160875cefeaad2dd79179da79cf4d88ce",
+      "publishedSha256": "0d92d7035ebc695f0cac5b53ec3b359160875cefeaad2dd79179da79cf4d88ce",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/verification-results.json",
+      "published": "fix-2026-10-14/verification-results.json",
+      "sourceSha256": "87c240af826fb85e8f45f6f2a80918e62fc39517dd87084561717f01a1d82701",
+      "publishedSha256": "87c240af826fb85e8f45f6f2a80918e62fc39517dd87084561717f01a1d82701",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/browser-results.json",
+      "published": "fix-2026-10-14/browser-results.json",
+      "sourceSha256": "ddcc8e3893299d0a12645f58bef4b624ff8c07407973798408b68b54a240e60e",
+      "publishedSha256": "ddcc8e3893299d0a12645f58bef4b624ff8c07407973798408b68b54a240e60e",
+      "transformed": false
+    },
+    {
+      "source": "output/security/fix-2026-10-14/browser-logout.png",
+      "published": "fix-2026-10-14/browser-logout.png",
+      "sourceSha256": "8eccbfb71407fcbaa9643e0056a568ac25ae78d803e10bb79bd91021a56df622",
+      "publishedSha256": "8eccbfb71407fcbaa9643e0056a568ac25ae78d803e10bb79bd91021a56df622",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/security-before-after.png",
+      "published": "strix-comparison-2026-10-14/security-before-after.png",
+      "sourceSha256": "1a39624319a68f9137afa3719c9b939dc999b8c0b2eecbd80a8060620b30d13b",
+      "publishedSha256": "1a39624319a68f9137afa3719c9b939dc999b8c0b2eecbd80a8060620b30d13b",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/evidence-dashboard.html",
+      "published": "strix-comparison-2026-10-14/evidence-dashboard.html",
+      "sourceSha256": "20752e31cb1f05a677198720bf70b7d980e5174b72aa3fe83184eb6398580e26",
+      "publishedSha256": "32d2b9efd162476e74f07bbf70c6a8bd0ad26cc805866cffae7f61deac26d023",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/evidence-dashboard-verified.png",
+      "published": "strix-comparison-2026-10-14/evidence-dashboard-verified.png",
+      "sourceSha256": "79ae357847f91265309e62d9152a462f3343e3cb11ac5f25a87d0f169d561bb1",
+      "publishedSha256": "79ae357847f91265309e62d9152a462f3343e3cb11ac5f25a87d0f169d561bb1",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/strix-failed-viewer.png",
+      "published": "strix-comparison-2026-10-14/strix-failed-viewer.png",
+      "sourceSha256": "269d3cde578e611fea79c2c665d1655b27c0d74be1f4263c4ce95ee11e19a243",
+      "publishedSha256": "269d3cde578e611fea79c2c665d1655b27c0d74be1f4263c4ce95ee11e19a243",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/strix-summary.json",
+      "published": "strix-comparison-2026-10-14/strix-summary.json",
+      "sourceSha256": "75fe41eebd790870c65a8b07a342ead3e775cbbb71f34d35adba01b9d6e6ef9c",
+      "publishedSha256": "d52986ce8911909c06dbfb7a8efdec2931442de376bc93b14d835bdf0ef0547e",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/snapshot-manifest.json",
+      "published": "strix-comparison-2026-10-14/snapshot-manifest.json",
+      "sourceSha256": "9dd4be06f4aedcdf8c1643aaf5ad0a54f09a58dc42b6ac0099c70bf925eb0873",
+      "publishedSha256": "6f339b677f9da34a8ebfd669f5e5ec7571040d7f23559ac6a1efb4e4a123100e",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/backup-env-verification.json",
+      "published": "strix-comparison-2026-10-14/backup-env-verification.json",
+      "sourceSha256": "686fcc2f430780e0cd93c3be356d2d46ee1cdb2ed7bda587a78d7426bbee4452",
+      "publishedSha256": "686fcc2f430780e0cd93c3be356d2d46ee1cdb2ed7bda587a78d7426bbee4452",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/original-source-verification.json",
+      "published": "strix-comparison-2026-10-14/original-source-verification.json",
+      "sourceSha256": "8b2c8af972e07d9f2e959f222906faadcda95ec678b3b8c3b8e685c0e4ee37c7",
+      "publishedSha256": "8b2c8af972e07d9f2e959f222906faadcda95ec678b3b8c3b8e685c0e4ee37c7",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/cleanup-receipt.json",
+      "published": "strix-comparison-2026-10-14/cleanup-receipt.json",
+      "sourceSha256": "91e6694b43d2051b84fce02ec0df86c53b5e6ba350943e640eabbf3df7b16a79",
+      "publishedSha256": "91e6694b43d2051b84fce02ec0df86c53b5e6ba350943e640eabbf3df7b16a79",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/backend-local-snapshot-files.json",
+      "published": "strix-comparison-2026-10-14/backend-local-snapshot-files.json",
+      "sourceSha256": "33c166b15008c2132a93d1516dd38bcc724941c215e4d282f16444dc64e1b004",
+      "publishedSha256": "33c166b15008c2132a93d1516dd38bcc724941c215e4d282f16444dc64e1b004",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/frontend-snapshot-files.json",
+      "published": "strix-comparison-2026-10-14/frontend-snapshot-files.json",
+      "sourceSha256": "f347a204e459f571ba78464061c3d1a369f6abb83300fa271eb4507b5ba78396",
+      "publishedSha256": "f347a204e459f571ba78464061c3d1a369f6abb83300fa271eb4507b5ba78396",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/independent-evidence.json",
+      "published": "strix-comparison-2026-10-14/before/independent-evidence.json",
+      "sourceSha256": "0f8351145dc7ae5d4f555b0b31c8b1bd24221922fae4e0054e853d1ca975012e",
+      "publishedSha256": "0f8351145dc7ae5d4f555b0b31c8b1bd24221922fae4e0054e853d1ca975012e",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/after/independent-evidence.json",
+      "published": "strix-comparison-2026-10-14/after/independent-evidence.json",
+      "sourceSha256": "69c09849d68131ebe5bc5721b4108da59a171dc4afdc93e754a69a0222219060",
+      "publishedSha256": "816a12d29a0ac34f910fbf38317029fc5113ea5660897c2ad9b983f8aa461d4d",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/scan.log",
+      "published": "strix-comparison-2026-10-14/before/scan.txt",
+      "sourceSha256": "99459f5c9777aef7a5183764dcb1037eaff93a4f4663b7d1be6118f58af76ded",
+      "publishedSha256": "47d0bd1a5d974723fd62a3d48dbbb4240cda3bceadc78079eb396d7747eb5774",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/infrastructure-attempt-01.log",
+      "published": "strix-comparison-2026-10-14/before/infrastructure-attempt-01.txt",
+      "sourceSha256": "be197548b098ddf8bf4a1443fd45ab5e989d94460861ee6c3d7e7b3626316052",
+      "publishedSha256": "eb115077c73bd6a8a3b84c557f0d5123250dee7d2158ce00764e217ab2c4b0c5",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/infrastructure-attempt-02.log",
+      "published": "strix-comparison-2026-10-14/before/infrastructure-attempt-02.txt",
+      "sourceSha256": "bb1165329e144a766374ba75129da4a615467cf56ead0c638f6d2b88b70584e2",
+      "publishedSha256": "4e79324714c967dbf74e4e125e5524a9904c69e67f6ef79a96296d5dea7e9f3d",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/infrastructure-attempt-03.log",
+      "published": "strix-comparison-2026-10-14/before/infrastructure-attempt-03.txt",
+      "sourceSha256": "8e24795e05374e69c020e45f0112f2fa2204fff4bf2781cc0ef169003db6f994",
+      "publishedSha256": "c6311fd369fb07cf30eb51433a222747c271d6f3c3dd209095c0046179366afd",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/exit-code.txt",
+      "published": "strix-comparison-2026-10-14/before/exit-code.txt",
+      "sourceSha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "publishedSha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "transformed": false
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/strix_runs/before_5e1b/run.json",
+      "published": "strix-comparison-2026-10-14/before/strix_runs/before_5e1b/run.json",
+      "sourceSha256": "9b8131832f2becd2744a1a1f2fc77351804440bcff02c6210532c148f16482a4",
+      "publishedSha256": "7a3fe9ee53b6cfcf5042e7184e2ed7ea5afd09a55ce2dc0ac1b7b42c9b9aa4fe",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/strix_runs/before_5e1b/coverage.json",
+      "published": "strix-comparison-2026-10-14/before/strix_runs/before_5e1b/coverage.json",
+      "sourceSha256": "ae2e04e52b7edbe1f2c98700d5bbe3c103bbe45ec99a370f33f461be050a5d9e",
+      "publishedSha256": "d25c3ab2bee100d19a2a6e5af4a6fcc06098d5b29725878ba9e8ab76c4c2f80d",
+      "transformed": true
+    },
+    {
+      "source": "output/security/strix-comparison-2026-10-14/before/strix_runs/before_5e1b/findings.sarif",
+      "published": "strix-comparison-2026-10-14/before/strix_runs/before_5e1b/findings.sarif",
+      "sourceSha256": "4aaf5966c49095a16a3f378a21229fdf164c52362c9e5d623b9b4ac780174c3b",
+      "publishedSha256": "4aaf5966c49095a16a3f378a21229fdf164c52362c9e5d623b9b4ac780174c3b",
+      "transformed": false
+    },
+    {
+      "source": ".maintenance/strix-comparison-2026-10-14/independent-probe.mjs",
+      "published": "reproduction/strix-comparison-2026-10-14-independent-probe.mjs.txt",
+      "sourceSha256": "f5d5bb4ef9c4a0546bcfe558566737df69a595fda6cedcc32613f907322fce6f",
+      "publishedSha256": "f5d5bb4ef9c4a0546bcfe558566737df69a595fda6cedcc32613f907322fce6f",
+      "transformed": false
+    },
+    {
+      "source": ".maintenance/security-fix-2026-10-14/probe.mjs",
+      "published": "reproduction/security-fix-2026-10-14-probe.mjs.txt",
+      "sourceSha256": "54db8323843e1c0317165f871594c7bef10311cb57344c2ff7133c993096adf1",
+      "publishedSha256": "54db8323843e1c0317165f871594c7bef10311cb57344c2ff7133c993096adf1",
+      "transformed": false
+    },
+    {
+      "source": ".maintenance/security-fix-2026-10-14/probe-worker.mjs",
+      "published": "reproduction/security-fix-2026-10-14-probe-worker.mjs.txt",
+      "sourceSha256": "82f4da3fda3367b941dfc612a7c05351c54e763e2a5528655942498716b29178",
+      "publishedSha256": "82f4da3fda3367b941dfc612a7c05351c54e763e2a5528655942498716b29178",
+      "transformed": false
+    },
+    {
+      "source": ".maintenance/security-fix-2026-10-14/verify.mjs",
+      "published": "reproduction/security-fix-2026-10-14-verify.mjs.txt",
+      "sourceSha256": "b0583b49f712ef3df54abe33de64c7e65ee79de186ca4a30b6352ad1ff659fc2",
+      "publishedSha256": "b0583b49f712ef3df54abe33de64c7e65ee79de186ca4a30b6352ad1ff659fc2",
+      "transformed": false
+    }
+  ]
+}

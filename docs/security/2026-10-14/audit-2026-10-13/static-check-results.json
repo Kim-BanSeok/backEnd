@@ -1,0 +1,9 @@
+{
+  "trackedSensitiveNames": {
+    "frontend": [],
+    "backend-local": []
+  },
+  "frontendBuildFilesChecked": 35,
+  "exactKnownBackendSecretMatches": [],
+  "limitation": "Checks known local backend values and tracked sensitive filenames, not all history or every possible secret."
+}

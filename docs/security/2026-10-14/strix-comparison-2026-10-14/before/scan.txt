@@ -1,0 +1,301 @@
+
+
+╭─ STRIX ──────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Penetration test initiated                                                  │
+│                                                                              │
+│  Target  2 targets                                                           │
+│          [LOCAL_WORKSPACE]/.local-runtime/strix-com  │
+│  parison-2026-10-14/agent-input/before                                       │
+│          http://before-app:3000                                              │
+│  Output  strix_runs/before_5e1b                                              │
+│                                                                              │
+│  Vulnerabilities will be displayed in real-time.                             │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+2026-10-14 02:52:30.443 ERROR   before_5e1b - openai.agents: Error streaming response
+2026-10-14 02:52:30.637 ERROR   before_5e1b - strix.core.execution: agent run failed for 434d5a9e; marking crashed
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 145, in _guarded
+    async for event in events:
+        yield event
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/openai_responses.py", line 258, in __anext__
+    event = await self._stream.__anext__()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/openai/_streaming.py", line 155, in __anext__
+    return await self._iterator.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/openai/_streaming.py", line 205, in __stream__
+    raise APIError(
+    ...<3 lines>...
+    )
+openai.APIError: This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. If you’re doing authorized security work that requires more cyber permissive safeguards, apply for Daybreak access via https://platform.openai.com/settings/organization/status-and-access before retrying.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1712, in run_single_turn_streamed
+    async for event in model_run_context_stream(retry_stream, tool_use_tracker):
+    ...<142 lines>...
+                    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/_run_context.py", line 31, in model_run_context_stream
+    async for item in stream:
+        yield item
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/model_retry.py", line 560, in stream_response_with_retry
+    event = await stream.__anext__()
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 370, in stream_response
+    async for event in _with_timeouts(
+    ...<7 lines>...
+            yield guarded
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 432, in _with_timeouts
+    event = await _next_event(iterator, *min(limits))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 462, in _next_event
+    return await iterator.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/llm/request_log.py", line 1273, in stream_response
+    async for event in self._inner.stream_response(
+    ...<28 lines>...
+        yield event
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/openai_responses.py", line 591, in stream_response
+    async for chunk in stream:
+    ...<38 lines>...
+        yield chunk
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 150, in _guarded
+    raise guardrail from exc
+strix.config.codex.CodexContentGuardrailError: 'gpt-6.1-sol' was blocked by ChatGPT's content guardrails (flagged as a possible cybersecurity risk). Set STRIX_LLM to a model that isn't blocked and re-run.
+2026-10-14 02:52:30.686 ERROR   before_5e1b - strix.core.runner: Strix scan before_5e1b failed
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 145, in _guarded
+    async for event in events:
+        yield event
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/openai_responses.py", line 258, in __anext__
+    event = await self._stream.__anext__()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/openai/_streaming.py", line 155, in __anext__
+    return await self._iterator.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/openai/_streaming.py", line 205, in __stream__
+    raise APIError(
+    ...<3 lines>...
+    )
+openai.APIError: This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. If you’re doing authorized security work that requires more cyber permissive safeguards, apply for Daybreak access via https://platform.openai.com/settings/organization/status-and-access before retrying.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/runner.py", line 608, in run_strix_scan
+    result = await run_agent_loop(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 250, in run_agent_loop
+    return await _run_agent_loop(
+           ^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 309, in _run_agent_loop
+    result = await _run_until_lifecycle(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 588, in _run_until_lifecycle
+    result = await _run_cycle(
+             ^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1712, in run_single_turn_streamed
+    async for event in model_run_context_stream(retry_stream, tool_use_tracker):
+    ...<142 lines>...
+                    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/_run_context.py", line 31, in model_run_context_stream
+    async for item in stream:
+        yield item
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/model_retry.py", line 560, in stream_response_with_retry
+    event = await stream.__anext__()
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 370, in stream_response
+    async for event in _with_timeouts(
+    ...<7 lines>...
+            yield guarded
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 432, in _with_timeouts
+    event = await _next_event(iterator, *min(limits))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 462, in _next_event
+    return await iterator.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/llm/request_log.py", line 1273, in stream_response
+    async for event in self._inner.stream_response(
+    ...<28 lines>...
+        yield event
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/openai_responses.py", line 591, in stream_response
+    async for chunk in stream:
+    ...<38 lines>...
+        yield chunk
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 150, in _guarded
+    raise guardrail from exc
+strix.config.codex.CodexContentGuardrailError: 'gpt-6.1-sol' was blocked by ChatGPT's content guardrails (flagged as a possible cybersecurity risk). Set STRIX_LLM to a model that isn't blocked and re-run.
+╭─ STRIX ──────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│  Penetration test in progress                                                │
+│                                                                              │
+│  Model chatgpt/gpt-6.1-sol  ·  ChatGPT subscription                          │
+│  Vulnerabilities 0                                                           │
+│                                                                              │
+│  Input Tokens 3.2M  ·  Cached Tokens 343.8K                                  │
+│  Output Tokens 10.5K  ·  Cost $0.00 (subscription)                           │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯Error during penetration test: 'gpt-6.1-sol' was blocked by ChatGPT's content
+guardrails (flagged as a possible cybersecurity risk). Set STRIX_LLM to a model
+that isn't blocked and re-run.
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 145, in _guarded
+    async for event in events:
+        yield event
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/openai_responses.py", line 258, in __anext__
+    event = await self._stream.__anext__()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/openai/_streaming.py", line 155, in __anext__
+    return await self._iterator.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/openai/_streaming.py", line 205, in __stream__
+    raise APIError(
+    ...<3 lines>...
+    )
+openai.APIError: This content was flagged for possible cybersecurity risk. If this seems wrong, try rephrasing your request. If you’re doing authorized security work that requires more cyber permissive safeguards, apply for Daybreak access via https://platform.openai.com/settings/organization/status-and-access before retrying.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "[LOCAL_WORKSPACE]/.maintenance/strix-comparison-2026-10-14/strix-launch.py", line 38, in <module>
+    main()
+    ~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/interface/main.py", line 502, in main
+    asyncio.run(run_cli(args))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/interface/cli.py", line 219, in run_cli
+    await run_strix_scan(
+    ...<9 lines>...
+    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/runner.py", line 608, in run_strix_scan
+    result = await run_agent_loop(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 250, in run_agent_loop
+    return await _run_agent_loop(
+           ^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 309, in _run_agent_loop
+    result = await _run_until_lifecycle(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 588, in _run_until_lifecycle
+    result = await _run_cycle(
+             ^^^^^^^^^^^^^^^^^
+    ...<11 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/core/execution.py", line 803, in _run_cycle
+    async for event in stream.stream_events():
+    ...<4 lines>...
+                logger.exception("stream event sink failed for %s", agent_id)
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 931, in stream_events
+    raise self._stored_exception
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 1021, in _await_task_safely
+    await task
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/result.py", line 695, in _await_run_and_cleanup
+    result = await original_task
+             ^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1226, in start_streaming
+    turn_result = await run_single_turn_streamed(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<15 lines>...
+    )
+    ^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/run_loop.py", line 1712, in run_single_turn_streamed
+    async for event in model_run_context_stream(retry_stream, tool_use_tracker):
+    ...<142 lines>...
+                    )
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/_run_context.py", line 31, in model_run_context_stream
+    async for item in stream:
+        yield item
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/run_internal/model_retry.py", line 560, in stream_response_with_retry
+    event = await stream.__anext__()
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 370, in stream_response
+    async for event in _with_timeouts(
+    ...<7 lines>...
+            yield guarded
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 432, in _with_timeouts
+    event = await _next_event(iterator, *min(limits))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 462, in _next_event
+    return await iterator.__anext__()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/llm/request_log.py", line 1273, in stream_response
+    async for event in self._inner.stream_response(
+    ...<28 lines>...
+        yield event
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/venv/lib/python3.14/site-packages/agents/models/openai_responses.py", line 591, in stream_response
+    async for chunk in stream:
+    ...<38 lines>...
+        yield chunk
+  File "[LOCAL_WORKSPACE]/.local-runtime/strix-comparison-2026-10-14/strix-source/strix/config/models.py", line 150, in _guarded
+    raise guardrail from exc
+strix.config.codex.CodexContentGuardrailError: 'gpt-6.1-sol' was blocked by ChatGPT's content guardrails (flagged as a possible cybersecurity risk). Set STRIX_LLM to a model that isn't blocked and re-run.

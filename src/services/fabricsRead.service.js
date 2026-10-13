@@ -2,6 +2,7 @@ import { fail } from '../utils/errors.js';
 import { toKstIso } from '../utils/response.js';
 import * as fabricsReadDao from '../dao/fabricsRead.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { signedImageUrl } from './imageAccess.service.js';
 
 const LISTED_STATUS = 'POSTED'; // 목록에 보여 주는 원단 상태
 const RESERVING_STATUS = 'ACCEPTED'; // 자투리를 "예약 중"으로 만드는 예약 상태
@@ -26,7 +27,7 @@ export const toFabricSummary = (fabric) => {
     available_length_cm: isScrap ? null : fabric.remaining_length_cm - fabric.reserved_length_cm,
     is_reserved: isScrap && fabric.reservations.length > 0,
     has_defect: fabric.detail.has_defect,
-    thumbnail_url: fabric.images[0]?.thumbnail_url ?? null,
+    thumbnail_url: signedImageUrl(fabric.images[0]?.thumbnail_url, fabric.status),
     store_name: fabric.store.store_name,
   };
 };
@@ -83,8 +84,8 @@ export const toFabricDetail = (fabric, canSeeInternal) => {
     },
     images: fabric.images.map((image) => ({
       imageId: image.image_id,
-      image_url: image.image_url,
-      thumbnail_url: image.thumbnail_url,
+      image_url: signedImageUrl(image.image_url, fabric.status),
+      thumbnail_url: signedImageUrl(image.thumbnail_url, fabric.status),
       image_type: image.image_type,
       sort_order: image.sort_order,
     })),

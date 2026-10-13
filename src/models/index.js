@@ -11,6 +11,10 @@ import Favorite from './Favorite.js';
 import Inquiry from './Inquiry.js';
 import Factory from './Factory.js';
 import FactoryDataset from './FactoryDataset.js';
+import RevokedToken from './RevokedToken.js';
+import AiUsageBucket from './AiUsageBucket.js';
+import AiUsageLease from './AiUsageLease.js';
+import AiSession from './AiSession.js';
 
 const db = {
   sequelize,
@@ -26,6 +30,10 @@ const db = {
   Inquiry,
   Factory,
   FactoryDataset,
+  RevokedToken,
+  AiUsageBucket,
+  AiUsageLease,
+  AiSession,
 };
 
 // 모델 간 관계 설정

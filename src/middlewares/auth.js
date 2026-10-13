@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { fail } from '../utils/errors.js';
 import * as usersDao from '../dao/users.dao.js';
+import { isTokenRevoked } from '../services/security.service.js';
 
 // Authorization: Bearer 토큰을 확인하고 req.user = { userId, role } 를 채운다.
 // 토큰이 유효해도 회원이 탈퇴했으면(DB 에서 조회되지 않으면) 거절한다.
@@ -15,8 +16,11 @@ async function authenticate(req) {
   } catch {
     return null; // 만료, 변조 모두 로그인 안 한 것으로 본다.
   }
+  if (!Number.isSafeInteger(payload.exp) || await isTokenRevoked(token)) return null;
   const user = await usersDao.findById(Number(payload.sub));
-  return user ? { userId: user.user_id, role: user.role } : null;
+  if (!user) return null;
+  req.auth = { token, expiresAt: payload.exp };
+  return { userId: user.user_id, role: user.role };
 }
 
 // 로그인 필수. 역할을 주면 그 역할만 통과한다: requireAuth('SELLER'), requireAuth('SELLER', 'ADMIN')

@@ -5,7 +5,7 @@ import * as usersDao from '../dao/users.dao.js';
 
 const adminSchema = z.object({
   email: z.email().max(255),
-  password: z.string().min(8).max(72), // bcrypt 는 72바이트까지만 해시한다.
+  password: z.string().min(8).max(72).refine(value => Buffer.byteLength(value, 'utf8') <= 72, '비밀번호는 UTF-8 기준 72바이트 이하여야 해요'),
   nickname: z.string().min(1).max(50),
 });
 
@@ -35,6 +35,7 @@ export async function seedAdmin(admin = env.admin) {
     await usersDao.insert({
       email,
       password_hash: await hashPassword(password),
+      password_byte_length: Buffer.byteLength(password, 'utf8'),
       nickname,
       role: 'ADMIN',
       seller_approval_status: null, // 판매자만 승인 상태가 있다

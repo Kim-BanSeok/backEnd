@@ -1,0 +1,185 @@
+import { loadEnvFile } from 'node:process';
+import { createRequire } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createServer } from 'node:http';
+import { randomBytes, randomUUID, createHmac, createHash } from 'node:crypto';
+import { fork } from 'node:child_process';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+
+const root = fileURLToPath(new URL('../../', import.meta.url));
+const backend = path.join(root, 'backend-local');
+const run = JSON.parse(await fs.readFile(path.join(root, '.local-runtime/security-fix-2026-10-14/manifest.json'), 'utf8'));
+assert.match(run.database, /^material_loop_security_20261014_\d+_test$/);
+assert.equal(run.host, '127.0.0.1'); assert.equal(run.port, 54329);
+loadEnvFile(path.join(backend, '.env'));
+Object.assign(process.env, { NODE_ENV: 'test', DB_HOST: run.host, DB_PORT: String(run.port), DB_DATABASE_TEST: run.database, AI_PROVIDER: 'fake', AI_SESSION_STORE: 'database', UPLOAD_DIR: run.uploads, JWT_SECRET: randomBytes(32).toString('hex'), DOCS_ENABLED: 'false' });
+const require = createRequire(path.join(backend, 'package.json'));
+const sharp = require('sharp'), bcrypt = require('bcryptjs');
+const moduleOf = file => import(pathToFileURL(path.join(backend, file)).href);
+let app;
+const server = createServer((req, res) => app(req, res));
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+const origin = `http://127.0.0.1:${server.address().port}`;
+process.env.PUBLIC_URL = origin;
+const { default: db } = await moduleOf('src/models/index.js');
+const { env } = await moduleOf('src/config/env.js');
+assert.equal(env.db.database, run.database);
+const { createApp } = await moduleOf('src/app.js');
+const { signToken, hashPassword } = await moduleOf('src/services/auth.service.js');
+const { resetDb } = await moduleOf('tests/helpers.js');
+const { createClaudeProvider } = await moduleOf('src/ai/claudeProvider.js');
+const { createLiveApi, AUTH_STORAGE_KEY } = await import(pathToFileURL(path.join(root, 'frontend/src/react/services/live-api.js')).href);
+app = createApp(); await db.sequelize.authenticate(); await resetDb();
+const evidence = { environment: { database: run.database, origin, node: process.version, sessionStore: env.ai.sessionStore, realPaidCalls: 0, baseBackendCommit: 'dd1a4333c3d64af405068b8ab35662c47854046f', baseFrontendCommit: '5144a45ea8f57f4803147dbb8b60374243967838', callLimits: env.ai.callLimits, sessionLimits: env.ai.sessionLimits }, cases: [] };
+async function record(id, title, task) {
+  try { const result = await task(); evidence.cases.push({ id, title, result: 'pass', ...result }); console.log(JSON.stringify({ id, result: 'pass', ...result })); }
+  catch (error) { evidence.cases.push({ id, title, result: 'fail', error: error.name, message: error.message }); console.log(JSON.stringify({ id, result: 'fail', error: error.name, message: error.message })); }
+}
+async function request(method, route, { body, token, form, at = origin } = {}) {
+  const response = await fetch(at + '/api/v1' + route, { method, headers: { ...(body !== undefined && { 'Content-Type': 'application/json' }), ...(token && { Authorization: `Bearer ${token}` }) }, body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) });
+  return { status: response.status, json: await response.json() };
+}
+let seq = 0;
+const password = 'Security-proof-123!';
+async function user(role) {
+  const instance = await db.User.create({ email: `fix-proof-${++seq}@example.invalid`, nickname: 'proof', password_hash: await hashPassword(password), password_byte_length: Buffer.byteLength(password), role, seller_approval_status: role === 'SELLER' ? 'APPROVED' : null, privacy_agreed: true, terms_agreed: true });
+  if (role === 'SELLER') await db.Store.create({ user_id: instance.user_id, store_name: 'Proof store', store_address: 'Test-only address', store_phone: '000-000-0000' });
+  return { instance, token: signToken(instance) };
+}
+const buyer = await user('BUYER'), owner = await user('SELLER'), other = await user('SELLER'), admin = await user('ADMIN');
+const input = { sale_type: 'SCRAP', title: 'Security proof', price: 3000, detail: { material: 'COTTON', thickness: 'NORMAL', color_family: 'BLUE', width_cm: 50, length_cm: 60, has_defect: false } };
+const png = await sharp({ create: { width: 64, height: 48, channels: 3, background: '#446699' } }).png().toBuffer();
+const workers = [];
+async function worker(hold = false) {
+  const child = fork(path.join(root, '.maintenance/security-fix-2026-10-14/probe-worker.mjs'), [], { env: { ...process.env, SECURITY_PROBE_HOLD: hold ? '1' : '0' }, stdio: ['ignore', 'ignore', 'pipe', 'ipc'], windowsHide: true });
+  const pending = new Map(); let starts = 0;
+  const ready = await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Worker startup timeout')), 15000);
+    child.once('error', reject); child.once('exit', code => reject(new Error(`Worker exited ${code}`)));
+    child.on('message', message => {
+      if (message.event === 'ready') { clearTimeout(timer); resolve(message); }
+      if (message.event === 'started') starts++;
+      if (message.id) { pending.get(message.id)?.(message); pending.delete(message.id); }
+    });
+  });
+  const instance = { ...ready, child, started: () => starts, command: action => new Promise(resolve => { const id = randomUUID(); pending.set(id, resolve); child.send({ id, action }); }) };
+  workers.push(instance); return instance;
+}
+const a = await worker(true), b = await worker(true);
+const photo = at => { const form = new FormData(); form.append('file', new Blob([png], { type: 'image/png' }), 'proof.png'); return request('POST', '/ai/fabric-photo', { token: owner.token, form, at }); };
+const waitStarted = async instance => { const until = Date.now() + 10000; while (!instance.started()) { if (Date.now() > until) throw new Error('No provider call'); await new Promise(resolve => setTimeout(resolve, 10)); } };
+try {
+  await record('R01', 'UTF-8 bounds and ambiguous legacy prefix', async () => {
+    const long = '가'.repeat(24) + 'A';
+    const signup = value => ({ email: `unicode-${++seq}@example.invalid`, password: value, nickname: 'proof', role: 'BUYER', privacy_agreed: true, terms_agreed: true });
+    const denied = await request('POST', '/auth/signup', { body: signup(long) }); assert.equal(denied.status, 400);
+    const valid = signup('가'.repeat(24)); const created = await request('POST', '/auth/signup', { body: valid }); assert.equal(created.status, 201);
+    const login = await request('POST', '/auth/login', { body: { email: valid.email, password: valid.password } }); assert.equal(login.status, 200);
+    const legacy = await db.User.create({ ...valid, email: 'legacy-proof@example.invalid', password_hash: await bcrypt.hash(long, 4), password_byte_length: null });
+    const suffix = await request('POST', '/auth/login', { body: { email: legacy.email, password: '가'.repeat(24) + 'B' } });
+    const prefix = await request('POST', '/auth/login', { body: { email: legacy.email, password: '가'.repeat(24) } });
+    assert.deepEqual([suffix.status, prefix.status], [400, 401]);
+    return { oversizeSignup: denied.status, exact72ByteSignup: created.status, exact72ByteLogin: login.status, legacyChangedSuffixLogin: suffix.status, legacyPrefixOnlyLogin: prefix.status };
+  });
+  await record('R02', 'Live frontend logout, two processes and restart', async () => {
+    const values = new Map(), storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    const client = createLiveApi({ baseUrl: origin + '/api/v1', storage });
+    client.commitLogin(await client.login({ email: buyer.instance.email, password }));
+    const token = JSON.parse(storage.getItem(AUTH_STORAGE_KEY)).accessToken;
+    assert.equal((await request('GET', '/users/me', { token })).status, 200);
+    const result = await client.logout(); assert.equal(result.serverRevoked, true);
+    assert.equal(storage.getItem(AUTH_STORAGE_KEY), null);
+    const local = await request('GET', '/users/me', { token }), crossProcess = await request('GET', '/users/me', { token, at: a.origin });
+    const restart = await worker(); const afterRestart = await request('GET', '/users/me', { token, at: restart.origin });
+    assert.deepEqual([local.status, crossProcess.status, afterRestart.status], [401, 401, 401]);
+    const revoked = await db.RevokedToken.findAll();
+    assert.ok(revoked.every(row => /^[a-f0-9]{64}$/.test(row.token_hash) && row.token_hash !== token));
+    return { frontendServerRevoked: true, storageCleared: true, before: 200, after: local.status, otherProcess: crossProcess.status, freshProcess: afterRestart.status, onlyFingerprintsStored: true };
+  });
+  await record('R03', 'Private originals/thumbnails, EXIF, unpublish and delete', async () => {
+    const created = await request('POST', '/fabrics', { token: owner.token, body: input }); assert.equal(created.status, 201);
+    const id = created.json.data.fabricId;
+    const jpeg = await sharp(png).jpeg().withExif({ IFD0: { Artist: 'PRIVATE-METADATA-PROOF' } }).toBuffer();
+    const form = new FormData(); form.append('file', new Blob([jpeg], { type: 'image/jpeg' }), 'proof.jpg');
+    const upload = await request('POST', `/fabrics/${id}/images`, { token: owner.token, form }); assert.equal(upload.status, 201);
+    const urls = [new URL(upload.json.data.image_url), new URL(upload.json.data.thumbnail_url)];
+    const raw = await Promise.all(urls.map(url => fetch(origin + url.pathname)));
+    assert.ok(raw.every(response => response.status === 404));
+    const signed = await fetch(urls[0]); assert.equal(signed.status, 200);
+    assert.equal(signed.headers.get('cache-control'), 'no-store');
+    assert.equal((await sharp(Buffer.from(await signed.arrayBuffer())).metadata()).exif, undefined);
+    const otherResponse = await fetch(origin + urls[0].pathname, { headers: { Authorization: `Bearer ${other.token}` } }); assert.equal(otherResponse.status, 404);
+    const own = await fetch(origin + urls[0].pathname, { headers: { Authorization: `Bearer ${owner.token}` } }); assert.equal(own.status, 200);
+    const forged = new URL(urls[0]); forged.searchParams.set('signature', '0'.repeat(64)); assert.equal((await fetch(forged)).status, 404);
+    const expires = Math.floor(Date.now() / 1000) - 1, key = urls[0].pathname.slice('/uploads/'.length);
+    const signature = createHmac('sha256', env.jwtSecret).update(`image-v1\n${key}\n${expires}`).digest('hex');
+    assert.equal((await fetch(`${origin}${urls[0].pathname}?expires=${expires}&signature=${signature}`)).status, 404);
+    await fs.writeFile(path.join(run.uploads, key), jpeg);
+    assert.ok((await sharp(await fs.readFile(path.join(run.uploads, key))).metadata()).exif);
+    const historical = await fetch(urls[0]); assert.equal((await sharp(Buffer.from(await historical.arrayBuffer())).metadata()).exif, undefined);
+    assert.equal((await request('POST', `/admin/fabrics/${id}/approve`, { token: admin.token })).status, 200);
+    const detail = await request('GET', `/fabrics/${id}`); assert.equal(new URL(detail.json.data.images[0].image_url).search, '');
+    const publicFile = await fetch(origin + urls[0].pathname); assert.equal(publicFile.status, 200);
+    await request('POST', '/favorites', { token: buyer.token, body: { target_type: 'FABRIC', fabric_id: id } });
+    await db.Fabric.update({ status: 'PENDING' }, { where: { fabric_id: id } });
+    assert.equal((await fetch(origin + urls[0].pathname)).status, 404);
+    assert.equal((await request('GET', '/favorites/me', { token: buyer.token })).json.data.content[0].thumbnail_url, null);
+    assert.equal((await request('DELETE', `/fabrics/${id}`, { token: owner.token })).status, 200);
+    const deleted = await Promise.all(urls.flatMap(url => [fetch(origin + url.pathname), fetch(url)])); assert.ok(deleted.every(response => response.status === 404));
+    return { unsignedPendingOriginal: raw[0].status, unsignedPendingThumbnail: raw[1].status, otherSeller: otherResponse.status, owner: own.status, validSigned: 200, forged: 404, expired: 404, postedPublic: publicFile.status, unpublishedPublic: 404, deletedOriginalAndThumbnail: deleted.map(response => response.status), newUploadExifRemoved: true, historicalDownloadExifRemoved: true, favoritesDoNotGrantPrivateAccess: true, signedLinkTtlSeconds: 300 };
+  });
+  await record('R04', '24 concurrent photo calls split across two processes', async () => {
+    const first = photo(a.origin); await waitStarted(a);
+    const second = photo(b.origin); await waitStarted(b);
+    const activeLeases = await db.AiUsageLease.count({ where: { kind: 'CALL' } }); assert.equal(activeLeases, 2);
+    const denied = await Promise.all(Array.from({ length: 22 }, (_, index) => photo(index % 2 ? a.origin : b.origin)));
+    assert.ok(denied.every(response => response.status === 429));
+    await a.command('release'); await b.command('release');
+    const accepted = await Promise.all([first, second]); assert.ok(accepted.every(response => response.status === 200));
+    const stats = [await a.command('stats'), await b.command('stats')]; assert.equal(stats.reduce((sum, stat) => sum + stat.calls, 0), 2);
+    assert.equal(await db.AiUsageLease.count({ where: { kind: 'CALL' } }), 0);
+    return { requests: 24, serverProcesses: 2, successful: 2, rejected429: 22, providerCalls: 2, peakConcurrentProviderCalls: 2, remainingCallLeases: 0, realPaidCalls: 0 };
+  });
+  await record('R05', 'Hourly budget persists after stopping both processes', async () => {
+    await a.command('stop'); await b.command('stop');
+    const before = await db.AiUsageBucket.findByPk(`CALL:user:${owner.instance.user_id}`); assert.equal(before.request_count, 2);
+    const fresh = await worker();
+    const permitted = [];
+    for (let index = 0; index < 28; index++) permitted.push((await photo(fresh.origin)).status);
+    assert.ok(permitted.every(status => status === 200));
+    const rejected = await photo(fresh.origin); assert.equal(rejected.status, 429);
+    const stats = await fresh.command('stats'); assert.equal(stats.calls, 28);
+    const after = await db.AiUsageBucket.findByPk(`CALL:user:${owner.instance.user_id}`); assert.equal(after.request_count, 30);
+    return { usageBeforeRestart: before.request_count, allowedAfterRestart: 28, nextRequest: rejected.status, providerCallsAfterRestart: stats.calls, persistedHourlyUsage: after.request_count, configuredUserHourly: 30 };
+  });
+  await record('R06', 'Active session limit and cross-process confirmation lock', async () => {
+    const starts = [];
+    for (let index = 0; index < 24; index++) starts.push(await request('POST', '/ai-sessions', { token: owner.token }));
+    assert.equal(starts.filter(result => result.status === 201).length, 5); assert.equal(starts.filter(result => result.status === 429).length, 19);
+    const id = starts[0].json.data.sessionId, fresh = await worker();
+    assert.equal((await request('GET', `/ai-sessions/${id}`, { token: owner.token, at: fresh.origin })).status, 200);
+    assert.equal((await request('GET', `/ai-sessions/${id}`, { token: other.token, at: fresh.origin })).status, 403);
+    const before = await db.Fabric.count();
+    const confirms = await Promise.all([request('POST', `/ai-sessions/${id}/confirm`, { token: owner.token, body: input }), request('POST', `/ai-sessions/${id}/confirm`, { token: owner.token, body: input, at: fresh.origin })]);
+    assert.deepEqual(confirms.map(result => result.status).sort(), [201, 409]); assert.equal(await db.Fabric.count() - before, 1);
+    assert.equal((await request('POST', '/ai-sessions', { token: owner.token })).status, 201);
+    return { attemptedSessions: 24, created: 5, rejected429: 19, recoveredFromDatabase: true, otherSeller: 403, crossProcessConfirmStatuses: confirms.map(result => result.status), createdFabricDelta: 1, closedSessionSlotReturned: true };
+  });
+  await record('R07', 'Body-read timeout aborts after response headers', async () => {
+    let aborted = false; const started = performance.now();
+    const provider = createClaudeProvider({ apiKey: 'test-only', model: 'fake', timeoutMs: 20, fetchImpl: async (_url, { signal }) => ({ ok: true, json: () => new Promise((_resolve, reject) => signal.addEventListener('abort', () => { aborted = true; reject(new DOMException('Aborted', 'AbortError')); }, { once: true })) }) });
+    await assert.rejects(provider.describeImage({ mediaType: 'image/png', data: '' }), { name: 'AbortError' }); assert.equal(aborted, true);
+    return { configuredTimeoutMs: 20, elapsedMs: Math.round(performance.now() - started), bodySignalAborted: aborted, realPaidCalls: 0 };
+  });
+} finally {
+  for (const instance of workers) if (instance.child.connected) await instance.command('stop');
+  await new Promise(resolve => server.close(resolve)); await db.sequelize.close();
+  evidence.summary = { pass: evidence.cases.filter(item => item.result === 'pass').length, fail: evidence.cases.filter(item => item.result === 'fail').length };
+  await fs.writeFile(path.join(run.output, 'probe-results.json'), JSON.stringify(evidence, null, 2));
+  const files = ['backend-local/src/services/auth.service.js', 'backend-local/src/services/security.service.js', 'backend-local/src/services/imageAccess.service.js', 'backend-local/src/ai/claudeProvider.js', 'backend-local/src/dao/aiSessions.database.js', 'frontend/src/react/services/live-api.js'];
+  const hashes = await Promise.all(files.map(async file => ({ file, sha256: createHash('sha256').update(await fs.readFile(path.join(root, file))).digest('hex') })));
+  await fs.writeFile(path.join(run.output, 'source-hashes.json'), JSON.stringify(hashes, null, 2));
+  console.log(JSON.stringify(evidence.summary)); if (evidence.summary.fail) process.exitCode = 1;
+}

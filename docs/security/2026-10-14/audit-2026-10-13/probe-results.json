@@ -1,0 +1,187 @@
+{
+  "environment": {
+    "database": "material_loop_security_20261013_27864_test",
+    "origin": "http://127.0.0.1:14583",
+    "node": "v24.18.0",
+    "aiProvider": "fake",
+    "backendCommit": "dd1a4333c3d64af405068b8ab35662c47854046f",
+    "frontendCommit": "5144a45ea8f57f4803147dbb8b60374243967838"
+  },
+  "cases": [
+    {
+      "id": "A01",
+      "title": "Roles and admin endpoints",
+      "result": "control_pass",
+      "statuses": [
+        401,
+        403,
+        403
+      ],
+      "adminRoleSignup": 400
+    },
+    {
+      "id": "A02",
+      "title": "Cross-owner reservation and fabric modification",
+      "result": "control_pass",
+      "statuses": [
+        403,
+        403,
+        403,
+        403
+      ],
+      "reservationUnchanged": true,
+      "fabricUnchanged": true
+    },
+    {
+      "id": "A03",
+      "title": "Sensitive fields and private inquiries",
+      "result": "control_pass",
+      "unauthorizedFieldStatus": 400,
+      "privateTextMasked": true,
+      "ownerCanRead": true
+    },
+    {
+      "id": "A04",
+      "title": "JWT tampering, expiry, DB role lookup",
+      "result": "control_pass",
+      "statuses": [
+        401,
+        401,
+        403
+      ]
+    },
+    {
+      "id": "V01",
+      "title": "Bcrypt UTF-8 truncation accepted over HTTP",
+      "result": "vulnerability_confirmed",
+      "signupStatus": 201,
+      "differentPasswordLoginStatus": 200,
+      "characterCount": 25,
+      "utf8Bytes": 73,
+      "differingSuffixAfterByte": 72,
+      "productionCost10AlternatePasswordMatched": true
+    },
+    {
+      "id": "V02",
+      "title": "Copied JWT remains usable after frontend logout",
+      "result": "vulnerability_confirmed",
+      "storageCleared": true,
+      "replayStatus": 200,
+      "defaultTokenLifetime": "24h"
+    },
+    {
+      "id": "V03",
+      "title": "Pending image bypass and metadata retention",
+      "result": "vulnerability_confirmed",
+      "pendingDetailStatus": 404,
+      "unauthenticatedImageStatus": 200,
+      "originalBytesUnchanged": true,
+      "exifMarkerRetained": true,
+      "ownerDeletionStatus": 200,
+      "deletedDetailStatus": 404,
+      "imageStillPublicAfterOwnerDeletion": 200
+    },
+    {
+      "id": "A07",
+      "title": "Upload invalid content, size, pixels, owner, cleanup",
+      "result": "control_pass",
+      "statuses": [
+        400,
+        400,
+        400,
+        403
+      ],
+      "unauthenticatedStatus": 401,
+      "imageRowsUnchanged": true
+    },
+    {
+      "id": "A09",
+      "title": "SQL injection-shaped input and sorting allowlist",
+      "result": "control_pass",
+      "keywordStatus": 200,
+      "keywordResultCount": 0,
+      "invalidSortStatus": 400,
+      "usersRemain": 7
+    },
+    {
+      "id": "A10",
+      "title": "Concurrent reservation accept and cancellation stock invariants",
+      "result": "control_pass",
+      "acceptStatuses": [
+        200,
+        409
+      ],
+      "cancelStatuses": [
+        200,
+        409
+      ],
+      "reservedAfterAccept": 90,
+      "reservedAfterCancel": 0
+    },
+    {
+      "id": "V04",
+      "title": "AI quota and concurrent calls with counted fake provider",
+      "result": "vulnerability_confirmed",
+      "photoRequests": 24,
+      "successful": 24,
+      "providerCalls": 24,
+      "peakConcurrentProviderCalls": 24,
+      "newSessions": 24,
+      "pendingSellerStatus": 403,
+      "realPaidCalls": 0
+    },
+    {
+      "id": "A12",
+      "title": "AI malicious output filtering and cross-owner session",
+      "result": "control_pass",
+      "extraFieldsDropped": true,
+      "invalidMaterialCleared": true,
+      "otherSellerSessionStatus": 403,
+      "realModelPromptInjection": "not_tested"
+    },
+    {
+      "id": "A13",
+      "title": "CORS, API header policy and hidden docs",
+      "result": "control_pass",
+      "unknownOriginAllowed": false,
+      "apiCspPresent": true,
+      "nosniff": true,
+      "disabledDocsStatus": 404,
+      "deploymentTls": "not_tested"
+    },
+    {
+      "id": "G01",
+      "title": "Sensitive response no-store header",
+      "result": "hardening_gap",
+      "status": 200,
+      "cacheControl": null
+    },
+    {
+      "id": "G02",
+      "title": "Expired confirmed AI session retention",
+      "result": "hardening_gap",
+      "retainedAfterSimulatedDays": 365,
+      "realDataTouched": false
+    },
+    {
+      "id": "V05",
+      "title": "AI provider timeout ends before response body is read",
+      "result": "vulnerability_confirmed",
+      "configuredTimeoutMs": 20,
+      "stillPendingAtMs": 108,
+      "signalAborted": false,
+      "mockHeadersReturnedImmediately": true,
+      "mockBodyReleasedForCleanup": true,
+      "realPaidCalls": 0
+    },
+    {
+      "id": "A08",
+      "title": "<img id=AUDIT-XSS src=x onerror=\"document.title='AUDIT-EXEC'\"> · 패브링",
+      "result": "control_pass",
+      "scope": "React buyer home and fabric detail title and description",
+      "heading": "<img id=AUDIT-XSS src=x onerror=\"document.title='AUDIT-EXEC'\">",
+      "injectedElementCount": 0,
+      "markerVisibleAsText": true
+    }
+  ]
+}

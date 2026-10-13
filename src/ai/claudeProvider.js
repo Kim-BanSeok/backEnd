@@ -21,9 +21,8 @@ const parseObject = (text) => {
 async function complete(fetchImpl, { apiKey, model, timeoutMs, system, content }) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
-  let response;
   try {
-    response = await fetchImpl(ENDPOINT, {
+    const response = await fetchImpl(ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -38,18 +37,13 @@ async function complete(fetchImpl, { apiKey, model, timeoutMs, system, content }
       }),
       signal: controller.signal,
     });
-  } finally {
-    clearTimeout(timer);
-  }
-  if (!response.ok) throw new Error(`Claude 응답 오류 ${response.status}`);
+    if (!response.ok) throw new Error(`Claude 응답 오류 ${response.status}`);
 
-  const body = await response.json();
-  const text = jsonText(body?.content);
-  if (!text.trim()) throw new Error('Claude 응답에 내용이 없어요');
-  return {
-    parsed: parseObject(text),
-    usage: { input_tokens: body.usage?.input_tokens ?? 0, output_tokens: body.usage?.output_tokens ?? 0 },
-  };
+    const body = await response.json();
+    const text = jsonText(body?.content);
+    if (!text.trim()) throw new Error('Claude 응답에 내용이 없어요');
+    return { parsed: parseObject(text), usage: { input_tokens: body.usage?.input_tokens ?? 0, output_tokens: body.usage?.output_tokens ?? 0 } };
+  } finally { clearTimeout(timer); }
 }
 
 export function createClaudeProvider({ apiKey, model, timeoutMs = 15000, fetchImpl = fetch }) {

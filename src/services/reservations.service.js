@@ -6,6 +6,7 @@ import * as imagesDao from '../dao/images.dao.js';
 import * as patternsDao from '../dao/patterns.dao.js';
 import * as reservationsDao from '../dao/reservations.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { signedImageUrl } from './imageAccess.service.js';
 
 const ROLL_UNIT_CM = 90; // 롤은 1마(90cm) 단위로 사고판다
 const INT_MAX = 2147483647;
@@ -105,7 +106,7 @@ export async function listMyReservations(userId, { status, page, size }) {
     reject_reason: r.reject_reason,
     fabricId: r.fabric_id,
     title: r.fabric.title,
-    thumbnail_url: covers[r.fabric_id]?.thumbnail_url ?? null,
+    thumbnail_url: r.fabric.deleted_at ? null : signedImageUrl(covers[r.fabric_id]?.thumbnail_url, r.fabric.status),
     store_name: r.fabric.store.store_name,
     // 수락된 예약에는 픽업 장소와 안내가 함께 온다.
     ...(r.status === 'ACCEPTED' && {
@@ -162,7 +163,7 @@ export async function getReservation(userId, reservationId) {
       title: fabric.title,
       sale_type: fabric.sale_type,
       status: fabric.status,
-      thumbnail_url: covers[fabric.fabric_id]?.thumbnail_url ?? null,
+      thumbnail_url: fabric.deleted_at ? null : signedImageUrl(covers[fabric.fabric_id]?.thumbnail_url, fabric.status),
     },
     store: {
       store_name: store.store_name,

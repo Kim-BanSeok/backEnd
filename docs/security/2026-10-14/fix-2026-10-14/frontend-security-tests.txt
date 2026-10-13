@@ -1,0 +1,74 @@
+✔ HTTP client sends JSON/Bearer explicitly and unwraps only the success data (26.6455ms)
+▶ HTTP client rejects malformed envelopes, invalid JSON, and HTTP errors with field details
+  ✔ bare DTO (0.9273ms)
+  ✔ missing data (0.3653ms)
+  ✔ wrong success type (0.4697ms)
+✔ HTTP client rejects malformed envelopes, invalid JSON, and HTTP errors with field details (5.0054ms)
+▶ HTTP distinguishes network failure, timeout and caller cancellation
+  ✔ network failure (0.2992ms)
+  ✔ request timeout (12.9047ms)
+  ✔ caller abort (0.5692ms)
+✔ HTTP distinguishes network failure, timeout and caller cancellation (14.4819ms)
+✔ HTTP must discard a successful response arriving after caller cancellation (0.4994ms)
+✔ HTTP only expires a session for an authenticated 401, not a failed public login (0.6145ms)
+✔ signup maps the server payload and returns without login or persisted credentials (0.9868ms)
+▶ signup rejects ADMIN locally and propagates server validation/agreement/duplicate/rate-limit errors
+  ✔ VALIDATION_ERROR (0.339ms)
+  ✔ AGREEMENT_REQUIRED (0.5473ms)
+  ✔ EMAIL_DUPLICATED (0.4553ms)
+  ✔ TOO_MANY_REQUESTS (0.3978ms)
+✔ signup rejects ADMIN locally and propagates server validation/agreement/duplicate/rate-limit errors (2.3424ms)
+▶ signup does not accept a missing user id or a response with a different role
+  ✔ {"role":"BUYER"} (0.4514ms)
+  ✔ {"userId":2,"role":"SELLER"} (0.2405ms)
+✔ signup does not accept a missing user id or a response with a different role (0.9506ms)
+✔ login follows the verified server role and only commitLogin makes the session usable (1.2878ms)
+✔ seller login loads /stores/me using the token and maps the actual DTO (0.6869ms)
+▶ store failure is visible without fabricating store data, while a store 401 rejects login
+  ✔ missing store (0.5801ms)
+  ✔ expired token (0.3625ms)
+✔ store failure is visible without fabricating store data, while a store 401 rejects login (1.1942ms)
+▶ login refuses malformed or mismatched account data before any session commit
+  ✔ invalid expiry (0.2225ms)
+  ✔ missing token (0.14ms)
+  ✔ malformed me (0.1932ms)
+  ✔ mismatched user id (0.2351ms)
+  ✔ mismatched role (0.1664ms)
+✔ login refuses malformed or mismatched account data before any session commit (1.6241ms)
+✔ restore validates the saved token once and restores the server profile without persisting a password (0.5249ms)
+✔ restore network failure retains credentials for a successful explicit retry (0.4204ms)
+✔ 401 restoration expires and removes the stored session; public LOGIN_FAILED never creates one (0.4658ms)
+✔ expired storage and expired committed credentials cannot remain authenticated (0.8705ms)
+✔ credentials scoped to another backend never restore against this backend (0.1227ms)
+✔ caller cancellation rejects a late login result without persisting anything (6.8086ms)
+▶ logout invalidates both an in-flight login and a validated but uncommitted result
+  ✔ in-flight login (1.1228ms)
+  ✔ validated result awaiting commit (0.4671ms)
+✔ logout invalidates both an in-flight login and a validated but uncommitted result (1.8978ms)
+✔ a restore response arriving after logout cannot resurrect the previous session (0.4039ms)
+✔ an old restore 401 cannot expire a newer committed login (0.5922ms)
+✔ two validated login attempts cannot both commit the same revision (0.5586ms)
+✔ all unconnected business mutations reject without fake success, fetching, or state changes (0.5511ms)
+✔ plain public entry opens real login even after a prior demo session (3.3306ms)
+✔ public factory map opens real data without login after a saved demo session (0.751ms)
+✔ factory navigation exits demo by default but explicit demo and gallery routes stay examples (3.2046ms)
+✔ public factory map preserves authenticated role while private buyer routes retain role checks (27.5998ms)
+✔ factory selection preserves the mounted map while detail, mode and session changes reset it (1.7274ms)
+✔ live route roles never change authenticated server role or expose demo state (1.8024ms)
+✔ gallery is isolated and returning to real mode preserves real account, not demo role (1.5464ms)
+✔ numeric scenarios remain in demo across links; explicit live exits the scenario (1.4127ms)
+✔ logout clears real token and real drafts without resetting saved demo work (1.079ms)
+✔ StrictMode re-subscription consumes one request once, leaving processing aborts it (0.7008ms)
+✔ identity changes and expiration clear sensitive live forms even while viewing a demo (1.274ms)
+✔ direct session clearing erases anonymous auth drafts without remount loops (0.1915ms)
+✔ oversized Unicode credentials are rejected before any HTTP request (2.0655ms)
+✔ logout calls the server with the copied token and reports confirmed revocation (26.4601ms)
+✔ offline logout clears local data while reporting that server revocation is unconfirmed (0.9099ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 197.2014

@@ -1,0 +1,126 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { randomUUID } from 'node:crypto';
+const require = createRequire('/app/backend/package.json');
+const sharp = require('sharp'), bcrypt = require('bcryptjs');
+const { default: db } = await import('/app/backend/src/models/index.js');
+const { env } = await import('/app/backend/src/config/env.js');
+const { hashPassword, signToken } = await import('/app/backend/src/services/auth.service.js');
+const { createLiveApi, AUTH_STORAGE_KEY } = await import('/app/frontend/src/react/services/live-api.js');
+assert.equal(env.isTest, true); assert.match(env.db.database, /^strix_(before|after)_test$/);
+const origin = 'http://127.0.0.1:3000', version = process.env.LAB_VERSION;
+const fixed = version === 'after', runId = randomUUID().slice(0, 8), traces = [], cases = [];
+let sequence = 0;
+const redact = value => {
+  if (Array.isArray(value)) return value.map(redact);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /token|password|signature/i.test(key) ? '[REDACTED]' : redact(item)]));
+  return value;
+};
+async function request(method, route, { body, token, form } = {}) {
+  const response = await fetch(origin + '/api/v1' + route, { method,
+    headers: { ...(body !== undefined && { 'Content-Type': 'application/json' }), ...(token && { Authorization: `Bearer ${token}` }) },
+    body: form ?? (body !== undefined ? JSON.stringify(body) : undefined) });
+  const json = await response.json();
+  traces.push({ method, route, authenticated: Boolean(token), request: redact(body), response: { status: response.status, body: redact(json) } });
+  return { status: response.status, json };
+}
+async function record(id, title, task) {
+  try { cases.push({ id, title, verification: 'pass', ...await task() }); }
+  catch (error) { cases.push({ id, title, verification: 'fail', message: error.message }); }
+}
+async function user(role, marker = true, pass = 'Lab-only-2026!') {
+  const instance = await db.User.create({ email: `proof-${runId}-${++sequence}@lab.invalid`, nickname: 'synthetic-proof',
+    password_hash: marker ? await hashPassword(pass) : await bcrypt.hash(pass, 4),
+    ...(db.User.rawAttributes.password_byte_length && { password_byte_length: marker ? Buffer.byteLength(pass) : null }),
+    role, seller_approval_status: role === 'SELLER' ? 'APPROVED' : null, privacy_agreed: true, terms_agreed: true });
+  if (role === 'SELLER') await db.Store.create({ user_id: instance.user_id, store_name: 'Synthetic proof', store_address: 'Synthetic location', store_phone: '000-000-0000' });
+  return { instance, token: signToken(instance) };
+}
+await db.sequelize.authenticate();
+const buyer = await user('BUYER'), owner = await user('SELLER'), other = await user('SELLER'), admin = await user('ADMIN');
+const input = { sale_type: 'SCRAP', title: 'Synthetic comparison proof', price: 3000,
+  detail: { material: 'COTTON', thickness: 'NORMAL', color_family: 'BLUE', width_cm: 50, length_cm: 60, has_defect: false } };
+const jpeg = await sharp({ create: { width: 96, height: 72, channels: 3, background: '#365bc8' } }).jpeg().withExif({ IFD0: { Artist: 'SYNTHETIC-PRIVATE-EXIF' } }).toBuffer();
+try {
+  await record('P01', 'UTF-8 password suffix substitution', async () => {
+    const long = '가'.repeat(24) + 'A', prefix = '가'.repeat(24);
+    const makeSignup = password => ({ email: `signup-${runId}-${++sequence}@lab.invalid`, password, nickname: 'proof', role: 'BUYER', privacy_agreed: true, terms_agreed: true });
+    const oversize = makeSignup(long), signup = await request('POST', '/auth/signup', { body: oversize });
+    assert.equal(signup.status, fixed ? 400 : 201);
+    const legacy = await user('BUYER', false, long);
+    const suffix = await request('POST', '/auth/login', { body: { email: legacy.instance.email, password: prefix + 'B' } });
+    const shortened = await request('POST', '/auth/login', { body: { email: legacy.instance.email, password: prefix } });
+    assert.equal(suffix.status, fixed ? 400 : 200); assert.equal(shortened.status, fixed ? 401 : 200);
+    const valid = makeSignup(prefix), validSignup = await request('POST', '/auth/signup', { body: valid });
+    const validLogin = await request('POST', '/auth/login', { body: { email: valid.email, password: prefix } });
+    assert.equal(validSignup.status, 201); assert.equal(validLogin.status, 200);
+    return { attack: 'Same 72-byte Korean prefix, changed ASCII suffix', utf8InputBytes: 73, oversizeSignup: signup.status,
+      legacyChangedSuffixLogin: suffix.status, legacyPrefixOnlyLogin: shortened.status, exact72ByteSignup: validSignup.status, exact72ByteLogin: validLogin.status,
+      vulnerable: suffix.status === 200, asvs: ['6.2.8'] };
+  });
+  await record('P02', 'Actual frontend logout and copied-token replay', async () => {
+    const values = new Map(), storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+    const client = createLiveApi({ baseUrl: origin + '/api/v1', storage });
+    client.commitLogin(await client.login({ email: buyer.instance.email, password: 'Lab-only-2026!' }));
+    const token = JSON.parse(storage.getItem(AUTH_STORAGE_KEY)).accessToken;
+    const before = await request('GET', '/users/me', { token });
+    const logout = await client.logout();
+    const replay = await request('GET', '/users/me', { token });
+    assert.equal(before.status, 200); assert.equal(storage.getItem(AUTH_STORAGE_KEY), null); assert.equal(replay.status, fixed ? 401 : 200);
+    return { storageCleared: true, serverRevoked: logout?.serverRevoked ?? false, beforeLogout: before.status, replayAfterLogout: replay.status,
+      vulnerable: replay.status === 200, asvs: ['7.4.1'] };
+  });
+  await record('P03', 'Private/deleted original, thumbnail and metadata access', async () => {
+    const created = await request('POST', '/fabrics', { token: owner.token, body: input }); assert.equal(created.status, 201);
+    const id = created.json.data.fabricId;
+    const form = new FormData(); form.append('file', new Blob([jpeg], { type: 'image/jpeg' }), 'synthetic.jpg');
+    const uploaded = await request('POST', `/fabrics/${id}/images`, { token: owner.token, form }); assert.equal(uploaded.status, 201);
+    const urls = [uploaded.json.data.image_url, uploaded.json.data.thumbnail_url].map(value => new URL(value));
+    const rawFetch = (url, token) => fetch(origin + url.pathname, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    const raw = await rawFetch(urls[0]), thumb = await rawFetch(urls[1]), crossOwner = await rawFetch(urls[0], other.token);
+    const authorized = await rawFetch(urls[0], owner.token), administrator = await rawFetch(urls[0], admin.token);
+    assert.equal(raw.status, fixed ? 404 : 200); assert.equal(thumb.status, fixed ? 404 : 200); assert.equal(crossOwner.status, fixed ? 404 : 200);
+    assert.equal(authorized.status, 200); assert.equal(administrator.status, 200);
+    const meta = await sharp(Buffer.from(await authorized.arrayBuffer())).metadata();
+    assert.equal(Boolean(meta.exif), !fixed);
+    const signed = await fetch(origin + urls[0].pathname + urls[0].search); assert.equal(signed.status, 200);
+    const deletion = await request('DELETE', `/fabrics/${id}`, { token: owner.token }); assert.equal(deletion.status, 200);
+    const deleted = await rawFetch(urls[0]), deletedSigned = await fetch(origin + urls[0].pathname + urls[0].search);
+    assert.equal(deleted.status, fixed ? 404 : 200); assert.equal(deletedSigned.status, fixed ? 404 : 200);
+    return { privateOriginal: raw.status, privateThumbnail: thumb.status, otherSeller: crossOwner.status, owner: authorized.status, admin: administrator.status,
+      validCapability: signed.status, deletedOriginal: deleted.status, deletedCapability: deletedSigned.status, exifPresent: Boolean(meta.exif),
+      resourcePath: urls[0].pathname, thumbnailPath: urls[1].pathname, vulnerable: raw.status === 200, asvs: ['8.2.2', '8.3.1', '14.2.8'] };
+  });
+  await record('P04', 'Bounded 24-request image AI burst', async () => {
+    const before = await (await fetch(origin + '/__lab/provider-stats')).json(); assert.equal(before.calls, 0, 'Restart lab server before independent probe');
+    const started = performance.now();
+    const results = await Promise.all(Array.from({ length: 24 }, () => {
+      const form = new FormData(); form.append('file', new Blob([jpeg], { type: 'image/jpeg' }), 'synthetic.jpg');
+      return request('POST', '/ai/fabric-photo', { token: owner.token, form });
+    }));
+    const after = await (await fetch(origin + '/__lab/provider-stats')).json();
+    const statuses = results.reduce((acc, item) => ({ ...acc, [item.status]: (acc[item.status] ?? 0) + 1 }), {});
+    assert.deepEqual(statuses, fixed ? { 200: 2, 429: 22 } : { 200: 24 });
+    assert.equal(after.calls, fixed ? 2 : 24); assert.equal(after.peak, fixed ? 2 : 24); assert.equal(after.paidApplicationAiCalls, 0);
+    return { requests: 24, statuses, providerCalls: after.calls, peak: after.peak, elapsedMs: Math.round(performance.now() - started), paidApplicationAiCalls: 0,
+      vulnerable: after.calls > 2, asvs: ['2.4.1', '15.2.2'] };
+  });
+  await record('P05', 'Bounded 24-session creation burst', async () => {
+    const results = [];
+    for (let i = 0; i < 24; i++) results.push(await request('POST', '/ai-sessions', { token: owner.token }));
+    const statuses = results.reduce((acc, item) => ({ ...acc, [item.status]: (acc[item.status] ?? 0) + 1 }), {});
+    assert.deepEqual(statuses, fixed ? { 201: 5, 429: 19 } : { 201: 24 });
+    const sessionId = results[0].json.data.sessionId;
+    const own = await request('GET', `/ai-sessions/${sessionId}`, { token: owner.token });
+    const outsider = await request('GET', `/ai-sessions/${sessionId}`, { token: other.token });
+    assert.equal(own.status, 200); assert.equal(outsider.status, 403);
+    return { requests: 24, statuses, allowedOwnSession: own.status, otherSeller: outsider.status, vulnerable: statuses[201] > 5, asvs: ['2.4.1', '15.2.2'] };
+  });
+} finally {
+  await db.sequelize.close();
+  const evidence = { version, source: 'Independent replay against actual Docker app and frontend adapter; not generated by Strix', runId,
+    environment: { database: env.db.database, node: process.version, syntheticDataOnly: true, fakeAi: true }, cases, traces,
+    summary: { pass: cases.filter(row => row.verification === 'pass').length, fail: cases.filter(row => row.verification === 'fail').length } };
+  console.log(JSON.stringify(evidence));
+  if (evidence.summary.fail) process.exitCode = 1;
+}
