@@ -78,7 +78,7 @@
 | fabric_detail_id | 원단상세 ID | BIGINT | Y |  | N | AUTO |  |
 | fabric_id | 원단 ID | BIGINT |  | Y | N |  | fabrics, 원단당 1개 |
 | width_cm | 가로(폭) | INT |  |  | N |  | 자투리: 사용 가능 가로 / 롤: 폭 |
-| length_cm | 세로(길이) | INT |  |  | Y | NULL | 자투리만, 30~90 / 롤은 NULL |
+| length_cm | 세로(길이) | INT |  |  | Y | NULL | 자투리만, 1 이상 / 롤은 NULL |
 | material | 소재 | VARCHAR(20) |  |  | N | UNKNOWN | COTTON / LINEN / POLYESTER / NYLON / RAYON / WOOL / BLEND / ETC / UNKNOWN |
 | thickness | 두께 | VARCHAR(10) |  |  | N |  | THIN / NORMAL / THICK |
 | color_family | 색상 | VARCHAR(10) |  |  | N |  | WHITE / BLACK / GRAY / BEIGE / BROWN / RED / PINK / YELLOW / GREEN / BLUE / NAVY / PURPLE / MIXED |
@@ -260,7 +260,7 @@
 | users | CHECK | role은 SELLER / BUYER / ADMIN 중 하나 |
 | fabrics | CHECK | sale_type은 SCRAP / ROLL, status는 PENDING / POSTED / REJECTED / SOLD_OUT 중 하나 |
 | fabrics | CHECK | price ≥ 0, remaining_length_cm ≥ 0, reserved_length_cm ≥ 0 |
-| fabric_details | CHECK | width_cm > 0, length_cm는 값이 있으면 30~90 (롤이면 NULL인지는 DB로 검사 불가, 앱에서 검사) |
+| fabric_details | CHECK | width_cm > 0, length_cm는 값이 있으면 1 이상 (롤이면 NULL인지는 DB로 검사 불가, 앱에서 검사) |
 | fabric_details | CHECK | material, thickness, color_family는 위 코드 목록 중 하나 |
 | fabric_images | UNIQUE | (fabric_id, sort_order) — 대표 이미지(0번) 중복 방지 |
 | fabric_images | CHECK | image_type은 값이 있으면 FULL / ZOOM / DEFECT 중 하나 |

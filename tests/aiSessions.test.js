@@ -60,8 +60,8 @@ const fabricBody = (overrides = {}) => ({
 
 // 자투리 한 벌을 끝까지 답한다. 돌려주는 값: 마지막 응답 데이터
 async function fillScrap(id, token) {
-  let last;
-  for (const text of ['자투리 한 장이요', '네이비 면 20수', '50에 70', '면이에요', '얇아요', '남색', '없어요', '3000원']) {
+  let last = (await answer(id, token, { selected: 'SCRAP' })).json.data;
+  for (const text of ['네이비 면 20수', '50에 70', '면이에요', '얇아요', '남색', '없어요', '3000원']) {
     last = (await answer(id, token, { answer: text })).json.data;
   }
   return last;
@@ -77,7 +77,7 @@ test('시작 성공: 201, 진행 중, 첫 질문은 판매 형태, 빈 초안 (�
   assert.deepEqual(Object.keys(json.data).sort(), ['ai_draft', 'is_complete', 'next_question', 'sessionId', 'session_status', 'unconfirmed_fields']);
   assert.match(json.data.sessionId, /^[0-9a-f]{24}$/);
   assert.equal(json.data.session_status, 'IN_PROGRESS');
-  assert.deepEqual(json.data.next_question, { field: 'sale_type', text: '자투리 1장인가요, 롤 원단인가요?', options: ['SCRAP', 'ROLL'] });
+  assert.deepEqual(json.data.next_question, { field: 'sale_type', text: '안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?', options: ['SCRAP', 'ROLL'] });
   assert.deepEqual([json.data.ai_draft, json.data.unconfirmed_fields, json.data.is_complete], [{}, [], false]);
 });
 
@@ -114,7 +114,7 @@ test('조회: 대화 기록과 fabric_id(확정 전 null)가 함께 오고, 첫 
   assert.equal(status, 200);
   assert.deepEqual(Object.keys(json.data).sort(), ['ai_draft', 'fabric_id', 'is_complete', 'messages', 'next_question', 'sessionId', 'session_status', 'unconfirmed_fields']);
   assert.equal(json.data.fabric_id, null);
-  assert.deepEqual(json.data.messages.map((m) => [m.role, m.content]), [['assistant', '자투리 1장인가요, 롤 원단인가요?']]);
+  assert.deepEqual(json.data.messages.map((m) => [m.role, m.content]), [['assistant', '안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?']]);
   assert.match(json.data.messages[0].created_at, /\+09:00$/);
   assert.deepEqual(json.data.next_question, created.next_question); // 저장된 값이 아니라 지금 상태로 계산한 값
 });
@@ -151,8 +151,18 @@ test('선택 버튼(selected)으로 답하면 AI 를 부르지 않고 바로 받
   assert.equal(status, 200);
   assert.equal(calls, 0);
   assert.deepEqual(json.data.ai_draft, { sale_type: 'SCRAP' });
-  assert.deepEqual(json.data.next_question, { field: 'title', text: '원단 이름(제목)을 알려 주세요. 예: 네이비 면 20수' });
+  assert.deepEqual(json.data.next_question, { field: 'title', text: '원단 이름은 뭐라고 할까요? 예를 들면 네이비 면 20수요.' });
   assert.deepEqual([json.data.unconfirmed_fields, json.data.is_complete, json.data.session_status], [[], false, 'IN_PROGRESS']);
+});
+
+test('자투리라고 말하면 그 답을 받고 다음 질문을 한다', async () => {
+  const { token } = await approvedSeller();
+  const { sessionId } = await startOk(token);
+  const { status, json } = await answer(sessionId, token, { answer: '자투리 한 장이에요' });
+  assert.equal(status, 200);
+  assert.equal(json.data.ai_draft.sale_type, 'SCRAP');
+  assert.equal(json.data.next_question.field, 'title');
+  assert.equal(json.data.is_complete, false);
 });
 
 test('말하듯 쓴 답(answer)을 AI 가 읽어 초안에 정리한다: 전체 흐름 끝까지', async () => {
@@ -168,7 +178,7 @@ test('말하듯 쓴 답(answer)을 AI 가 읽어 초안에 정리한다: 전체 
   const { json } = await get(sessionId, token);
   assert.equal(json.data.messages.length, 17); // 첫 질문 1 + (답 + 다음 질문) x 8
   assert.deepEqual(json.data.messages.slice(0, 3).map((m) => m.role), ['assistant', 'user', 'assistant']);
-  assert.equal(json.data.messages[1].content, '자투리 한 장이요');
+  assert.equal(json.data.messages[1].content, 'SCRAP');
   assert.match(json.data.messages.at(-1).content, /모두 확인했어요/);
 });
 
@@ -186,12 +196,14 @@ test('"모름"이라고 답하면 비워 두고(소재는 UNKNOWN) unconfirmed_f
   assert.equal(thickness.next_question.field, 'color_family'); // 다음 질문으로 넘어간다
 });
 
-test('알아듣지 못한 답도 같은 질문을 반복하지 않고 모름으로 넘어간다', async () => {
+test('첫 질문을 알아듣지 못하면 같은 질문을 반복하지 않고 다음 질문으로 넘어간다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
   const { json } = await answer(sessionId, token, { answer: '글쎄요 뭐라고 해야 할지' });
-  assert.deepEqual(json.data.unconfirmed_fields, ['sale_type']);
   assert.equal(json.data.next_question.field, 'title');
+  assert.equal(json.data.is_complete, false);
+  assert.equal(json.data.ai_draft.title, undefined);
+  assert.ok(json.data.unconfirmed_fields.includes('sale_type'));
 });
 
 test('마 단위 답변은 cm 로 바꿔 저장한다 (3마 → 270)', async () => {
@@ -204,23 +216,17 @@ test('마 단위 답변은 cm 로 바꿔 저장한다 (3마 → 270)', async () 
   assert.equal('length_cm' in json.data.ai_draft, false);
 });
 
-test('자투리 길이가 90cm 를 넘으면 롤로 등록할지 묻고, 30cm 미만이면 안내와 함께 다시 묻는다', async () => {
+test('자투리 길이는 90cm 를 넘거나 30cm 보다 짧아도 그대로 받고 다음 질문을 한다', async () => {
   const { token } = await approvedSeller();
-  const long = (await startOk(token)).sessionId;
-  await answer(long, token, { selected: 'SCRAP' });
-  await answer(long, token, { answer: '긴 원단' });
-  const over = (await answer(long, token, { answer: '가로 100 세로 120' })).json.data;
-  assert.deepEqual(over.next_question, { field: 'sale_type', text: '세로 길이가 90cm를 넘어요. 롤로 등록할까요?', options: ['ROLL', 'SCRAP'] });
-  const toRoll = (await answer(long, token, { selected: 'ROLL' })).json.data;
-  assert.equal(toRoll.ai_draft.sale_type, 'ROLL');
-  assert.equal(toRoll.next_question.field, 'size');
-
-  const short = (await startOk(token)).sessionId;
-  await answer(short, token, { selected: 'SCRAP' });
-  await answer(short, token, { answer: '짧은 원단' });
-  const under = (await answer(short, token, { answer: '가로 50 세로 20' })).json.data;
-  assert.match(under.next_question.text, /^30cm 이상만 등록할 수 있어요/);
-  assert.equal('length_cm' in under.ai_draft, false);
+  for (const [title, answerText, length] of [['긴 원단', '가로 100 세로 120', 120], ['짧은 원단', '가로 50 세로 20', 20]]) {
+    const sessionId = (await startOk(token)).sessionId;
+    await answer(sessionId, token, { selected: 'SCRAP' });
+    await answer(sessionId, token, { answer: title });
+    const data = (await answer(sessionId, token, { answer: answerText })).json.data;
+    assert.equal(data.ai_draft.sale_type, 'SCRAP');
+    assert.equal(data.ai_draft.length_cm, length);
+    assert.equal(data.next_question.field, 'material');
+  }
 });
 
 test('finish 는 더 묻지 않고 지금까지의 초안을 보여 준다 (is_complete true), 답과 함께 보낼 수도 있다', async () => {
@@ -359,12 +365,13 @@ test('AI 호출 횟수와 토큰이 세션에 기록된다 (비용 산정용)', 
 test('같은 세션에 답변을 동시에 보내도 하나씩 처리되어 서로의 변경을 덮어쓰지 않는다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
+  await answer(sessionId, token, { selected: 'SCRAP' });
   // 느린 AI: 동시에 두 요청이 같은 질문을 읽고 같은 값을 덮어쓰는 상황을 만든다.
   setProvider({
     model: 'slow',
     extract: async ({ question }) => {
       await new Promise((resolve) => setTimeout(resolve, 60));
-      return { values: { [question.field]: question.field === 'sale_type' ? 'SCRAP' : '이름', size: null }, usage: {} };
+      return { values: { [question.field]: '이름', size: null }, usage: {} };
     },
   });
   const [a, b] = await Promise.all([
@@ -373,10 +380,10 @@ test('같은 세션에 답변을 동시에 보내도 하나씩 처리되어 서�
   ]);
   assert.deepEqual([a.status, b.status], [200, 200]);
   const { json } = await get(sessionId, token);
-  // 첫 번째 답이 판매 형태, 두 번째 답이 이름에 들어간다 (둘 다 반영되고 순서대로)
+  // 잠금 때문에 첫 답이 이름을 넣고, 둘째 답은 그다음 질문에 들어간다
   assert.equal(json.data.ai_draft.sale_type, 'SCRAP');
   assert.equal(json.data.ai_draft.title, '이름');
-  assert.equal(json.data.messages.filter((m) => m.role === 'user').length, 2);
+  assert.equal(json.data.messages.filter((m) => m.role === 'user').length, 3);
 });
 
 // ==== 20. 확정
@@ -441,7 +448,7 @@ test('검사에 걸려 실패하면 세션은 계속 진행 중이고 고쳐서 
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
   const cases = [
-    [fabricBody({ detail: { ...fabricBody().detail, length_cm: 150 } }), 'SCRAP_LENGTH_OUT_OF_RANGE'],
+    [fabricBody({ detail: { ...fabricBody().detail, length_cm: 0 } }), 'SCRAP_LENGTH_OUT_OF_RANGE'],
     [fabricBody({ detail: { ...fabricBody().detail, has_defect: true } }), 'DEFECT_NOTE_REQUIRED'],
     [fabricBody({ sale_type: 'ROLL', remaining_length_cm: 50 }), 'ROLL_LENGTH_REQUIRED'],
   ];

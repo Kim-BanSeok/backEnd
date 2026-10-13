@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { newSession, currentQuestion, toView, applyValues, applySelected, finish } from '../src/ai/flow.js';
-import { createFakeProvider } from '../src/ai/fakeProvider.js';
+import { createFakeProvider, parseListing } from '../src/ai/fakeProvider.js';
 import { createClaudeProvider } from '../src/ai/claudeProvider.js';
 import { createMemoryAiSessionStore, SESSION_TTL_MS } from '../src/dao/aiSessions.memory.js';
 import { withKeyLock } from '../src/utils/keyedMutex.js';
@@ -18,7 +18,24 @@ const pick = (session, selected) => applySelected(session, ask(session), selecte
 
 test('처음 질문은 판매 형태이고 선택 목록이 있다 (명세서 17번)', () => {
   const q = ask(fresh());
-  assert.deepEqual(q, { field: 'sale_type', text: '자투리 1장인가요, 롤 원단인가요?', options: ['SCRAP', 'ROLL'] });
+  assert.deepEqual(q, { field: 'sale_type', text: '안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?', options: ['SCRAP', 'ROLL'] });
+});
+
+test('밴드 메모 한 줄은 롤 가격을 90cm 단가로 나누고 소개글을 만든 뒤 질문을 끝낸다', () => {
+  const s = fresh();
+  const memo = 'No.93017, 폭 154cm, 울 100% 도비, 5마 9,900원, 연폭 가능';
+  applyValues(s, { field: 'listing' }, parseListing(memo));
+  assert.equal(s.ai_draft.sale_type, 'ROLL');
+  assert.equal(s.ai_draft.title, 'No.93017');
+  assert.equal(s.ai_draft.width_cm, 154);
+  assert.equal(s.ai_draft.remaining_length_cm, 450);
+  assert.equal('length_cm' in s.ai_draft, false);
+  assert.equal(s.ai_draft.material, 'WOOL');
+  assert.equal(s.ai_draft.price, 1980);
+  assert.match(s.ai_draft.description, /5마 9,900원/);
+  assert.match(s.ai_draft.description, /원단의 가치/);
+  assert.deepEqual(s.unconfirmed_fields, ['thickness', 'color_family']);
+  assert.equal(ask(s), null);
 });
 
 test('질문 순서: 판매 형태 → 이름 → 크기 → 소재 → 두께 → 색상 → 하자 → 가격 → 끝', () => {
@@ -132,52 +149,12 @@ test('판매 형태를 모르면 크기를 묻지 않고 다음 질문으로 넘
 
 // ---- 자투리 길이 규칙
 
-test('자투리 길이가 90cm 를 넘으면 "롤로 등록할까요?"를 next_question 으로 준다', () => {
-  const s = fresh();
-  Object.assign(s.ai_draft, { sale_type: 'SCRAP', title: 'a' });
-  give(s, { width_cm: 100, length_cm: 120 });
-  assert.deepEqual(ask(s), { field: 'sale_type', text: '세로 길이가 90cm를 넘어요. 롤로 등록할까요?', options: ['ROLL', 'SCRAP'] });
-});
-
-test('롤로 등록하겠다고 하면 판매 형태가 바뀌고 자투리 길이는 지워져 남은 길이를 묻는다', () => {
-  const s = fresh();
-  Object.assign(s.ai_draft, { sale_type: 'SCRAP', title: 'a' });
-  give(s, { width_cm: 100, length_cm: 120 });
-  assert.ok(pick(s, 'ROLL'));
-  assert.deepEqual([s.ai_draft.sale_type, s.sale_type, 'length_cm' in s.ai_draft, s.ai_draft.width_cm], ['ROLL', 'ROLL', false, 100]);
-  assert.equal(ask(s).field, 'size');
-  assert.match(ask(s).text, /남은 길이/);
-});
-
-test('자투리로 그대로 두겠다고 하면 한 번만 묻고 다음 질문으로 넘어간다', () => {
-  const s = fresh();
-  Object.assign(s.ai_draft, { sale_type: 'SCRAP', title: 'a' });
-  give(s, { width_cm: 100, length_cm: 120 });
-  assert.ok(pick(s, 'SCRAP'));
-  assert.equal(s.ai_draft.sale_type, 'SCRAP');
-  assert.equal(ask(s).field, 'material');
-});
-
-test('자투리 길이가 30cm 미만이면 "30cm 이상만 등록할 수 있어요"를 다시 묻고, 값은 받지 않는다', () => {
-  const s = fresh();
-  Object.assign(s.ai_draft, { sale_type: 'SCRAP', title: 'a' });
-  give(s, { width_cm: 50, length_cm: 20 });
-  assert.equal(s.ai_draft.width_cm, 50);
-  assert.equal('length_cm' in s.ai_draft, false);
-  assert.equal(ask(s).field, 'size');
-  assert.match(ask(s).text, /^30cm 이상만 등록할 수 있어요/);
-
-  give(s, { length_cm: 60 }); // 제대로 다시 알려 주면
-  assert.equal(s.ai_draft.length_cm, 60);
-  assert.equal(ask(s).field, 'material');
-  assert.equal(s.flags.size_hint, null);
-});
-
-test('자투리 길이 경계: 30cm 와 90cm 는 그대로 받는다', () => {
-  for (const length of [30, 90]) {
+test('자투리 길이가 90cm 를 넘거나 30cm 보다 짧아도 그대로 받고 다음 질문으로 넘어간다', () => {
+  for (const length of [20, 30, 90, 120]) {
     const s = fresh();
     Object.assign(s.ai_draft, { sale_type: 'SCRAP', title: 'a' });
     give(s, { width_cm: 50, length_cm: length });
+    assert.equal(s.ai_draft.sale_type, 'SCRAP');
     assert.equal(s.ai_draft.length_cm, length, String(length));
     assert.equal(ask(s).field, 'material');
   }

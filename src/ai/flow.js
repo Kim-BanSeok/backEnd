@@ -6,7 +6,6 @@ import { SALE_TYPES, MATERIALS, THICKNESSES, COLOR_FAMILIES } from '../utils/cod
 
 export const PROMPT_VERSION = 'p1';
 const INT_MAX = 2147483647;
-const ROLL_UNIT_CM = 90;
 
 export const FIELD_OPTIONS = {
   sale_type: SALE_TYPES,
@@ -21,41 +20,34 @@ const ROLL_SIZE_FIELDS = ['width_cm', 'remaining_length_cm'];
 
 // 질문 단계. fields 는 그 단계의 답이 채우는 ai_draft 항목이다. 이미 채웠거나 "모름"으로 표시한 항목은 다시 묻지 않는다.
 const STEPS = [
-  { field: 'sale_type', text: '자투리 1장인가요, 롤 원단인가요?', options: SALE_TYPES, fields: () => ['sale_type'] },
-  { field: 'title', text: '원단 이름(제목)을 알려 주세요. 예: 네이비 면 20수', fields: () => ['title'] },
+  { field: 'sale_type', text: '안녕하세요. 자투리 한 장인가요, 아니면 롤 원단인가요?', options: SALE_TYPES, fields: () => ['sale_type'] },
+  { field: 'title', text: '원단 이름은 뭐라고 할까요? 예를 들면 네이비 면 20수요.', fields: () => ['title'] },
   {
     field: 'size',
     // 판매 형태를 모르면 크기를 물을 수 없다.
     skip: (draft) => !draft.sale_type,
     text: (draft) =>
       draft.sale_type === 'ROLL'
-        ? '폭과 남은 길이를 알려 주세요. 예: 폭 150에 3마 (1마는 90cm예요)'
-        : '가로(폭)와 세로 길이를 알려 주세요. 예: 50에 70 (cm)',
+        ? '폭과 남은 길이는 어느 정도예요? 예를 들면 폭 150에 3마요. 1마는 90센티미터예요.'
+        : '가로(폭)와 세로는 어느 정도예요? 센티미터로 말씀해 주세요. 예를 들면 50에 70이요.',
     fields: (draft) => (draft.sale_type === 'ROLL' ? ROLL_SIZE_FIELDS : SCRAP_SIZE_FIELDS),
   },
-  { field: 'material', text: '소재는 무엇인가요?', options: MATERIALS, fields: () => ['material'] },
-  { field: 'thickness', text: '두께는 어떤가요?', options: THICKNESSES, fields: () => ['thickness'] },
-  { field: 'color_family', text: '색상 계열은 무엇인가요?', options: COLOR_FAMILIES, fields: () => ['color_family'] },
-  { field: 'has_defect', text: '하자(얼룩·구멍 등)가 있나요?', options: FIELD_OPTIONS.has_defect, fields: () => ['has_defect'] },
+  { field: 'material', text: '소재는 뭐예요? 면이나 울처럼 말씀해 주세요.', options: MATERIALS, fields: () => ['material'] },
+  { field: 'thickness', text: '두께는 어때요? 얇은 편, 보통, 두꺼운 편 중에 말씀해 주세요.', options: THICKNESSES, fields: () => ['thickness'] },
+  { field: 'color_family', text: '색은 어느 쪽에 가까워요?', options: COLOR_FAMILIES, fields: () => ['color_family'] },
+  { field: 'has_defect', text: '얼룩이나 구멍 같은 하자가 있나요?', options: FIELD_OPTIONS.has_defect, fields: () => ['has_defect'] },
   {
     field: 'defect_note',
     skip: (draft) => draft.has_defect !== true, // 하자가 있다고 한 경우에만 묻는다
-    text: '하자의 위치와 내용을 알려 주세요. 예: 오른쪽 아래 얼룩 3cm',
+    text: '하자가 어디에 있고, 어느 정도예요?',
     fields: () => ['defect_note'],
   },
   {
     field: 'price',
-    text: (draft) => (draft.sale_type === 'ROLL' ? '가격은 얼마인가요? (롤은 90cm(1마)당 원)' : '가격은 얼마인가요? (자투리는 장당 원)'),
+    text: (draft) => (draft.sale_type === 'ROLL' ? '90센티미터, 1마당 가격은 얼마예요?' : '이 한 장은 얼마에 팔까요?'),
     fields: () => ['price'],
   },
 ];
-
-// 자투리 길이가 90cm 를 넘으면 롤로 등록할지 묻는다. (한 번만 묻는다)
-const ROLL_OFFER = {
-  field: 'sale_type',
-  text: '세로 길이가 90cm를 넘어요. 롤로 등록할까요?',
-  options: ['ROLL', 'SCRAP'],
-};
 
 const stepText = (step, draft) => (typeof step.text === 'function' ? step.text(draft) : step.text);
 const toQuestion = (step, draft, textOverride) => ({
@@ -89,8 +81,6 @@ export function newSession({ sellerId, now, model, promptVersion = PROMPT_VERSIO
 export function currentQuestion(session) {
   if (session.session_status !== 'IN_PROGRESS' || session.flags.finished) return null;
   const { ai_draft: draft, unconfirmed_fields: unconfirmed } = session;
-
-  if (draft.sale_type === 'SCRAP' && draft.length_cm > ROLL_UNIT_CM && !session.flags.roll_declined) return ROLL_OFFER;
 
   for (const step of STEPS) {
     if (step.skip?.(draft)) continue;
@@ -137,9 +127,6 @@ function setSaleType(session, value) {
   const draft = session.ai_draft;
   const before = draft.sale_type;
 
-  // 롤 제안(자투리 길이 90cm 초과)에 답한 경우
-  if (before === 'SCRAP' && value === 'SCRAP' && draft.length_cm > ROLL_UNIT_CM) session.flags.roll_declined = true;
-
   setValue(session, 'sale_type', value);
   session.sale_type = value;
   if (before && before !== value) {
@@ -162,14 +149,17 @@ const SANITIZERS = {
   has_defect: (v) => (typeof v === 'boolean' ? v : null),
   defect_note: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 255 ? v.trim() : null),
   price: (v) => (isInt(v, 1) ? v : null),
+  description: (v) => (typeof v === 'string' && v.trim().length >= 1 && v.trim().length <= 5000 ? v.trim() : null),
 };
+
+const LISTING_FIELDS = ['sale_type', 'title', 'width_cm', 'length_cm', 'remaining_length_cm', 'material', 'thickness', 'color_family', 'has_defect', 'defect_note', 'price', 'description'];
 
 // AI(또는 가짜 AI)가 뽑은 값을 초안에 반영한다. values 에 없거나 null 이거나 올바르지 않은 항목은 "모름"으로 본다.
 //  - 모름: 비워 두고(소재는 UNKNOWN) unconfirmed_fields 에 넣는다. 판매자가 확인·수정 화면에서 채운다.
 //  - 이렇게 해야 AI 가 알아듣지 못해도 같은 질문이 끝없이 반복되지 않는다.
 export function applyValues(session, question, values) {
   const draft = session.ai_draft;
-  const stepFields = question === ROLL_OFFER ? ['sale_type'] : STEPS.find((s) => s.field === question.field).fields(draft);
+  const stepFields = question.field === 'listing' ? LISTING_FIELDS : STEPS.find((s) => s.field === question.field).fields(draft);
 
   for (const name of stepFields) {
     const value = SANITIZERS[name](values?.[name]);
@@ -181,16 +171,25 @@ export function applyValues(session, question, values) {
     }
     if (name === 'sale_type') {
       setSaleType(session, value);
-    } else if (name === 'length_cm' && session.ai_draft.sale_type === 'SCRAP' && value < 30) {
-      // 자투리는 길이가 30cm 이상이어야 등록할 수 있다. 값은 받지 않고 같은 질문을 안내와 함께 다시 한다.
-      session.flags.size_hint = '30cm 이상만 등록할 수 있어요. 세로 길이를 다시 알려 주세요';
-      dropValue(session, 'length_cm');
     } else {
       setValue(session, name, value);
       if (name === 'has_defect' && value === false) dropValue(session, 'defect_note');
     }
   }
-  if (session.ai_draft.length_cm >= 30 || session.ai_draft.remaining_length_cm !== undefined) session.flags.size_hint = null;
+  if (question.field === 'listing') {
+    const type = session.ai_draft.sale_type;
+    if (type === 'ROLL') { dropValue(session, 'length_cm'); clearUnconfirmed(session, 'length_cm'); }
+    if (type === 'SCRAP') { dropValue(session, 'remaining_length_cm'); clearUnconfirmed(session, 'remaining_length_cm'); }
+    if (session.ai_draft.has_defect !== true) clearUnconfirmed(session, 'defect_note');
+    for (const step of STEPS) {
+      for (const name of step.fields(session.ai_draft)) {
+        const unusedLength = (type === 'ROLL' && name === 'length_cm') || (type === 'SCRAP' && name === 'remaining_length_cm');
+        const unusedDefect = name === 'defect_note' && session.ai_draft.has_defect !== true;
+        if (!unusedLength && !unusedDefect && session.ai_draft[name] === undefined) markUnconfirmed(session, name);
+      }
+    }
+  }
+  if (session.ai_draft.length_cm >= 1 || session.ai_draft.remaining_length_cm !== undefined) session.flags.size_hint = null;
   return session;
 }
 

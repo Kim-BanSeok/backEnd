@@ -22,7 +22,7 @@ const detailSchema = z.object({
   color_family: z.enum(COLOR_FAMILIES),
   color_detail: optionalText(100),
   width_cm: z.number().int().min(1).max(1000),
-  // 자투리 30~90, 롤은 보내지 않음은 값 범위가 아니라 판매 형태에 따른 규칙이라 services 가 검사한다.
+  // 자투리 1cm 이상, 롤은 보내지 않음은 값 범위가 아니라 판매 형태에 따른 규칙이라 services 가 검사한다.
   length_cm: z.number().int().min(-INT_MAX).max(INT_MAX).nullish().transform((v) => v ?? null),
   has_defect: z.boolean().default(false),
   defect_note: optionalText(255),

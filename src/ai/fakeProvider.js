@@ -69,6 +69,56 @@ function parsePrice(text) {
   return digits ? toInt(digits[0]) : null;
 }
 
+const MATERIAL_LABELS = { WOOL: '울', COTTON: '면', LINEN: '린넨', POLYESTER: '폴리에스터', NYLON: '나일론', RAYON: '레이온', BLEND: '혼방', ETC: '기타', UNKNOWN: '소재 확인' };
+const COLOR_LABELS = { BEIGE: '아이보리', WHITE: '흰색', BLACK: '검정', GRAY: '회색', BROWN: '갈색', RED: '빨강', PINK: '분홍', YELLOW: '노랑', GREEN: '초록', BLUE: '파랑', NAVY: '네이비', PURPLE: '보라', MIXED: '혼합' };
+
+// 밴드에 올리던 한 줄에서 등록 칸과 소개글을 함께 만든다.
+export function parseListing(text) {
+  const yardMatch = text.match(/(\d+(?:\.\d+)?)\s*마/);
+  const yards = yardMatch ? Number(yardMatch[1]) : null;
+  const saleType = yards || /롤|두루마리/.test(text) ? 'ROLL' : /자투리|한\s*장|1\s*장/.test(text) ? 'SCRAP' : null;
+  const width = afterLabel(text, '가로|폭|너비');
+  const won = text.match(/(\d[\d,]*)\s*원/);
+  const total = won ? Number(won[1].replace(/,/g, '')) : null;
+  const price = saleType === 'ROLL' && yards && total ? Math.round(total / yards) : total;
+  const size = parseSize(text, saleType === 'ROLL' ? 'ROLL' : 'SCRAP');
+  const number = text.match(/No\.?\s*(\d+)/i);
+  const title = number ? `No.${number[1]}` : text.split(/[,，]/)[0].trim().slice(0, 100) || null;
+  const material = firstMatch(MATERIAL_WORDS, text);
+  const color = firstMatch(COLOR_WORDS, text);
+  const materialLabel = MATERIAL_LABELS[material] || null;
+  const colorLabel = COLOR_LABELS[color] || null;
+  const spec = [width ? `폭 ${width}cm` : null, materialLabel, colorLabel, yards ? `${yards}마` : null].filter(Boolean).join(' / ');
+  const description = [
+    title,
+    '',
+    text.trim(),
+    '',
+    '원단의 가치',
+    materialLabel ? `- ${materialLabel} 소재` : '- 메모에 적힌 소재',
+    width ? `- 폭 ${width}cm` : null,
+    '',
+    '추천 용도',
+    '- 셔츠, 원피스, 가방처럼 폭에 맞게 재단해 쓸 수 있어요.',
+    '',
+    spec,
+  ].filter((line) => line !== null).join('\n').slice(0, 5000);
+  return {
+    sale_type: saleType,
+    title,
+    width_cm: width,
+    length_cm: saleType === 'SCRAP' ? size.length_cm : null,
+    remaining_length_cm: saleType === 'ROLL' ? (yards ? Math.round(yards * 90) : size.remaining_length_cm) : null,
+    material,
+    thickness: firstMatch(THICKNESS_WORDS, text),
+    color_family: color,
+    has_defect: /얼룩|구멍|오염|흠/.test(text) ? true : false,
+    defect_note: null,
+    price: price && price >= 1 ? price : null,
+    description,
+  };
+}
+
 const EXTRACTORS = {
   sale_type: (text) => ({ sale_type: /롤|두루마리|마 ?단위/.test(text) ? 'ROLL' : /자투리|조각|한 ?장|1 ?장/.test(text) ? 'SCRAP' : null }),
   title: (text) => ({ title: text.trim() }),
@@ -87,6 +137,12 @@ export function createFakeProvider() {
     // question: { field }, text: 판매자가 쓴 답, draft: 지금까지의 초안
     // 돌려주는 값: { values: { 항목: 값 | null }, usage }. null 은 모름·알아듣지 못함.
     async extract({ question, text, draft }) {
+      if (question.field === 'listing') {
+        if (UNKNOWN_WORDS.test(text)) {
+          return { values: Object.fromEntries(['sale_type', 'title', 'width_cm', 'length_cm', 'remaining_length_cm', 'material', 'thickness', 'color_family', 'has_defect', 'defect_note', 'price', 'description'].map((name) => [name, null])), usage: { input_tokens: 0, output_tokens: 0 } };
+        }
+        return { values: parseListing(text), usage: { input_tokens: 0, output_tokens: 0 } };
+      }
       const fields = question.field === 'size'
         ? (draft.sale_type === 'ROLL' ? ['width_cm', 'remaining_length_cm'] : ['width_cm', 'length_cm'])
         : [question.field];

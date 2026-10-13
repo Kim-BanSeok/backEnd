@@ -57,7 +57,9 @@ export function createClaudeProvider({ apiKey, model, timeoutMs = 15000, fetchIm
     name: 'claude',
     model,
     async extract({ question, text, draft }) {
-      const fields = question.field === 'size'
+      const fields = question.field === 'listing'
+        ? ['sale_type', 'title', 'width_cm', 'length_cm', 'remaining_length_cm', 'material', 'thickness', 'color_family', 'has_defect', 'defect_note', 'price', 'description']
+        : question.field === 'size'
         ? (draft.sale_type === 'ROLL' ? ['width_cm', 'remaining_length_cm'] : ['width_cm', 'length_cm'])
         : [question.field];
       const messages = buildMessages({ fields, text, draft });
