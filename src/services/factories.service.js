@@ -18,8 +18,8 @@ export const toFactoryResponse = (factory) => ({
 });
 
 // category 가 있으면 그 업종만. 페이지는 묶은 뒤의 목록 기준이다.
-export async function listFactories({ category, page, size }) {
-  const matched = (await factoriesDao.findAll())
+export async function listFactories({ category, supply_status, page, size }) {
+  const matched = (await factoriesDao.findAll({ where: { is_current: true, ...(supply_status && { supply_status }) } }))
     .map(toFactoryResponse)
     .filter((row) => !category || row.category === category);
   return {

@@ -9799,6 +9799,22 @@
             }
           },
           {
+            "name": "supply_status",
+            "in": "query",
+            "required": false,
+            "description": "생산품 기준 부자재 선별 상태. 값: candidate, review, excluded, unmatched / 생략하면 전체 업종을 조회해요. candidate는 부자재 후보이며 소매 판매·영업 여부를 확인한 업체라는 뜻은 아니에요.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "candidate",
+                "review",
+                "excluded",
+                "unmatched"
+              ],
+              "description": "생산품 기준 부자재 선별 상태. 값: candidate, review, excluded, unmatched / 생략하면 전체 업종을 조회해요. candidate는 부자재 후보이며 소매 판매·영업 여부를 확인한 업체라는 뜻은 아니에요."
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "required": false,

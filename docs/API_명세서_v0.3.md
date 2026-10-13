@@ -3999,6 +3999,7 @@ Query 항목
 | 이름 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
 | category | 문자열 | 선택 | 업종. 값: TEXTILE, APPAREL, LEATHER, FOOD, CHEMICAL, PLASTIC, METAL, WOOD, PAPER, ELECTRIC, CONSTRUCTION, OTHER |
+| supply_status | 문자열 | 선택 | 생산품 기준 부자재 선별 상태. 값: candidate, review, excluded, unmatched / 생략하면 전체 업종을 조회해요. candidate는 부자재 후보이며 소매 판매·영업 여부를 확인한 업체라는 뜻은 아니에요. |
 | page | 정수 | 선택 | 페이지 번호 (0부터) / 최소 0, 기본값 0 |
 | size | 정수 | 선택 | 한 페이지 개수 (기본 20, 최대 50) / 최소 1, 최대 50, 기본값 20 |
 

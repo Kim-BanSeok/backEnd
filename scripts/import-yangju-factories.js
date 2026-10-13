@@ -1,76 +1,46 @@
-// 받아 둔 양주시청 공장등록 엑셀을 factories 에 넣는다.
-// 회사명+주소가 같고 생산품도 같으면 건너뛴다. 생산품이 다르면 수정하고, 없으면 추가한다.
+// 기존 명령도 원문을 보존하는 정제·적재기를 사용한다.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import XLSX from 'xlsx';
 import sequelize from '../src/db/connection.js';
-import Factory from '../src/models/Factory.js';
-import { planFactoryChanges, readFactoryRows } from './factorySync.js';
+import { prepareFactoryData, verifyFactorySource } from './factoryPreparation.js';
+import { importPreparedFactories } from './factoryImport.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = path.join(ROOT, 'data/factories/yangju-city');
 
-async function latestDir() {
-  const names = (await fs.readdir(OUT_DIR)).filter((name) => /^\d{4}-\d{2}$/.test(name)).sort();
-  const stamp = names.at(-1);
-  if (!stamp) throw new Error('받아 둔 공장등록 파일이 없습니다. npm run factories:pull 을 먼저 실행하세요.');
-  return { stamp, dir: path.join(OUT_DIR, stamp) };
-}
-
 export async function saveFactoryWorkbook({ dir, stamp }) {
-  const names = await fs.readdir(dir);
-  const filename = names.find((name) => /\.xls[x]?$/i.test(name));
-  if (!filename) throw new Error(`엑셀 파일이 없습니다: ${dir}`);
-
-  const workbook = XLSX.readFile(path.join(dir, filename));
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const matrix = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-  const parsed = readFactoryRows(matrix);
-  const dataSource = `양주시청 공장등록 ${stamp}`;
-
-  const counts = await sequelize.transaction(async (transaction) => {
-    const existing = await Factory.findAll({
-      attributes: ['factory_id', 'factory_name', 'industry', 'address'],
-      transaction,
-    });
-    const plan = planFactoryChanges(existing, parsed.rows);
-    if (plan.insert.length > 0) {
-      await Factory.bulkCreate(
-        plan.insert.map((row) => ({ ...row, latitude: null, longitude: null, data_source: dataSource })),
-        { transaction },
-      );
-    }
-    for (const row of plan.update) {
-      await Factory.update(
-        { industry: row.industry, data_source: dataSource },
-        { where: { factory_id: row.factory_id }, transaction },
-      );
-    }
-    return {
-      inserted: plan.insert.length,
-      updated: plan.update.length,
-      unchanged: plan.unchanged,
-      skipped: parsed.skipped,
-      duplicateInFile: parsed.duplicateInFile,
-    };
-  });
-
-  console.log(
-    `factories ${stamp}: 추가 ${counts.inserted}, 수정 ${counts.updated}, 그대로 ${counts.unchanged}, 빈 행 ${counts.skipped}, 파일 안 중복 ${counts.duplicateInFile}`,
-  );
-  return counts;
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(stamp)) throw new Error('자료 기준월이 올바르지 않습니다.');
+  let source;
+  try { source = JSON.parse(await fs.readFile(path.join(ROOT, `docs/factories/yangju-${stamp}-source.json`), 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (!source) source = JSON.parse(await fs.readFile(path.join(dir, 'source.json'), 'utf8'));
+  const names = (await fs.readdir(dir)).filter((name) => /\.xls$/i.test(name));
+  let bytes;
+  for (const filename of names) {
+    const candidate = await fs.readFile(path.join(dir, filename));
+    if (source.sha256 && createHash('sha256').update(candidate).digest('hex') !== source.sha256) continue;
+    bytes = candidate; break;
+  }
+  if (!bytes) throw new Error('출처 기록과 일치하는 XLS 원본이 없습니다.');
+  source = { ...source, datasetMonth: stamp, sheetName: source.sheetName || '공장등록현황' };
+  verifyFactorySource(bytes, source);
+  const workbook = XLSX.read(bytes, { type: 'buffer' });
+  const sheet = workbook.Sheets[source.sheetName];
+  if (!sheet) throw new Error('공장등록현황 시트가 없습니다.');
+  const data = prepareFactoryData(XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: true }), source);
+  const result = await importPreparedFactories(data);
+  console.log(JSON.stringify(result, null, 2));
+  return result;
 }
 
-const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (isMain) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    const target = await latestDir();
-    await saveFactoryWorkbook(target);
-  } catch (error) {
-    console.error(error.message);
-    process.exitCode = 1;
-  } finally {
-    await sequelize.close();
-  }
+    const stamp = (await fs.readdir(OUT_DIR)).filter((name) => /^\d{4}-\d{2}$/.test(name)).sort().at(-1);
+    if (!stamp) throw new Error('받아 둔 공장등록 파일이 없습니다.');
+    await saveFactoryWorkbook({ dir: path.join(OUT_DIR, stamp), stamp });
+  } catch (error) { console.error(error.message); process.exitCode = 1; }
+  finally { await sequelize.close(); }
 }

@@ -10,6 +10,7 @@ import PatternPart from './PatternPart.js';
 import Favorite from './Favorite.js';
 import Inquiry from './Inquiry.js';
 import Factory from './Factory.js';
+import FactoryDataset from './FactoryDataset.js';
 
 const db = {
   sequelize,
@@ -24,6 +25,7 @@ const db = {
   Favorite,
   Inquiry,
   Factory,
+  FactoryDataset,
 };
 
 // 모델 간 관계 설정

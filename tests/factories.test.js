@@ -99,8 +99,21 @@ test('공장 목록: category 로 그 업종만 본다', async () => {
   assert.equal(json.data.totalElements, 1);
 });
 
+test('공장 목록: 부자재 후보를 업종과 독립적으로 조회하고 과거 업체는 표시하지 않는다', async () => {
+  const button = await makeFactory({ factory_name: '단추공장', industry: '단추', supply_status: 'candidate' });
+  await makeFactory({ factory_name: '원단공장', supply_status: 'unmatched' });
+  await makeFactory({ factory_name: '검토공장', industry: '끈', supply_status: 'review' });
+  await makeFactory({ factory_name: '이전공장', industry: '단추', supply_status: 'candidate', is_current: false });
+  const { status, json } = await call('GET', '/factories?supply_status=candidate&size=50');
+  assert.equal(status, 200);
+  assert.equal(json.data.totalElements, 1);
+  assert.deepEqual(json.data.content, [summary(button)]);
+  assert.deepEqual(Object.keys(json.data.content[0]).sort(), ITEM_KEYS);
+  assert.equal((await call('GET', '/factories')).json.data.totalElements, 3);
+});
+
 test('공장 목록: 페이지를 넘어가면 400', async () => {
-  for (const query of [{ page: -1 }, { size: 0 }, { size: 51 }, { category: 'FABRIC' }]) {
+  for (const query of [{ page: -1 }, { size: 0 }, { size: 51 }, { category: 'FABRIC' }, { supply_status: 'approved' }]) {
     const { status, json } = await call('GET', listPath(query));
     assert.equal(status, 400, JSON.stringify(query));
     assert.equal(json.error.code, 'VALIDATION_ERROR');

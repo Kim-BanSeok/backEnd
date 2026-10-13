@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import sequelize from '../src/db/connection.js';
 import { saveFactoryWorkbook } from './import-yangju-factories.js';
 
@@ -87,7 +88,7 @@ const marker = path.join(dir, 'source.json');
 let downloaded = true;
 try {
   const saved = JSON.parse(await fs.readFile(marker, 'utf8'));
-  if (saved.atchmnflNo === file.atchmnflNo) {
+  if (saved.atchmnflNo === file.atchmnflNo && saved.sha256 && saved.byteLength && saved.datasetMonth === stamp) {
     console.log(`already downloaded ${stamp} ${file.filename}`);
     downloaded = false;
   }
@@ -111,6 +112,12 @@ if (downloaded) {
     atchmnflNo: file.atchmnflNo,
     filename: file.filename,
     url: file.url,
+    downloadUrl: file.url,
+    datasetMonth: stamp,
+    publisher: '양주시청 허가과',
+    sheetName: '공장등록현황',
+    sha256: createHash('sha256').update(body).digest('hex'),
+    byteLength: body.length,
     downloadedAt: new Date().toISOString(),
   }, null, 2)}\n`);
   console.log(`downloaded ${stamp} ${file.filename} (${body.length} bytes)`);

@@ -55,6 +55,10 @@ export const env = {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
+  naverMaps: {
+    clientId: process.env.NAVER_MAPS_CLIENT_ID || '',
+    clientSecret: process.env.NAVER_MAPS_CLIENT_SECRET || '',
+  },
 };
 
 if (env.isTest && !env.db.database.endsWith('_test')) {
