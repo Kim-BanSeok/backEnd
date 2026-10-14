@@ -122,14 +122,21 @@ test('도안을 골라 예약할 수 있다 (사용 중인 도안만)', async ()
   assert.equal((await row(json.data.reservationId)).pattern_id, pattern.pattern_id);
 });
 
-test('요청에 섞인 status·buyer_id·seller_id·estimated_price 는 무시한다 (서버가 정한다)', async () => {
+test('예약 요청: 상태·소유자·금액 추가 필드를 거절하고 정상 요청은 서버가 값을 정한다', async () => {
   const ctx = await setup({ roll: true });
   const { buyer, token } = await newBuyer();
   const other = await makeUser({ role: 'BUYER' });
-  const { json } = await reserve(ctx.fabric, token, {
+  const before = await stock(ctx.fabric);
+  const invalid = await reserve(ctx.fabric, token, {
     requested_length_cm: 90, status: 'ACCEPTED', buyer_id: other.user_id, seller_id: other.user_id, estimated_price: 1, reject_reason: 'x',
   });
-  const saved = await row(json.data.reservationId);
+  assert.equal(invalid.status, 400);
+  assert.equal(invalid.json.error.code, 'VALIDATION_ERROR');
+  assert.equal(await db.Reservation.count(), 0);
+  assert.deepEqual(await stock(ctx.fabric), before);
+  const valid = await reserve(ctx.fabric, token, { requested_length_cm: 90 });
+  assert.equal(valid.status, 201);
+  const saved = await row(valid.json.data.reservationId);
   assert.deepEqual(
     [saved.status, saved.buyer_id, saved.seller_id, saved.estimated_price, saved.reject_reason],
     ['REQUESTED', buyer.user_id, ctx.seller.user_id, 6000, null],

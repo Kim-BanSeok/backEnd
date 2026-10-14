@@ -3,6 +3,7 @@ import sequelize from '../db/connection.js';
 import { env } from '../config/env.js';
 import { fail } from '../utils/errors.js';
 import * as dao from '../dao/security.dao.js';
+import { setSecurityLimitScope } from '../utils/securityLog.js';
 
 export const tokenFingerprint = token => createHash('sha256').update(token).digest('hex');
 export const isTokenRevoked = async token => Boolean(await dao.findRevokedToken(tokenFingerprint(token)));
@@ -26,7 +27,10 @@ async function reserve(userId, kind) {
     await dao.purgeLeases(kind, now, transaction);
     const totalActive = await dao.countLeases(kind, now, undefined, transaction);
     const userActive = await dao.countLeases(kind, now, userId, transaction);
-    if (global.request_count >= policy.globalHourly || user.request_count >= policy.userHourly || totalActive >= policy.globalConcurrent || userActive >= policy.userConcurrent) throw fail('TOO_MANY_REQUESTS');
+    if (global.request_count >= policy.globalHourly || user.request_count >= policy.userHourly || totalActive >= policy.globalConcurrent || userActive >= policy.userConcurrent) {
+      setSecurityLimitScope(kind === 'CALL' ? 'ai_call' : 'ai_session');
+      throw fail('TOO_MANY_REQUESTS');
+    }
     await dao.updateBucket(global, { request_count: global.request_count + 1 }, transaction);
     await dao.updateBucket(user, { request_count: user.request_count + 1 }, transaction);
     const leaseId = randomUUID();

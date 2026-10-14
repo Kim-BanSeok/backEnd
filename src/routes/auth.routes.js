@@ -9,6 +9,6 @@ const router = Router();
 
 router.post('/auth/signup', authLimiter, validate(signupSchema), controller.signup);
 router.post('/auth/login', authLimiter, validate(loginSchema), controller.login);
-router.post('/auth/logout', requireAuth(), controller.logout);
+router.post('/auth/logout', requireAuth(), validate({}), controller.logout);
 
 export default router;

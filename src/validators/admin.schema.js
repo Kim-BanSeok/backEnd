@@ -18,7 +18,7 @@ export const fabricIdSchema = {
 // 35. 게시 반려: 사유 필수 (공백만 있으면 안 됨)
 export const rejectFabricSchema = {
   params: z.object({ fabricId: idParam }),
-  body: z.object({ reason: z.string().trim().min(1).max(255) }),
+  body: z.strictObject({ reason: z.string().trim().min(1).max(255) }),
 };
 
 // 36. 판매자 목록: status 기본값 PENDING

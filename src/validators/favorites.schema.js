@@ -7,7 +7,7 @@ const id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 // 없거나 다른 쪽 번호를 함께 보내면 VALIDATION_ERROR 로 항목별 details 를 돌려준다.
 export const createFavoriteSchema = {
   body: z
-    .object({
+    .strictObject({
       target_type: z.enum(FAVORITE_TARGETS),
       fabric_id: id.optional(),
       pattern_id: id.optional(),

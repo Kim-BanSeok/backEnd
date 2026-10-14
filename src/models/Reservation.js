@@ -1,4 +1,4 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Op } from 'sequelize';
 import sequelize from '../db/connection.js';
 
 const Reservation = sequelize.define('Reservation', {
@@ -20,6 +20,12 @@ const Reservation = sequelize.define('Reservation', {
   canceled_at: { type: DataTypes.DATE, allowNull: true },
 }, {
   tableName: 'reservations',
+  indexes: [{
+    name: 'reservations_buyer_fabric_active_unique',
+    unique: true,
+    fields: ['buyer_id', 'fabric_id'],
+    where: { status: { [Op.in]: ['REQUESTED', 'ACCEPTED'] } },
+  }],
 });
 
 Reservation.associate = function (models) {

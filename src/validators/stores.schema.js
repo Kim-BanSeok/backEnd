@@ -7,7 +7,7 @@ const closedDays = z.string().trim().max(100).nullable();
 const pickupGuide = z.string().trim().max(5000).nullable();
 
 export const createStoreSchema = {
-  body: z.object({
+  body: z.strictObject({
     store_name: storeName,
     store_address: storeAddress,
     store_phone: storePhone,

@@ -4,7 +4,6 @@ import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
 import { assertFabricRules } from './fabricRules.js';
-import { scrapStock } from './sheetStock.js';
 import { assertFabricOwner } from './fabricAccess.js';
 import * as reservationsDao from '../dao/reservations.dao.js';
 

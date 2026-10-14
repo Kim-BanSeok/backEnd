@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import XLSX from 'xlsx';
+import XLSX from '../src/spreadsheets/sheetjs.js';
 import sequelize from '../src/db/connection.js';
 import { prepareFactoryData, verifyFactorySource } from './factoryPreparation.js';
 import { importPreparedFactories } from './factoryImport.js';

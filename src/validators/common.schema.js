@@ -8,3 +8,6 @@ export const pageQuery = {
 
 // 주소에 들어오는 번호 (양의 정수)
 export const idParam = z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER);
+
+// 본문을 받지 않는 API는 생략 또는 빈 객체만 허용한다. 추가 JSON·multipart 텍스트 필드는 거절한다.
+export const emptyBodySchema = z.strictObject({}).default({});

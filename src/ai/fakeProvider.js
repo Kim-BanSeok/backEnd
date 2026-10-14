@@ -186,8 +186,8 @@ export function createFakeProvider() {
         steps: [],
       };
     },
-    async describeProduct({ text }) {
-      const title = text.split('\n').find(line => line.startsWith('소재·원단 종류:'))?.slice('소재·원단 종류:'.length).trim().slice(0, 100) || '자투리 원단';
+    async describeProduct({ text, product }) {
+      const title = (product?.material_text ?? text?.split('\n').find(line => line.startsWith('소재·원단 종류:'))?.slice('소재·원단 종류:'.length))?.trim().slice(0, 100) || '자투리 원단';
       return {
         values: {
           title,

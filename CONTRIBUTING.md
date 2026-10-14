@@ -93,7 +93,10 @@ API 하나를 "끝냈다"는 기준입니다. PR 템플릿에도 같은 목록�
 PR 설명은 **3줄만** 적으면 됩니다: ① 무엇을 만들었나 ② 명세서와 다른 점 ③ 확인해 달라는 부분.
 
 ### 자동 검사 (CI)
-PR 을 올리면 GitHub 가 `npm run lint` 와 `npm test` 를 자동으로 실행합니다. PR 화면 아래쪽 **Checks** 에서 ✅ 또는 ❌ 로 보입니다.
+`main`·`deploy/test` 대상 PR과 `main`·`deploy/test`·`deploy/chaeeun/review` 푸시에서 GitHub가 의존성 검사, `npm run lint`, `npm test`를 자동으로 실행합니다. PR 화면 아래쪽 **Checks**에서 ✅ 또는 ❌로 보입니다.
+
+- 의존성 검사는 별도 `dependency-audit` 작업에서 `npm audit --package-lock-only --include=dev --audit-level=low --registry=https://registry.npmjs.org`를 실행합니다. 개발용 패키지까지 잠금 파일 기준으로 검사하며, `low` 이상 취약점이나 레지스트리 연결·검사 오류가 있으면 실패합니다. lint·테스트가 실패해도 의존성 검사는 독립적으로 실행됩니다.
+- 검사 자체는 패키지를 설치하거나 자동 수정하지 않고 DB 설정·서비스를 사용하지 않습니다. `npm audit fix`를 CI에서 실행하지 않습니다. 발견된 취약점은 영향을 검토해 별도 변경으로 수정합니다.
 - ❌ 이면 **머지하지 않습니다.** "Details" 를 눌러 어느 단계에서 어떤 오류가 났는지 확인하고, 고쳐서 같은 브랜치에 푸시하면 다시 실행됩니다.
 - 내 컴퓨터에서는 통과하는데 CI 에서만 실패하면 `.env` 나 DB 에 남은 데이터에 의존하는 테스트일 수 있습니다. 리더에게 로그를 보여 주세요.
 - GitHub 무료 플랜에서는 CI 가 실패해도 머지 버튼을 막을 수 없어서, 이 약속에 의존합니다.

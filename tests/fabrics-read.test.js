@@ -583,6 +583,7 @@ test('내 원단 목록: 자투리·롤 모두 나오고, 롤은 구매 가능 �
 test('active_reservation_count: 요청됨·수락됨 예약만 세고, is_reserved 는 수락된 자투리만 true', async () => {
   const { store, seller } = await makeStore();
   const buyer = await makeUser();
+  const acceptedBuyer = await makeUser(); // 같은 원단의 활성 예약 2건은 서로 다른 구매자다.
   const busy = await makeListed(store.store_id, { title: '요청 1 수락 1 거절 1 수령 1' });
   const requestedOnly = await makeListed(store.store_id, { title: '요청만 1' });
   const none = await makeListed(store.store_id, { title: '예약 없음' });
@@ -595,7 +596,7 @@ test('active_reservation_count: 요청됨·수락됨 예약만 세고, is_reserv
   const reserve = (fabric, status, requested_length_cm = null) =>
     db.Reservation.create({
       fabric_id: fabric.fabric_id,
-      buyer_id: buyer.user_id,
+      buyer_id: status === 'ACCEPTED' ? acceptedBuyer.user_id : buyer.user_id,
       seller_id: seller.user_id,
       requested_length_cm,
       pickup_at: new Date('2026-10-20T10:00:00+09:00'),

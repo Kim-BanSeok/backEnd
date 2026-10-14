@@ -1,11 +1,11 @@
 name: CI
 
-# PR 을 올리거나 main 에 머지될 때마다 lint 와 테스트를 자동으로 실행한다.
+# main·deploy/test 대상 PR과 작업·통합 브랜치 푸시에서 보안 검사, lint, 테스트를 실행한다.
 on:
   pull_request:
-    branches: [main]
+    branches: [main, deploy/test]
   push:
-    branches: [main]
+    branches: [main, deploy/test, deploy/chaeeun/review]
 
 # 같은 브랜치에 연달아 푸시하면 이전 실행은 취소한다.
 concurrency:
@@ -13,6 +13,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dependency-audit:
+    name: 의존성 취약점 검사
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # 설치·자동 수정 없이 잠금 파일의 전체 의존성을 검사한다. 실패를 무시하지 않는다.
+      - name: npm audit (low 이상 실패, 개발 의존성 포함)
+        run: npm audit --package-lock-only --include=dev --audit-level=low --registry=https://registry.npmjs.org
+
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10

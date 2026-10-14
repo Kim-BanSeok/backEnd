@@ -7,7 +7,7 @@ const byteLimit = '비밀번호는 UTF-8 기준 72바이트 이하여야 해요'
 const password = z.string().min(8).max(72).refine(withinBcryptLimit, { error: byteLimit });
 
 export const signupSchema = {
-  body: z.object({
+  body: z.strictObject({
     email,
     password,
     nickname: z.string().trim().min(1).max(50),
@@ -20,7 +20,7 @@ export const signupSchema = {
 };
 
 export const loginSchema = {
-  body: z.object({
+  body: z.strictObject({
     email,
     password: z.string().min(1).max(72).refine(withinBcryptLimit, { error: byteLimit }),
   }),

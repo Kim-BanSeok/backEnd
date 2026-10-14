@@ -1,4 +1,4 @@
-import XLSX from 'xlsx';
+import XLSX from '../spreadsheets/sheetjs.js';
 import { fail } from '../utils/errors.js';
 
 const HEADERS = ['판매형태', '이름', '소재', '두께', '색', '폭', '길이', '장수', '가격'];
@@ -6,6 +6,8 @@ const MATERIALS = ['면', '린넨', '폴리에스터', '나일론', '레이온',
 const THICKNESS = ['얇음', '중간 두께', '두꺼움'];
 const COLORS = ['흰색', '검정', '회색', '베이지', '갈색', '빨강', '분홍', '노랑', '초록', '블루', '네이비', '보라', '혼합'];
 const MAX_ROWS = 40;
+const MAX_SHEET_ROWS = 1000;
+const MAX_SHEET_COLUMNS = 64;
 
 const cell = (value) => String(value ?? '').trim();
 
@@ -23,14 +25,30 @@ function headerIndex(row) {
 }
 
 export function parseBulkSheet(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 4 || buffer.readUInt32LE(0) !== 0x04034b50) {
+    throw fail('VALIDATION_ERROR', [{ field: 'file', message: 'xlsx 형식으로 저장한 엑셀 파일을 올려 주세요.' }]);
+  }
   let book;
   try {
-    book = XLSX.read(buffer, { type: 'buffer' });
+    book = XLSX.read(buffer, {
+      type: 'buffer', bookFiles: true, sheets: [0, '입력'], sheetRows: MAX_SHEET_ROWS + 1,
+      cellFormula: false, cellHTML: false,
+    });
+    const types = book.files?.['[Content_Types].xml']?.content;
+    if (!Object.hasOwn(book.files ?? {}, 'xl/workbook.xml') || !types || !Buffer.from(types).toString('utf8').includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml')) {
+      throw new Error('지원하지 않는 엑셀 파일 형식');
+    }
   } catch {
     throw fail('VALIDATION_ERROR', [{ field: 'file', message: '엑셀 파일을 읽지 못했어요. xlsx 파일을 올려 주세요.' }]);
   }
-  const sheet = book.Sheets['입력'] || book.Sheets[book.SheetNames[0]];
+  const sheetName = Object.hasOwn(book.Sheets, '입력') ? '입력' : book.SheetNames[0];
+  const sheet = Object.hasOwn(book.Sheets, sheetName) ? book.Sheets[sheetName] : null;
   if (!sheet) throw fail('VALIDATION_ERROR', [{ field: 'file', message: '입력 시트가 없어요.' }]);
+  // !ref는 sheetRows로 잘릴 수 있으므로 원래 범위도 검사해 조용히 일부만 읽지 않는다.
+  const range = XLSX.utils.decode_range(sheet['!fullref'] || sheet['!ref'] || 'A1');
+  if (!Number.isSafeInteger(range.e.r) || !Number.isSafeInteger(range.e.c) || range.e.r < 0 || range.e.c < 0 || range.e.r >= MAX_SHEET_ROWS || range.e.c >= MAX_SHEET_COLUMNS) {
+    throw fail('VALIDATION_ERROR', [{ field: 'file', message: '입력 시트는 1,000행·64열 이하로 정리해서 올려 주세요.' }]);
+  }
   const grid = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
   const headerAt = grid.findIndex((row) => headerIndex(row));
   if (headerAt < 0) throw fail('VALIDATION_ERROR', [{ field: 'file', message: '첫 줄에 판매형태, 이름, 소재, 두께, 색, 폭, 길이, 장수, 가격이 있어야 해요.' }]);
