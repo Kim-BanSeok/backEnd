@@ -113,6 +113,7 @@ test('sale_type: 자투리와 롤을 나눠 보고, 롤은 구매 가능 길이�
 
   assert.deepEqual(ids((await call('GET', listPath({ sale_type: 'SCRAP' }))).json), [scrap.fabric_id]);
   assert.deepEqual(ids((await call('GET', '/fabrics')).json), [scrap.fabric_id]);
+  assert.deepEqual(ids((await call('GET', listPath({ sale_type: 'ALL' }))).json).sort(), [scrap.fabric_id, roll.fabric_id].sort());
 
   const { json } = await call('GET', listPath({ sale_type: 'ROLL' }));
   assert.deepEqual(ids(json), [roll.fabric_id]);

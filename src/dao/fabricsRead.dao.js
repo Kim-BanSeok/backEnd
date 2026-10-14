@@ -36,7 +36,8 @@ export const findPage = async (
   { status, reservationStatus, saleType, material, thickness, colorFamily, keyword, sort, limit, offset },
   options = {},
 ) => {
-  const where = { status, sale_type: saleType };
+  const where = { status };
+  if (saleType && saleType !== 'ALL') where.sale_type = saleType;
   if (keyword) where.title = { [Op.iLike]: `%${escapeLike(keyword)}%` };
 
   const detailWhere = {};

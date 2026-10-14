@@ -20,7 +20,7 @@ const csvOf = (values) =>
 
 export const listFabricsSchema = {
   query: z.object({
-    sale_type: z.enum(SALE_TYPES).default('SCRAP'),
+    sale_type: z.enum([...SALE_TYPES, 'ALL']).default('SCRAP'),
     material: csvOf(MATERIALS),
     thickness: csvOf(THICKNESSES),
     color_family: csvOf(COLOR_FAMILIES),
