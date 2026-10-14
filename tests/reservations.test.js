@@ -76,12 +76,12 @@ async function requested(ctx, { buyerOverrides, ...body } = {}) {
 
 // ==== 25. 예약 요청
 
-test('자투리 예약 요청 성공: 201 { reservationId, status: REQUESTED, estimated_price: null }, 재고는 그대로', async () => {
+test('자투리 예약 요청 성공: 201, 장수를 안 보내면 1장, 예상 금액은 장당 가격, 재고는 그대로', async () => {
   const ctx = await setup();
   const { token } = await newBuyer();
   const { status, json } = await reserve(ctx.fabric, token, { memo: '오후 2시쯤 갈게요' });
   assert.equal(status, 201);
-  assert.deepEqual(json, { success: true, data: { reservationId: json.data.reservationId, status: 'REQUESTED', estimated_price: null } });
+  assert.deepEqual(json, { success: true, data: { reservationId: json.data.reservationId, status: 'REQUESTED', estimated_price: 3000 } });
 
   const saved = await row(json.data.reservationId);
   assert.equal(saved.fabric_id, ctx.fabric.fabric_id);
@@ -356,7 +356,7 @@ test('내 예약 목록: 내 예약만, 최근 요청부터, 명세서 항목 �
 
   const item = json.data.content[1]; // 자투리(요청됨)
   assert.deepEqual(Object.keys(item).sort(), [
-    'estimated_price', 'fabricId', 'pickup_at', 'reject_reason', 'requested_length_cm', 'reservationId', 'status', 'store_name', 'thumbnail_url', 'title',
+    'estimated_price', 'fabricId', 'pickup_at', 'reject_reason', 'requested_length_cm', 'requested_sheet_count', 'reservationId', 'status', 'store_name', 'thumbnail_url', 'title',
   ]);
   assert.equal(item.thumbnail_url, 'http://x/thumbs/1.webp'); // 대표 사진(0번)
   assert.equal(item.title, '네이비 면');
@@ -441,7 +441,7 @@ test('받은 예약 목록: 내 원단의 예약만, 구매자는 닉네임만 (
   assert.equal(json.data.totalElements, 1);
   const item = json.data.content[0];
   assert.deepEqual(Object.keys(item).sort(), [
-    'buyer_nickname', 'estimated_price', 'fabricId', 'memo', 'pickup_at', 'requested_length_cm', 'reservationId', 'status', 'title',
+    'buyer_nickname', 'estimated_price', 'fabricId', 'memo', 'pickup_at', 'requested_length_cm', 'requested_sheet_count', 'reservationId', 'status', 'title',
   ]);
   assert.equal(item.buyer_nickname, '재봉러');
   assert.equal(item.memo, '오후 2시쯤 갈게요');
@@ -492,7 +492,7 @@ test('예약 상세: 예약한 구매자와 그 원단의 판매자는 볼 수 �
     assert.equal(status, 200);
     assert.deepEqual(Object.keys(json.data).sort(), [
       'accepted_at', 'buyer_nickname', 'canceled_at', 'canceled_by', 'created_at', 'estimated_price', 'fabric', 'memo',
-      'pattern_name', 'picked_up_at', 'pickup_at', 'reject_reason', 'requested_length_cm', 'reservationId', 'status', 'store',
+      'pattern_name', 'picked_up_at', 'pickup_at', 'reject_reason', 'requested_length_cm', 'requested_sheet_count', 'reservationId', 'status', 'store',
     ]);
     assert.equal(json.data.reservationId, id);
     assert.equal(json.data.buyer_nickname, '재봉러');
@@ -995,4 +995,22 @@ test('처음부터 끝까지: 요청 → 수락 → 수령 → 판매 완료, �
   assert.equal(detail.fabric.status, 'SOLD_OUT');
   assert.match(detail.picked_up_at, /\+09:00$/);
   assert.equal((await reserve(ctx.fabric, (await newBuyer()).token)).json.error.code, 'FABRIC_NOT_AVAILABLE');
+});
+
+test('자투리 여러 장: 고른 장수만 확보하고, 수령하면 그 장수만 줄어 나머지는 남는다', async () => {
+  const ctx = await setup();
+  await db.FabricDetail.create({ fabric_id: ctx.fabric.fabric_id, width_cm: 70, length_cm: 60, thickness: 'NORMAL', color_family: 'NAVY', sheet_count: 5 });
+  const first = await requested(ctx, { requested_sheet_count: 1 });
+  const second = await requested(ctx, { requested_sheet_count: 2 });
+  assert.equal((await row(first.id)).estimated_price, 3000);
+  await accept(first.id, ctx.sellerToken);
+  await accept(second.id, ctx.sellerToken);
+  assert.equal((await db.Fabric.findByPk(ctx.fabric.fabric_id)).reserved_sheet_count, 3);
+  await pickup(first.id, ctx.sellerToken);
+  const after = await db.Fabric.findByPk(ctx.fabric.fabric_id, { include: [{ model: db.FabricDetail, as: 'detail' }] });
+  assert.equal(after.status, 'POSTED');
+  assert.equal(after.detail.sheet_count, 4);
+  assert.equal(after.reserved_sheet_count, 2);
+  const tooMany = await reserve(ctx.fabric, (await newBuyer()).token, { requested_sheet_count: 3 });
+  assert.equal(tooMany.json.error.code, 'INSUFFICIENT_SHEETS');
 });

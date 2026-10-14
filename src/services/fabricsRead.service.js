@@ -2,6 +2,7 @@ import { fail } from '../utils/errors.js';
 import { toKstIso } from '../utils/response.js';
 import * as fabricsReadDao from '../dao/fabricsRead.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { scrapStock } from './sheetStock.js';
 import { signedImageUrl } from './imageAccess.service.js';
 
 const LISTED_STATUS = 'POSTED'; // 목록에 보여 주는 원단 상태
@@ -14,6 +15,7 @@ const ACTIVE_RESERVATION_STATUSES = ['REQUESTED', 'ACCEPTED']; // 아직 진행 
 // 대표 사진이 없으면 thumbnail_url 은 null 이다.
 export const toFabricSummary = (fabric) => {
   const isScrap = fabric.sale_type === 'SCRAP';
+  const sheets = isScrap ? scrapStock(fabric, fabric.detail, fabric.reservations.length) : null;
   return {
     fabricId: fabric.fabric_id,
     title: fabric.title,
@@ -25,7 +27,7 @@ export const toFabricSummary = (fabric) => {
     width_cm: fabric.detail.width_cm,
     length_cm: fabric.detail.length_cm,
     available_length_cm: isScrap ? null : fabric.remaining_length_cm - fabric.reserved_length_cm,
-    is_reserved: isScrap && fabric.reservations.length > 0,
+    is_reserved: Boolean(sheets?.isReserved),
     has_defect: fabric.detail.has_defect,
     thumbnail_url: signedImageUrl(fabric.images[0]?.thumbnail_url, fabric.status),
     store_name: fabric.store.store_name,
@@ -60,6 +62,7 @@ export async function listFabrics({ sale_type, material, thickness, color_family
 // 사진이 없으면 images 는 빈 배열이다.
 export const toFabricDetail = (fabric, canSeeInternal) => {
   const isScrap = fabric.sale_type === 'SCRAP';
+  const sheets = isScrap ? scrapStock(fabric, fabric.detail, fabric.reservations.length) : null;
   const { detail, store } = fabric;
   return {
     fabricId: fabric.fabric_id,
@@ -81,6 +84,7 @@ export const toFabricDetail = (fabric, canSeeInternal) => {
       weave: detail.weave,
       grain_direction: detail.grain_direction,
       description: detail.description,
+      sheet_count: detail.sheet_count,
     },
     images: fabric.images.map((image) => ({
       imageId: image.image_id,
@@ -98,9 +102,11 @@ export const toFabricDetail = (fabric, canSeeInternal) => {
       pickup_guide: store.pickup_guide,
     },
     availability: {
-      is_reserved: isScrap && fabric.reservations.length > 0,
+      is_reserved: Boolean(sheets?.isReserved),
       available_length_cm: isScrap ? null : fabric.remaining_length_cm - fabric.reserved_length_cm,
       reserved_length_cm: isScrap ? null : fabric.reserved_length_cm,
+      available_sheet_count: sheets ? sheets.available : null,
+      reserved_sheet_count: sheets ? sheets.held : null,
     },
     created_at: toKstIso(fabric.created_at),
   };

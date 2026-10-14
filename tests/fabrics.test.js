@@ -46,6 +46,7 @@ const scrapBody = (detail = {}, top = {}) => ({
     color_detail: '짙은 남색',
     width_cm: 150,
     length_cm: 65,
+    sheet_count: 1,
     has_defect: true,
     defect_note: '오른쪽 아래 얼룩 3cm',
     description: '앞치마용으로 쓰던 원단이에요',
@@ -88,6 +89,7 @@ test('자투리 등록 성공: 201 { fabricId, status: PENDING } 과 원단·상
   assert.equal(fabric.remaining_length_cm, null);
   assert.equal(fabric.reserved_length_cm, 0);
   assert.equal(fabric.detail.length_cm, 65);
+  assert.equal(fabric.detail.sheet_count, 1);
   assert.equal(fabric.detail.has_defect, true);
   assert.equal(fabric.detail.defect_note, '오른쪽 아래 얼룩 3cm');
 });
@@ -211,16 +213,16 @@ test('형식 오류는 VALIDATION_ERROR 와 항목별 details (detail.xxx 포함
 
 // ---- 규칙 오류
 
-test('자투리 세로 길이는 30~90cm: 경계는 통과, 벗어나거나 없으면 SCRAP_LENGTH_OUT_OF_RANGE', async () => {
+test('자투리 세로 길이는 1cm 이상: 긴 길이도 통과하고, 없거나 0 이하면 SCRAP_LENGTH_OUT_OF_RANGE', async () => {
   const token = await approvedSeller();
-  for (const length_cm of [30, 90]) {
+  for (const length_cm of [1, 29, 90, 150]) {
     assert.equal((await call('POST', '/fabrics', { token, body: scrapBody({ length_cm }) })).status, 201, `${length_cm}`);
   }
-  for (const length_cm of [29, 91, 0, -5, 150, null, undefined]) {
+  for (const length_cm of [0, -5, null, undefined]) {
     const { status, json } = await call('POST', '/fabrics', { token, body: scrapBody({ length_cm }) });
     assert.equal(status, 400, String(length_cm));
     assert.equal(json.error.code, 'SCRAP_LENGTH_OUT_OF_RANGE', String(length_cm));
-    assert.equal(json.error.message, '자투리는 길이 30~90cm만 등록할 수 있어요');
+    assert.equal(json.error.message, '자투리 길이를 1cm 이상의 정수로 입력해 주세요');
   }
 });
 

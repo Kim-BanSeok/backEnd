@@ -35,6 +35,22 @@ export const findPageBySeller = ({ sellerId, status, includeDeletedFabric, limit
   });
 };
 
+export const findPageByBuyer = ({ buyerId, status, limit, offset }, options = {}) => {
+  const where = { buyer_id: buyerId };
+  if (status) where.status = status;
+  return db.Inquiry.findAndCountAll({
+    where,
+    include: [
+      { model: db.User, as: 'buyer', attributes: ['user_id', 'nickname'] },
+      { model: db.Fabric, as: 'fabric', attributes: ['fabric_id', 'title'], paranoid: false },
+    ],
+    order: [['created_at', 'DESC'], ['inquiry_id', 'DESC']],
+    limit,
+    offset,
+    ...options,
+  });
+};
+
 // 삭제한 문의는 찾지 않는다 (null). 누구의 문의인지는 services 가 확인한다.
 export const findById = (inquiryId, options = {}) => db.Inquiry.findByPk(inquiryId, options);
 

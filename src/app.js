@@ -15,7 +15,7 @@ export function createApp() {
   if (env.docsEnabled) app.use(createDocsRouter());
   app.use(helmet());
   app.use(cors({ origin: env.corsOrigins }));
-  app.use(express.json());
+  app.use(express.json({ limit: '8mb' }));
   // Check DB visibility even for old image URLs; never expose the upload directory directly.
   if (env.storageProvider === 'local') {
     app.use('/uploads', optionalAuth, async (req, res, next) => {

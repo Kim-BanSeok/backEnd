@@ -69,6 +69,56 @@ function parsePrice(text) {
   return digits ? toInt(digits[0]) : null;
 }
 
+const MATERIAL_LABELS = { WOOL: '울', COTTON: '면', LINEN: '린넨', POLYESTER: '폴리에스터', NYLON: '나일론', RAYON: '레이온', BLEND: '혼방', ETC: '기타', UNKNOWN: '소재 확인' };
+const COLOR_LABELS = { BEIGE: '아이보리', WHITE: '흰색', BLACK: '검정', GRAY: '회색', BROWN: '갈색', RED: '빨강', PINK: '분홍', YELLOW: '노랑', GREEN: '초록', BLUE: '파랑', NAVY: '네이비', PURPLE: '보라', MIXED: '혼합' };
+
+// 밴드에 올리던 한 줄에서 등록 칸과 소개글을 함께 만든다.
+export function parseListing(text) {
+  const yardMatch = text.match(/(\d+(?:\.\d+)?)\s*마/);
+  const yards = yardMatch ? Number(yardMatch[1]) : null;
+  const saleType = yards || /롤|두루마리/.test(text) ? 'ROLL' : /자투리|한\s*장|1\s*장/.test(text) ? 'SCRAP' : null;
+  const width = afterLabel(text, '가로|폭|너비');
+  const won = text.match(/(\d[\d,]*)\s*원/);
+  const total = won ? Number(won[1].replace(/,/g, '')) : null;
+  const price = saleType === 'ROLL' && yards && total ? Math.round(total / yards) : total;
+  const size = parseSize(text, saleType === 'ROLL' ? 'ROLL' : 'SCRAP');
+  const number = text.match(/No\.?\s*(\d+)/i);
+  const title = number ? `No.${number[1]}` : text.split(/[,，]/)[0].trim().slice(0, 100) || null;
+  const material = firstMatch(MATERIAL_WORDS, text);
+  const color = firstMatch(COLOR_WORDS, text);
+  const materialLabel = MATERIAL_LABELS[material] || null;
+  const colorLabel = COLOR_LABELS[color] || null;
+  const spec = [width ? `폭 ${width}cm` : null, materialLabel, colorLabel, yards ? `${yards}마` : null].filter(Boolean).join(' / ');
+  const description = [
+    title,
+    '',
+    text.trim(),
+    '',
+    '원단의 가치',
+    materialLabel ? `- ${materialLabel} 소재` : '- 메모에 적힌 소재',
+    width ? `- 폭 ${width}cm` : null,
+    '',
+    '추천 용도',
+    '- 셔츠, 원피스, 가방처럼 폭에 맞게 재단해 쓸 수 있어요.',
+    '',
+    spec,
+  ].filter((line) => line !== null).join('\n').slice(0, 5000);
+  return {
+    sale_type: saleType,
+    title,
+    width_cm: width,
+    length_cm: saleType === 'SCRAP' ? size.length_cm : null,
+    remaining_length_cm: saleType === 'ROLL' ? (yards ? Math.round(yards * 90) : size.remaining_length_cm) : null,
+    material,
+    thickness: firstMatch(THICKNESS_WORDS, text),
+    color_family: color,
+    has_defect: /얼룩|구멍|오염|흠/.test(text) ? true : false,
+    defect_note: null,
+    price: price && price >= 1 ? price : null,
+    description,
+  };
+}
+
 const EXTRACTORS = {
   sale_type: (text) => ({ sale_type: /롤|두루마리|마 ?단위/.test(text) ? 'ROLL' : /자투리|조각|한 ?장|1 ?장/.test(text) ? 'SCRAP' : null }),
   title: (text) => ({ title: text.trim() }),
@@ -87,6 +137,12 @@ export function createFakeProvider() {
     // question: { field }, text: 판매자가 쓴 답, draft: 지금까지의 초안
     // 돌려주는 값: { values: { 항목: 값 | null }, usage }. null 은 모름·알아듣지 못함.
     async extract({ question, text, draft }) {
+      if (question.field === 'listing') {
+        if (UNKNOWN_WORDS.test(text)) {
+          return { values: Object.fromEntries(['sale_type', 'title', 'width_cm', 'length_cm', 'remaining_length_cm', 'material', 'thickness', 'color_family', 'has_defect', 'defect_note', 'price', 'description'].map((name) => [name, null])), usage: { input_tokens: 0, output_tokens: 0 } };
+        }
+        return { values: parseListing(text), usage: { input_tokens: 0, output_tokens: 0 } };
+      }
       const fields = question.field === 'size'
         ? (draft.sale_type === 'ROLL' ? ['width_cm', 'remaining_length_cm'] : ['width_cm', 'length_cm'])
         : [question.field];
@@ -101,6 +157,44 @@ export function createFakeProvider() {
     async describeImage() {
       return {
         values: { title: null, material: null, thickness: null, color_family: null, has_defect: null, defect_note: null },
+        usage: { input_tokens: 0, output_tokens: 0 },
+      };
+    },
+    async draftPattern({ itemName, fabric }) {
+      const limitWidth = Math.max(2, Number(fabric.width_cm) || 20);
+      const limitHeight = Math.max(2, Number(fabric.length_cm || fabric.remaining_length_cm) || 30);
+      const fit = (width, height) => ({ width_cm: Math.min(width, limitWidth), height_cm: Math.min(height, limitHeight) });
+      if (/슬리퍼|실내화|덧신/.test(itemName)) {
+        return {
+          title: `${itemName} 재단 도안 (실물 크기)`,
+          parts: [
+            { part_name: '바닥', ...fit(27.5, 11.8), quantity: 2, grain: '폭 방향', outline: 'sole', note: '겉감 1장 · 안감 1장' },
+            { part_name: '갑피', ...fit(18.4, 10.9), quantity: 2, grain: '폭 방향', outline: 'upper', note: '결감 1장 · 안감 1장' },
+          ],
+          notions: [{ name: '시접', note: '재단선 안쪽 1cm' }],
+          steps: ['겉감과 안감을 시접에 맞춰 겹친다', '곡선을 따라 재단한다'],
+        };
+      }
+      const body = fit(20, 15);
+      return {
+        title: `${itemName} 재단 도안`,
+        parts: [
+          { part_name: '겉감', ...body, quantity: 2, grain: '폭 방향', outline: 'rect', note: '실선 재단' },
+          { part_name: '안감', ...body, quantity: 2, grain: '폭 방향', outline: 'rect', note: '실선 재단' },
+        ],
+        notions: [{ name: '시접', note: '재단선 안쪽 1cm' }],
+        steps: [],
+      };
+    },
+    async describeProduct({ text }) {
+      const title = text.split('\n').find(line => line.startsWith('소재·원단 종류:'))?.slice('소재·원단 종류:'.length).trim().slice(0, 100) || '자투리 원단';
+      return {
+        values: {
+          title,
+          description: `${title}\n\n사진과 입력한 두께, 치수를 바탕으로 정리한 소개입니다.\n작은 소품과 부분 활용을 검토해 보세요.`,
+          color_family: null,
+          seller_note: '',
+        },
         usage: { input_tokens: 0, output_tokens: 0 },
       };
     },

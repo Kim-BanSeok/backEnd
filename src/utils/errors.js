@@ -2,7 +2,7 @@
 export const ERRORS = {
   VALIDATION_ERROR: { status: 400, message: '입력값을 확인해 주세요' },
   AGREEMENT_REQUIRED: { status: 400, message: '약관과 개인정보 처리에 동의해 주세요' },
-  SCRAP_LENGTH_OUT_OF_RANGE: { status: 400, message: '자투리는 길이 30~90cm만 등록할 수 있어요' },
+  SCRAP_LENGTH_OUT_OF_RANGE: { status: 400, message: '자투리 길이를 1cm 이상의 정수로 입력해 주세요' },
   ROLL_LENGTH_REQUIRED: { status: 400, message: '롤은 남은 길이를 90cm 이상 입력해 주세요' },
   DEFECT_NOTE_REQUIRED: { status: 400, message: '하자 위치와 내용을 적어 주세요' },
   LENGTH_NOT_MULTIPLE_OF_90: { status: 400, message: '1마(90cm) 단위로 골라 주세요' },
@@ -19,6 +19,7 @@ export const ERRORS = {
   STORE_ALREADY_EXISTS: { status: 409, message: '이미 매장을 등록했어요' },
   FABRIC_NOT_AVAILABLE: { status: 409, message: '지금은 구매할 수 없는 원단이에요' },
   SCRAP_ALREADY_RESERVED: { status: 409, message: '이미 예약 중인 원단이에요' },
+  INSUFFICIENT_SHEETS: { status: 409, message: '구매 가능한 장수가 부족해요' },
   INSUFFICIENT_LENGTH: { status: 409, message: '구매 가능한 길이가 부족해요' },
   DUPLICATE_RESERVATION: { status: 409, message: '이미 이 원단을 예약했어요' },
   FABRIC_HAS_ACTIVE_RESERVATION: { status: 409, message: '진행 중인 예약이 있어 삭제할 수 없어요' },

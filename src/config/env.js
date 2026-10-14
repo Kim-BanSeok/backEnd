@@ -1,7 +1,27 @@
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 // 환경변수를 한 곳에서 읽는다. 다른 파일은 process.env 를 직접 쓰지 않는다.
+// 셸에 예전에 남은 키보다 backend/.env 를 우선한다. Node 의 --env-file 은 이미 있는 변수를 덮어쓰지 않는다.
+function readDotEnv(filePath) {
+  try {
+    const values = {};
+    for (const rawLine of fs.readFileSync(filePath, 'utf8').split(/\n/)) {
+      const line = rawLine.replace(/\r$/, '').trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq < 1) continue;
+      const key = line.slice(0, eq).trim();
+      let value = line.slice(eq + 1).trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+      values[key] = value;
+    }
+    return values;
+  } catch {
+    return {};
+  }
+}
 const num = (v, fallback) => (v === undefined || v === '' ? fallback : Number(v));
 const positive = (name, fallback) => {
   const value = num(process.env[name], fallback);
@@ -10,6 +30,8 @@ const positive = (name, fallback) => {
 };
 
 const nodeEnv = process.env.NODE_ENV || 'development';
+const dotEnv = nodeEnv === 'test' ? {} : readDotEnv(path.resolve('.env'));
+const pick = (name, fallback = '') => (dotEnv[name] !== undefined && dotEnv[name] !== '' ? dotEnv[name] : (process.env[name] ?? fallback));
 
 const baseDatabase = process.env.DB_DATABASE || 'material_loop';
 // 테스트는 항상 별도 DB 를 쓴다. (개발 DB 를 지우지 않도록) 이름은 _test 로 끝나야 한다.
@@ -45,12 +67,15 @@ export const env = {
     password: process.env.ADMIN_PASSWORD || '',
     nickname: (process.env.ADMIN_NICKNAME || '').trim() || '운영팀',
   },
-  // AI 보조 등록. fake 는 키워드 규칙으로 답을 읽는 개발·시험용이라 운영에서는 쓸 수 없다. 운영은 AI_PROVIDER=claude 와 ANTHROPIC_API_KEY 가 필요하다.
+  // AI 보조 등록. fake 는 키워드 규칙으로 답을 읽는 개발·시험용이라 운영에서는 쓸 수 없다.
+  // 지금은 openai, 나중에 claude 로 바꿀 수 있다. 제공하는 쪽의 키와 AI_PROVIDER 를 함께 바꾼다.
   ai: {
-    provider: process.env.AI_PROVIDER || 'fake',
-    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
-    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-haiku-5-5',
-    timeoutMs: positive('AI_TIMEOUT_MS', 15000),
+    provider: pick('AI_PROVIDER', 'fake'),
+    anthropicApiKey: pick('ANTHROPIC_API_KEY'),
+    anthropicModel: pick('ANTHROPIC_MODEL', 'claude-haiku-5-5'),
+    openaiApiKey: pick('OPENAI_API_KEY'),
+    openaiModel: pick('OPENAI_MODEL', 'gpt-4o-mini'),
+    timeoutMs: num(process.env.AI_TIMEOUT_MS, 15000),
     callLimits: {
       userHourly: positive('AI_USER_CALLS_PER_HOUR', 30),
       globalHourly: positive('AI_GLOBAL_CALLS_PER_HOUR', 300),
@@ -63,8 +88,8 @@ export const env = {
       userConcurrent: positive('AI_USER_ACTIVE_SESSIONS', 5),
       globalConcurrent: positive('AI_GLOBAL_ACTIVE_SESSIONS', 100),
     },
-    // Database sessions survive restart and keep quota leases consistent.
-    sessionStore: process.env.AI_SESSION_STORE || 'database',
+    // 배포 브랜치의 기본값은 memory이며, 명시한 database 설정은 기존 저장소를 사용한다.
+    sessionStore: process.env.AI_SESSION_STORE || 'memory',
   },
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
@@ -82,11 +107,11 @@ if (env.isTest && !env.db.database.endsWith('_test')) {
   throw new Error(`테스트 DB 이름은 _test 로 끝나야 합니다: ${env.db.database}`);
 }
 
-if (!['fake', 'claude'].includes(env.ai.provider)) throw new Error(`지원하지 않는 AI_PROVIDER: ${env.ai.provider}`);
+if (!['fake', 'claude', 'openai'].includes(env.ai.provider)) throw new Error(`지원하지 않는 AI_PROVIDER: ${env.ai.provider}`);
 if (env.ai.provider === 'claude' && !env.ai.anthropicApiKey) throw new Error('AI_PROVIDER=claude 에는 ANTHROPIC_API_KEY 가 필요해요.');
+if (env.ai.provider === 'openai' && !env.ai.openaiApiKey) throw new Error('AI_PROVIDER=openai 에는 OPENAI_API_KEY 가 필요해요.');
 if (!['memory', 'database'].includes(env.ai.sessionStore)) throw new Error(`지원하지 않는 AI_SESSION_STORE: ${env.ai.sessionStore}`);
-if (env.isProd && env.ai.sessionStore !== 'database') throw new Error('운영 AI 세션은 database 저장소를 사용해야 합니다.');
-if (env.isProd && env.ai.provider === 'fake') throw new Error('운영 환경에서는 가짜 AI(fake)를 쓸 수 없어요. AI_PROVIDER=claude 로 설정해 주세요.');
+if (env.isProd && env.ai.provider === 'fake') throw new Error('운영 환경에서는 가짜 AI(fake)를 쓸 수 없어요. AI_PROVIDER=openai 또는 claude 로 설정해 주세요.');
 
 // 운영에서 약한 설정이면 서버를 켜지 않는다.
 if (env.isProd && (env.jwtSecret === 'dev-only-secret' || env.jwtSecret.length < 32)) {

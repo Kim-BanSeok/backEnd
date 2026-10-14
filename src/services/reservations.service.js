@@ -6,6 +6,7 @@ import * as imagesDao from '../dao/images.dao.js';
 import * as patternsDao from '../dao/patterns.dao.js';
 import * as reservationsDao from '../dao/reservations.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { scrapStock } from './sheetStock.js';
 import { signedImageUrl } from './imageAccess.service.js';
 
 const ROLL_UNIT_CM = 90; // 롤은 1마(90cm) 단위로 사고판다
@@ -36,10 +37,14 @@ export async function createReservation(userId, input) {
     }
 
     const requested = input.requested_length_cm;
+    let requestedSheets = null;
     if (fabric.sale_type === 'SCRAP') {
       if (requested !== null) {
         throw fail('VALIDATION_ERROR', [{ field: 'requested_length_cm', message: '자투리는 구매할 길이를 보내지 않아요' }]);
       }
+      requestedSheets = input.requested_sheet_count ?? 1;
+    } else if (input.requested_sheet_count != null) {
+      throw fail('VALIDATION_ERROR', [{ field: 'requested_sheet_count', message: '롤은 구매할 장수를 보내지 않아요' }]);
     } else {
       if (requested === null) {
         throw fail('VALIDATION_ERROR', [{ field: 'requested_length_cm', message: '롤은 구매할 길이(cm)를 보내 주세요' }]);
@@ -54,8 +59,12 @@ export async function createReservation(userId, input) {
 
     let estimatedPrice = null;
     if (fabric.sale_type === 'SCRAP') {
-      if (await reservationsDao.existsAcceptedByFabric(fabric.fabric_id, { transaction })) {
-        throw fail('SCRAP_ALREADY_RESERVED');
+      const detail = await fabricsDao.findDetailByFabric(fabric.fabric_id, { transaction });
+      const stock = scrapStock(fabric, detail);
+      if (requestedSheets > stock.available) throw fail(stock.available < 1 ? 'SCRAP_ALREADY_RESERVED' : 'INSUFFICIENT_SHEETS');
+      estimatedPrice = fabric.price * requestedSheets;
+      if (estimatedPrice > INT_MAX) {
+        throw fail('VALIDATION_ERROR', [{ field: 'requested_sheet_count', message: '예상 금액이 너무 커요' }]);
       }
     } else {
       const available = fabric.remaining_length_cm - fabric.reserved_length_cm; // 구매 가능 길이
@@ -75,6 +84,7 @@ export async function createReservation(userId, input) {
         seller_id: store.user_id, // 조회 편의용 (원단의 판매자)
         pattern_id: input.pattern_id,
         requested_length_cm: requested,
+        requested_sheet_count: requestedSheets,
         estimated_price: estimatedPrice,
         pickup_at: input.pickup_at,
         memo: input.memo,
@@ -102,6 +112,7 @@ export async function listMyReservations(userId, { status, page, size }) {
     status: r.status,
     pickup_at: toKstIso(r.pickup_at),
     requested_length_cm: r.requested_length_cm,
+    requested_sheet_count: r.requested_sheet_count,
     estimated_price: r.estimated_price,
     reject_reason: r.reject_reason,
     fabricId: r.fabric_id,
@@ -125,6 +136,7 @@ export async function listReceivedReservations(userId, { status, fabric_id: fabr
     pickup_at: toKstIso(r.pickup_at),
     memo: r.memo,
     requested_length_cm: r.requested_length_cm,
+    requested_sheet_count: r.requested_sheet_count,
     estimated_price: r.estimated_price,
     fabricId: r.fabric_id,
     title: r.fabric.title,
@@ -149,6 +161,7 @@ export async function getReservation(userId, reservationId) {
     pickup_at: toKstIso(r.pickup_at),
     memo: r.memo,
     requested_length_cm: r.requested_length_cm,
+    requested_sheet_count: r.requested_sheet_count,
     estimated_price: r.estimated_price,
     reject_reason: r.reject_reason,
     canceled_by: r.canceled_by,
@@ -214,9 +227,11 @@ export const acceptReservation = (userId, reservationId, { pickup_at: pickupAt }
     if (fabric.status !== 'POSTED') throw fail('INVALID_STATUS');
 
     if (fabric.sale_type === 'SCRAP') {
-      if (await reservationsDao.existsAcceptedByFabric(fabric.fabric_id, { transaction })) {
-        throw fail('SCRAP_ALREADY_RESERVED');
-      }
+      const detail = await fabricsDao.findDetailByFabric(fabric.fabric_id, { transaction });
+      const stock = scrapStock(fabric, detail);
+      const sheets = reservation.requested_sheet_count ?? 1;
+      if (sheets > stock.available) throw fail(stock.available < 1 ? 'SCRAP_ALREADY_RESERVED' : 'INSUFFICIENT_SHEETS');
+      await fabricsDao.update(fabric, { reserved_sheet_count: stock.held + sheets }, { transaction });
     } else {
       const requested = reservation.requested_length_cm;
       if (requested > fabric.remaining_length_cm - fabric.reserved_length_cm) throw fail('INSUFFICIENT_LENGTH');
@@ -251,6 +266,10 @@ export const cancelReservation = (userId, reservationId) =>
       const released = Math.max(0, fabric.reserved_length_cm - reservation.requested_length_cm);
       await fabricsDao.update(fabric, { reserved_length_cm: released }, { transaction });
     }
+    if (reservation.status === 'ACCEPTED' && fabric.sale_type === 'SCRAP') {
+      const sheets = reservation.requested_sheet_count ?? 1;
+      await fabricsDao.update(fabric, { reserved_sheet_count: Math.max(0, (fabric.reserved_sheet_count || 0) - sheets) }, { transaction });
+    }
     await reservationsDao.update(
       reservation,
       { status: 'CANCELED', canceled_by: party, canceled_at: new Date() },
@@ -260,7 +279,7 @@ export const cancelReservation = (userId, reservationId) =>
   });
 
 // 32. 수령 확인: 수락됨만. 이때 재고를 차감한다.
-//  자투리는 원단이 판매 완료가 된다. 롤은 남은 길이와 확보 길이가 요청 길이만큼 줄고, 남은 길이가 90cm 미만이면 판매 완료가 된다.
+//  자투리는 요청 장수만 줄고, 0장이 되면 판매 완료가 된다. 롤은 남은 길이와 확보 길이가 요청 길이만큼 줄고, 남은 길이가 90cm 미만이면 판매 완료가 된다.
 //  판매 완료가 되면 그 원단에 남은 요청됨 예약은 "판매 완료" 사유로 자동 거절된다.
 export const confirmPickup = (userId, reservationId) =>
   transition(userId, reservationId, sellerOnly, async ({ reservation, fabric, transaction }) => {
@@ -268,8 +287,19 @@ export const confirmPickup = (userId, reservationId) =>
 
     let soldOut;
     if (fabric.sale_type === 'SCRAP') {
-      soldOut = true;
-      await fabricsDao.update(fabric, { status: 'SOLD_OUT' }, { transaction });
+      const detail = await fabricsDao.findDetailByFabric(fabric.fabric_id, { transaction });
+      const stock = scrapStock(fabric, detail);
+      const sheets = reservation.requested_sheet_count ?? 1;
+      const next = stock.total - sheets;
+      soldOut = next < 1;
+      if (detail && Number.isInteger(detail.sheet_count) && next >= 1) {
+        await fabricsDao.updateDetail(detail, { sheet_count: next }, { transaction });
+      }
+      await fabricsDao.update(
+        fabric,
+        { reserved_sheet_count: Math.max(0, (fabric.reserved_sheet_count || 0) - sheets), ...(soldOut && { status: 'SOLD_OUT' }) },
+        { transaction },
+      );
     } else {
       const requested = reservation.requested_length_cm;
       const remaining = fabric.remaining_length_cm - requested;

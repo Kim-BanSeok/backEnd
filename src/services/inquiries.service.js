@@ -83,6 +83,22 @@ export async function listReceivedInquiries(sellerId, { status, page, size }) {
   };
 }
 
+export async function listMyInquiries(buyerId, { status, page, size }) {
+  const { rows, count } = await inquiriesDao.findPageByBuyer({
+    buyerId,
+    status,
+    limit: size,
+    offset: page * size,
+  });
+  return {
+    content: rows.map((inquiry) => toInquiryItem(inquiry, inquiry.fabric || { fabric_id: inquiry.fabric_id, title: '삭제된 원단' }, true)),
+    page,
+    size,
+    totalElements: count,
+    totalPages: Math.ceil(count / size),
+  };
+}
+
 // 문의 답변 (명세서 45번). 문의의 seller_id 가 나인 판매자만 답변할 수 있다. (없는 문의·삭제한 문의는 NOT_FOUND, 남의 문의는 FORBIDDEN)
 // 답변하면 ANSWERED 가 되고, 다시 보내면 답변과 답변 시각(answered_at)을 새로 쓴다.
 // 원단이 삭제됐어도 문의는 남아 있어서 답변할 수 있다. (명세서에 없어서 막는 오류 코드가 없는 대로 정했다)

@@ -1,9 +1,18 @@
 // 양주시청 공장등록 엑셀을 factories 행으로 맞춘다.
-// 같은 회사명·주소는 한 공장으로 보고, 생산품이 바뀐 것만 수정, 없는 것만 추가한다.
+// 같은 회사명·주소는 한 공장으로 보고, 생산품·연락처·종업원수·법정동이 바뀐 것만 수정, 없는 것만 추가한다.
 
 const NAME_MAX = 100;
 const INDUSTRY_MAX = 100;
 const ADDRESS_MAX = 255;
+const PHONE_MAX = 20;
+const DONG_MAX = 50;
+
+function employeeCount(value) {
+  const text = String(value ?? '').replace(/\s+/g, '');
+  if (!/^\d+$/.test(text)) return null;
+  const count = Number(text);
+  return Number.isSafeInteger(count) ? count : null;
+}
 
 export function clip(value, max) {
   const text = String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -34,6 +43,10 @@ export function readFactoryRows(matrix) {
   const nameCol = columnIndex(header, '회사명');
   const addressCol = columnIndex(header, '소재지');
   const productCol = columnIndex(header, '생산품');
+  const phoneCol = columnIndex(header, '전화');
+  const faxCol = columnIndex(header, 'FAX');
+  const employeeCol = columnIndex(header, '종업원');
+  const dongCol = columnIndex(header, '법정동');
   if (nameCol < 0 || addressCol < 0) throw new Error('회사명 또는 소재지 열이 없습니다.');
 
   const byKey = new Map();
@@ -47,7 +60,18 @@ export function readFactoryRows(matrix) {
       continue;
     }
     const product = productCol < 0 ? '' : clip(row[productCol], INDUSTRY_MAX);
-    const record = { factory_name, address, industry: product || null };
+    const phone = phoneCol < 0 ? '' : clip(row[phoneCol], PHONE_MAX);
+    const fax = faxCol < 0 ? '' : clip(row[faxCol], PHONE_MAX);
+    const legalDong = dongCol < 0 ? '' : clip(row[dongCol], DONG_MAX);
+    const record = {
+      factory_name,
+      address,
+      industry: product || null,
+      phone_number: phone || null,
+      fax_number: fax || null,
+      employee_count: employeeCol < 0 ? null : employeeCount(row[employeeCol]),
+      legal_dong: legalDong || null,
+    };
     const key = factoryKey(factory_name, address);
     if (byKey.has(key)) duplicateInFile += 1;
     byKey.set(key, record);
@@ -67,11 +91,20 @@ export function planFactoryChanges(existing, incoming) {
       insert.push(row);
       continue;
     }
-    if ((found.industry ?? null) === (row.industry ?? null)) {
+    const tracked = ['industry', 'phone_number', 'fax_number', 'employee_count', 'legal_dong'];
+    const same = tracked.every((name) => (found[name] ?? null) === (row[name] ?? null));
+    if (same) {
       unchanged += 1;
       continue;
     }
-    update.push({ factory_id: found.factory_id, industry: row.industry });
+    update.push({
+      factory_id: found.factory_id,
+      industry: row.industry ?? null,
+      phone_number: row.phone_number ?? null,
+      fax_number: row.fax_number ?? null,
+      employee_count: row.employee_count ?? null,
+      legal_dong: row.legal_dong ?? null,
+    });
   }
   return { insert, update, unchanged };
 }

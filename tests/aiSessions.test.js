@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createApp } from '../src/app.js';
 import { signToken } from '../src/services/auth.service.js';
 import { setProvider } from '../src/ai/index.js';
+import { LISTING_QUESTION } from '../src/ai/flow.js';
 import { aiSessionsStore } from '../src/dao/aiSessions.dao.js';
 import { db, resetDb, makeUser, makeStore } from './helpers.js';
 
@@ -54,22 +55,20 @@ async function startOk(token) {
 
 const fabricBody = (overrides = {}) => ({
   sale_type: 'SCRAP', title: '네이비 면 20수', price: 3000, remaining_length_cm: null,
-  detail: { material: 'COTTON', thickness: 'THIN', color_family: 'NAVY', width_cm: 50, length_cm: 70, has_defect: false },
+  detail: { material: 'COTTON', thickness: 'THIN', color_family: 'NAVY', width_cm: 50, length_cm: 70, has_defect: false, sheet_count: 1 },
   ...overrides,
 });
 
-// 자투리 한 벌을 끝까지 답한다. 돌려주는 값: 마지막 응답 데이터
+const SCRAP_MEMO = '네이비 면 20수, 자투리 한 장, 가로 50 세로 70, 얇아요, 남색, 3000원';
+
+// 자투리 한 벌을 한 줄 설명으로 채운다. 돌려주는 값: 마지막 응답 데이터
 async function fillScrap(id, token) {
-  let last;
-  for (const text of ['자투리 한 장이요', '네이비 면 20수', '50에 70', '면이에요', '얇아요', '남색', '없어요', '3000원']) {
-    last = (await answer(id, token, { answer: text })).json.data;
-  }
-  return last;
+  return (await answer(id, token, { answer: SCRAP_MEMO })).json.data;
 }
 
 // ==== 17. AI 등록 시작
 
-test('시작 성공: 201, 진행 중, 첫 질문은 판매 형태, 빈 초안 (명세서 17번)', async () => {
+test('시작 성공: 201, 진행 중, 첫 질문은 원단 설명, 빈 초안 (명세서 17번)', async () => {
   const { token } = await approvedSeller();
   const { status, json } = await start(token);
   assert.equal(status, 201);
@@ -77,7 +76,7 @@ test('시작 성공: 201, 진행 중, 첫 질문은 판매 형태, 빈 초안 (�
   assert.deepEqual(Object.keys(json.data).sort(), ['ai_draft', 'is_complete', 'next_question', 'sessionId', 'session_status', 'unconfirmed_fields']);
   assert.match(json.data.sessionId, /^[0-9a-f]{24}$/);
   assert.equal(json.data.session_status, 'IN_PROGRESS');
-  assert.deepEqual(json.data.next_question, { field: 'sale_type', text: '자투리 1장인가요, 롤 원단인가요?', options: ['SCRAP', 'ROLL'] });
+  assert.deepEqual(json.data.next_question, LISTING_QUESTION);
   assert.deepEqual([json.data.ai_draft, json.data.unconfirmed_fields, json.data.is_complete], [{}, [], false]);
 });
 
@@ -114,7 +113,7 @@ test('조회: 대화 기록과 fabric_id(확정 전 null)가 함께 오고, 첫 
   assert.equal(status, 200);
   assert.deepEqual(Object.keys(json.data).sort(), ['ai_draft', 'fabric_id', 'is_complete', 'messages', 'next_question', 'sessionId', 'session_status', 'unconfirmed_fields']);
   assert.equal(json.data.fabric_id, null);
-  assert.deepEqual(json.data.messages.map((m) => [m.role, m.content]), [['assistant', '자투리 1장인가요, 롤 원단인가요?']]);
+  assert.deepEqual(json.data.messages.map((m) => [m.role, m.content]), [['assistant', LISTING_QUESTION.text]]);
   assert.match(json.data.messages[0].created_at, /\+09:00$/);
   assert.deepEqual(json.data.next_question, created.next_question); // 저장된 값이 아니라 지금 상태로 계산한 값
 });
@@ -141,18 +140,28 @@ test('조회 권한: 본인 세션만 (남의 세션 403), 없는 세션 404, �
 
 // ==== 19. 답변
 
-test('선택 버튼(selected)으로 답하면 AI 를 부르지 않고 바로 받는다 (명세서 19번 예시)', async () => {
+test('첫 질문은 선택 버튼이 없어서 selected 를 거절하고 AI 를 부르지 않는다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
   let calls = 0;
   setProvider({ model: 'spy', extract: async () => { calls += 1; throw new Error('호출되면 안 돼요'); } });
 
   const { status, json } = await answer(sessionId, token, { selected: 'SCRAP' });
-  assert.equal(status, 200);
+  assert.equal(status, 400);
+  assert.equal(json.error.code, 'VALIDATION_ERROR');
   assert.equal(calls, 0);
-  assert.deepEqual(json.data.ai_draft, { sale_type: 'SCRAP' });
-  assert.deepEqual(json.data.next_question, { field: 'title', text: '원단 이름(제목)을 알려 주세요. 예: 네이비 면 20수' });
-  assert.deepEqual([json.data.unconfirmed_fields, json.data.is_complete, json.data.session_status], [[], false, 'IN_PROGRESS']);
+  assert.deepEqual((await get(sessionId, token)).json.data.ai_draft, {});
+});
+
+test('자투리라고 짧게 적으면 판매 형태와 소개글을 채우고 질문을 끝낸다', async () => {
+  const { token } = await approvedSeller();
+  const { sessionId } = await startOk(token);
+  const { status, json } = await answer(sessionId, token, { answer: '자투리 한 장이에요' });
+  assert.equal(status, 200);
+  assert.equal(json.data.ai_draft.sale_type, 'SCRAP');
+  assert.match(json.data.ai_draft.description, /자투리 한 장/);
+  assert.equal(json.data.next_question, null);
+  assert.equal(json.data.is_complete, true);
 });
 
 test('말하듯 쓴 답(answer)을 AI 가 읽어 초안에 정리한다: 전체 흐름 끝까지', async () => {
@@ -160,67 +169,59 @@ test('말하듯 쓴 답(answer)을 AI 가 읽어 초안에 정리한다: 전체 
   const { sessionId } = await startOk(token);
   const last = await fillScrap(sessionId, token);
 
-  assert.deepEqual(last.ai_draft, {
-    sale_type: 'SCRAP', title: '네이비 면 20수', width_cm: 50, length_cm: 70, material: 'COTTON', thickness: 'THIN', color_family: 'NAVY', has_defect: false, price: 3000,
-  });
+  assert.equal(last.ai_draft.sale_type, 'SCRAP');
+  assert.equal(last.ai_draft.title, '네이비 면 20수');
+  assert.deepEqual([last.ai_draft.width_cm, last.ai_draft.length_cm, last.ai_draft.material, last.ai_draft.thickness, last.ai_draft.color_family, last.ai_draft.has_defect, last.ai_draft.price], [50, 70, 'COTTON', 'THIN', 'NAVY', false, 3000]);
+  assert.match(last.ai_draft.description, /네이비 면 20수/);
   assert.deepEqual([last.is_complete, last.next_question, last.unconfirmed_fields], [true, null, []]);
 
   const { json } = await get(sessionId, token);
-  assert.equal(json.data.messages.length, 17); // 첫 질문 1 + (답 + 다음 질문) x 8
+  assert.equal(json.data.messages.length, 3); // 안내, 판매자 설명, 정리 완료
   assert.deepEqual(json.data.messages.slice(0, 3).map((m) => m.role), ['assistant', 'user', 'assistant']);
-  assert.equal(json.data.messages[1].content, '자투리 한 장이요');
+  assert.equal(json.data.messages[1].content, SCRAP_MEMO);
   assert.match(json.data.messages.at(-1).content, /모두 확인했어요/);
 });
 
-test('"모름"이라고 답하면 비워 두고(소재는 UNKNOWN) unconfirmed_fields 에 넣는다', async () => {
+test('"모름"이라고 적으면 비워 두고 소재는 UNKNOWN, 확인이 필요한 항목으로 남긴다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
-  await answer(sessionId, token, { selected: 'SCRAP' });
-  await answer(sessionId, token, { answer: '네이비 면' });
-  await answer(sessionId, token, { answer: '50에 70' });
-  const material = (await answer(sessionId, token, { answer: '소재는 잘 모르겠어요' })).json.data;
-  assert.equal(material.ai_draft.material, 'UNKNOWN');
-  const thickness = (await answer(sessionId, token, { answer: '모름' })).json.data;
-  assert.equal('thickness' in thickness.ai_draft, false);
-  assert.deepEqual(thickness.unconfirmed_fields, ['material', 'thickness']);
-  assert.equal(thickness.next_question.field, 'color_family'); // 다음 질문으로 넘어간다
+  const data = (await answer(sessionId, token, { answer: '소재는 잘 모르겠어요' })).json.data;
+  assert.equal(data.ai_draft.material, 'UNKNOWN');
+  assert.equal('thickness' in data.ai_draft, false);
+  assert.ok(data.unconfirmed_fields.includes('material'));
+  assert.ok(data.unconfirmed_fields.includes('thickness'));
+  assert.equal(data.next_question, null);
+  assert.equal(data.is_complete, true);
 });
 
-test('알아듣지 못한 답도 같은 질문을 반복하지 않고 모름으로 넘어간다', async () => {
+test('판매 형태를 알아듣지 못하면 같은 질문을 반복하지 않고 확인 항목으로 남긴다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
   const { json } = await answer(sessionId, token, { answer: '글쎄요 뭐라고 해야 할지' });
-  assert.deepEqual(json.data.unconfirmed_fields, ['sale_type']);
-  assert.equal(json.data.next_question.field, 'title');
+  assert.equal(json.data.next_question, null);
+  assert.equal(json.data.is_complete, true);
+  assert.ok(json.data.unconfirmed_fields.includes('sale_type'));
+  assert.match(json.data.ai_draft.description, /글쎄요/);
 });
 
-test('마 단위 답변은 cm 로 바꿔 저장한다 (3마 → 270)', async () => {
+test('마 단위 설명은 cm 로 바꿔 저장한다 (3마 → 270)', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
-  await answer(sessionId, token, { selected: 'ROLL' });
-  await answer(sessionId, token, { answer: '린넨 롤' });
-  const { json } = await answer(sessionId, token, { answer: '폭 150에 3마' });
+  const { json } = await answer(sessionId, token, { answer: '린넨 롤, 폭 150에 3마, 9,900원' });
+  assert.equal(json.data.ai_draft.sale_type, 'ROLL');
   assert.deepEqual([json.data.ai_draft.width_cm, json.data.ai_draft.remaining_length_cm], [150, 270]);
   assert.equal('length_cm' in json.data.ai_draft, false);
 });
 
-test('자투리 길이가 90cm 를 넘으면 롤로 등록할지 묻고, 30cm 미만이면 안내와 함께 다시 묻는다', async () => {
+test('자투리 길이는 90cm 를 넘거나 30cm 보다 짧아도 그대로 받는다', async () => {
   const { token } = await approvedSeller();
-  const long = (await startOk(token)).sessionId;
-  await answer(long, token, { selected: 'SCRAP' });
-  await answer(long, token, { answer: '긴 원단' });
-  const over = (await answer(long, token, { answer: '가로 100 세로 120' })).json.data;
-  assert.deepEqual(over.next_question, { field: 'sale_type', text: '세로 길이가 90cm를 넘어요. 롤로 등록할까요?', options: ['ROLL', 'SCRAP'] });
-  const toRoll = (await answer(long, token, { selected: 'ROLL' })).json.data;
-  assert.equal(toRoll.ai_draft.sale_type, 'ROLL');
-  assert.equal(toRoll.next_question.field, 'size');
-
-  const short = (await startOk(token)).sessionId;
-  await answer(short, token, { selected: 'SCRAP' });
-  await answer(short, token, { answer: '짧은 원단' });
-  const under = (await answer(short, token, { answer: '가로 50 세로 20' })).json.data;
-  assert.match(under.next_question.text, /^30cm 이상만 등록할 수 있어요/);
-  assert.equal('length_cm' in under.ai_draft, false);
+  for (const [title, answerText, length] of [['긴 원단', '가로 100 세로 120', 120], ['짧은 원단', '가로 50 세로 20', 20]]) {
+    const sessionId = (await startOk(token)).sessionId;
+    const data = (await answer(sessionId, token, { answer: `${title}, 자투리 한 장, ${answerText}` })).json.data;
+    assert.equal(data.ai_draft.sale_type, 'SCRAP');
+    assert.equal(data.ai_draft.length_cm, length);
+    assert.equal(data.is_complete, true);
+  }
 });
 
 test('finish 는 더 묻지 않고 지금까지의 초안을 보여 준다 (is_complete true), 답과 함께 보낼 수도 있다', async () => {
@@ -231,8 +232,9 @@ test('finish 는 더 묻지 않고 지금까지의 초안을 보여 준다 (is_c
   assert.deepEqual([json.data.is_complete, json.data.next_question, json.data.ai_draft], [true, null, {}]);
 
   const second = (await startOk(token)).sessionId;
-  const withAnswer = (await answer(second, token, { selected: 'ROLL', finish: true })).json.data;
-  assert.deepEqual([withAnswer.ai_draft, withAnswer.is_complete], [{ sale_type: 'ROLL' }, true]);
+  const withAnswer = (await answer(second, token, { answer: '롤 원단', finish: true })).json.data;
+  assert.equal(withAnswer.ai_draft.sale_type, 'ROLL');
+  assert.equal(withAnswer.is_complete, true);
 });
 
 test('입력 오류: answer·selected·finish 가 모두 없거나 형식이 틀리면 VALIDATION_ERROR', async () => {
@@ -255,8 +257,7 @@ test('선택 목록에 없는 selected 는 VALIDATION_ERROR, 선택 버튼이 �
   assert.equal(bad.json.error.details[0].field, 'selected');
   assert.deepEqual((await get(sessionId, token)).json.data.ai_draft, {}); // 아무것도 바뀌지 않았다
 
-  await answer(sessionId, token, { selected: 'SCRAP' }); // 다음은 이름 질문(선택 버튼 없음)
-  assert.equal((await answer(sessionId, token, { selected: '네이비 면' })).status, 400);
+  assert.equal((await answer(sessionId, token, { selected: '네이비 면' })).status, 400); // 설명 질문에도 선택 목록이 없다
 });
 
 test('끝까지 답한 뒤 더 답하면 VALIDATION_ERROR (물어볼 것이 없다)', async () => {
@@ -302,7 +303,6 @@ test('AI 가 한 번 실패하면 서버가 1회 다시 시도해서 성공한�
 test('AI 가 계속 실패하면 503 AI_UNAVAILABLE 이고, 그때까지의 초안은 그대로 남는다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
-  await answer(sessionId, token, { selected: 'SCRAP' }); // 초안에 남을 값
   let calls = 0;
   setProvider({ model: 'down', extract: async () => { calls += 1; throw new Error('시간 초과'); } });
 
@@ -314,10 +314,10 @@ test('AI 가 계속 실패하면 503 AI_UNAVAILABLE 이고, 그때까지의 초�
 
   setProvider(); // AI 가 복구되었다고 보고 같은 세션을 이어서
   const after = await get(sessionId, token);
-  assert.deepEqual(after.json.data.ai_draft, { sale_type: 'SCRAP' });
+  assert.deepEqual(after.json.data.ai_draft, {});
   assert.equal(after.json.data.session_status, 'IN_PROGRESS');
-  assert.equal(after.json.data.messages.length, 3); // 실패한 답은 대화에 남지 않는다
-  assert.equal((await answer(sessionId, token, { answer: '네이비 면' })).status, 200);
+  assert.equal(after.json.data.messages.length, 1); // 실패한 답은 대화에 남지 않는다
+  assert.equal((await answer(sessionId, token, { answer: '네이비 면 자투리' })).status, 200);
 });
 
 test('AI 가 형식이 틀린 응답을 주어도 1회 다시 시도하고, 계속 틀리면 503', async () => {
@@ -334,15 +334,12 @@ test('AI 가 형식이 틀린 응답을 주어도 1회 다시 시도하고, 계�
 test('AI 가 목록 밖의 값을 주면 소재는 UNKNOWN, 그 밖의 항목은 비우고 unconfirmed_fields 에 넣는다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
-  await answer(sessionId, token, { selected: 'SCRAP' });
-  await answer(sessionId, token, { answer: '네이비 면' });
-  await answer(sessionId, token, { answer: '50에 70' });
-  setProvider({ model: 'odd', extract: async ({ question }) => ({ values: { [question.field]: 'SILK_ROAD' }, usage: {} }) });
-  const material = (await answer(sessionId, token, { answer: '비단이요' })).json.data;
-  assert.equal(material.ai_draft.material, 'UNKNOWN');
-  const thickness = (await answer(sessionId, token, { answer: '뭐든' })).json.data;
-  assert.equal('thickness' in thickness.ai_draft, false);
-  assert.deepEqual(thickness.unconfirmed_fields, ['material', 'thickness']);
+  setProvider({ model: 'odd', extract: async () => ({ values: { material: 'SILK_ROAD', thickness: 'NOT_A_SIZE' }, usage: {} }) });
+  const data = (await answer(sessionId, token, { answer: '비단이요' })).json.data;
+  assert.equal(data.ai_draft.material, 'UNKNOWN');
+  assert.equal('thickness' in data.ai_draft, false);
+  assert.ok(data.unconfirmed_fields.includes('material'));
+  assert.ok(data.unconfirmed_fields.includes('thickness'));
 });
 
 test('AI 호출 횟수와 토큰이 세션에 기록된다 (비용 산정용)', async () => {
@@ -350,33 +347,31 @@ test('AI 호출 횟수와 토큰이 세션에 기록된다 (비용 산정용)', 
   const { sessionId } = await startOk(token);
   setProvider({ model: 'm-9', extract: async () => ({ values: { sale_type: 'SCRAP' }, usage: { input_tokens: 120, output_tokens: 15 } }) });
   await answer(sessionId, token, { answer: '자투리요' });
-  await answer(sessionId, token, { selected: 'SCRAP' }); // 선택 버튼은 AI 를 부르지 않는다
+  assert.equal((await answer(sessionId, token, { answer: '한 번 더' })).status, 400); // 끝난 뒤에는 AI 를 다시 부르지 않는다
   const stored = await aiSessionsStore.findById(sessionId);
-  assert.deepEqual([stored.call_count, stored.input_tokens, stored.output_tokens, stored.prompt_version], [1, 120, 15, 'p1']);
+  assert.deepEqual([stored.call_count, stored.input_tokens, stored.output_tokens, stored.prompt_version], [1, 120, 15, 'p2']);
   assert.equal(stored.seller_id > 0, true);
 });
 
 test('같은 세션에 답변을 동시에 보내도 하나씩 처리되어 서로의 변경을 덮어쓰지 않는다', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
-  // 느린 AI: 동시에 두 요청이 같은 질문을 읽고 같은 값을 덮어쓰는 상황을 만든다.
   setProvider({
     model: 'slow',
-    extract: async ({ question }) => {
+    extract: async () => {
       await new Promise((resolve) => setTimeout(resolve, 60));
-      return { values: { [question.field]: question.field === 'sale_type' ? 'SCRAP' : '이름', size: null }, usage: {} };
+      return { values: { sale_type: 'SCRAP', title: '이름' }, usage: {} };
     },
   });
   const [a, b] = await Promise.all([
     answer(sessionId, token, { answer: '자투리요' }),
     answer(sessionId, token, { answer: '이름이에요' }),
   ]);
-  assert.deepEqual([a.status, b.status], [200, 200]);
+  assert.deepEqual([a.status, b.status].sort(), [200, 400]);
   const { json } = await get(sessionId, token);
-  // 첫 번째 답이 판매 형태, 두 번째 답이 이름에 들어간다 (둘 다 반영되고 순서대로)
   assert.equal(json.data.ai_draft.sale_type, 'SCRAP');
   assert.equal(json.data.ai_draft.title, '이름');
-  assert.equal(json.data.messages.filter((m) => m.role === 'user').length, 2);
+  assert.equal(json.data.messages.filter((m) => m.role === 'user').length, 1);
 });
 
 // ==== 20. 확정
@@ -441,7 +436,7 @@ test('검사에 걸려 실패하면 세션은 계속 진행 중이고 고쳐서 
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
   const cases = [
-    [fabricBody({ detail: { ...fabricBody().detail, length_cm: 150 } }), 'SCRAP_LENGTH_OUT_OF_RANGE'],
+    [fabricBody({ detail: { ...fabricBody().detail, length_cm: 0 } }), 'SCRAP_LENGTH_OUT_OF_RANGE'],
     [fabricBody({ detail: { ...fabricBody().detail, has_defect: true } }), 'DEFECT_NOTE_REQUIRED'],
     [fabricBody({ sale_type: 'ROLL', remaining_length_cm: 50 }), 'ROLL_LENGTH_REQUIRED'],
   ];
@@ -484,10 +479,11 @@ test('확정 권한: 남의 세션 403, 없는 세션 404, 로그인 안 함 401
 test('중단 성공: ABORTED 와 지금까지의 초안·unconfirmed_fields 를 돌려준다 (명세서 21번)', async () => {
   const { token } = await approvedSeller();
   const { sessionId } = await startOk(token);
-  await answer(sessionId, token, { selected: 'ROLL' });
+  await answer(sessionId, token, { answer: '롤 원단, 폭 150, 3마, 9,900원' });
   const { status, json } = await abort(sessionId, token);
   assert.equal(status, 200);
-  assert.deepEqual(json.data, { sessionId, session_status: 'ABORTED', ai_draft: { sale_type: 'ROLL' }, unconfirmed_fields: [] });
+  assert.equal(json.data.session_status, 'ABORTED');
+  assert.equal(json.data.ai_draft.sale_type, 'ROLL');
   assert.equal((await get(sessionId, token)).json.data.session_status, 'ABORTED');
 });
 
@@ -558,4 +554,57 @@ test('시작 → 답변 → 확정 → 운영팀 승인까지 이어진다', asy
   assert.deepEqual(pending.json.data.content.map((f) => f.fabricId), [fabricId]); // 확정된 원단은 승인 대기
   await db.FabricImage.create({ fabric_id: fabricId, image_url: 'http://x/1.png', thumbnail_url: 'http://x/t.webp', sort_order: 0 });
   assert.equal((await call('POST', `/admin/fabrics/${fabricId}/approve`, { token: admin })).status, 200);
+});
+
+test('사진과 입력으로 상세설명을 만들면 치수는 입력값을 유지한다', async () => {
+  const { token } = await approvedSeller();
+  const { status, json } = await call('POST', '/ai-sessions/listings', {
+    token,
+    body: {
+      material_text: '면 혼방 데님',
+      thickness: 'THIN',
+      thickness_label: '얇음',
+      width_cm: 50,
+      length_cm: 80,
+      sheet_count: 3,
+      feel: '매끈함',
+      images: [{ media_type: 'image/jpeg', data: 'YQ==' }],
+    },
+  });
+  assert.equal(status, 201, JSON.stringify(json));
+  assert.equal(json.data.ai_draft.sale_type, 'SCRAP');
+  assert.equal(json.data.ai_draft.width_cm, 50);
+  assert.equal(json.data.ai_draft.length_cm, 80);
+  assert.equal(json.data.ai_draft.thickness, 'THIN');
+  assert.equal(json.data.ai_draft.material, 'BLEND');
+  assert.equal(json.data.ai_draft.title, '면 혼방 데님');
+  assert.match(json.data.ai_draft.description, /면 혼방 데님/);
+  assert.equal(json.data.ai_draft.price, undefined);
+  assert.equal(json.data.is_complete, true);
+  assert.equal(json.data.next_question, null);
+  assert.equal(json.data.messages[0].role, 'user');
+  assert.match(json.data.messages[0].content, /폭: 50cm/);
+  assert.match(json.data.messages[0].content, /장수: 3장/);
+});
+
+test('롤로 상세설명을 만들면 남은 길이를 유지하고 판매 장수는 받지 않는다', async () => {
+  const { token } = await approvedSeller();
+  const { status, json } = await call('POST', '/ai-sessions/listings', {
+    token,
+    body: {
+      material_text: '린넨',
+      thickness: 'NORMAL',
+      thickness_label: '보통',
+      width_cm: 110,
+      length_cm: 270,
+      sale_type: 'ROLL',
+      images: [{ media_type: 'image/jpeg', data: 'YQ==' }],
+    },
+  });
+  assert.equal(status, 201, JSON.stringify(json));
+  assert.equal(json.data.ai_draft.sale_type, 'ROLL');
+  assert.equal(json.data.ai_draft.width_cm, 110);
+  assert.equal(json.data.ai_draft.remaining_length_cm, 270);
+  assert.equal(json.data.ai_draft.length_cm, undefined);
+  assert.match(json.data.messages[0].content, /남은 길이: 270cm/);
 });

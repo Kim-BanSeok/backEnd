@@ -1371,7 +1371,7 @@
             }
           },
           "400": {
-            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**SCRAP_LENGTH_OUT_OF_RANGE** — 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요.\n\n**ROLL_LENGTH_REQUIRED** — 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요.\n\n**DEFECT_NOTE_REQUIRED** — has_defect 가 true 인데 defect_note 가 없어요.",
+            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**SCRAP_LENGTH_OUT_OF_RANGE** — 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요.\n\n**ROLL_LENGTH_REQUIRED** — 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요.\n\n**DEFECT_NOTE_REQUIRED** — has_defect 가 true 인데 defect_note 가 없어요.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1394,7 +1394,7 @@
                       "success": false,
                       "error": {
                         "code": "SCRAP_LENGTH_OUT_OF_RANGE",
-                        "message": "자투리는 길이 30~90cm만 등록할 수 있어요"
+                        "message": "자투리 길이를 1cm 이상의 정수로 입력해 주세요"
                       }
                     }
                   },
@@ -1577,7 +1577,7 @@
                       "length_cm": {
                         "type": "integer",
                         "nullable": true,
-                        "description": "세로 길이 cm. 자투리만, 30~90"
+                        "description": "세로 길이 cm. 자투리만, 1 이상"
                       },
                       "has_defect": {
                         "type": "boolean",
@@ -1668,7 +1668,7 @@
             }
           }
         },
-        "description": "판매자가 원단을 직접 입력해서 등록해요. 등록하면 게시 대기(PENDING)가 되고, 운영팀이 승인해야 구매자에게 보여요.\n\n**권한:** SELLER · **구분:** 필수\n\n**처리 규칙**\n\n- 자투리(SCRAP): detail.length_cm 은 30~90cm 이고, remaining_length_cm 은 보내지 않아요.\n- 롤(ROLL): remaining_length_cm 은 90cm 이상이고, detail.length_cm 은 보내지 않아요.\n- has_defect 가 true 이면 defect_note(하자 위치와 내용)가 꼭 필요해요.\n- material, thickness, color_family 는 코드값 목록 안에서만 보낼 수 있어요. 소재를 모르면 UNKNOWN 을 보내거나 비워 두면 UNKNOWN 으로 저장해요.\n- 원단정보와 원단상세는 한 번에 저장해요. 둘 다 성공하거나 둘 다 실패해요.\n- 사진은 등록한 뒤에 따로 올려요(최대 3장).\n- 승인된 판매자(seller_approval_status 가 APPROVED)만 등록할 수 있어요. 아니면 SELLER_NOT_APPROVED 예요. 승인을 먼저 확인하고, 그다음 매장을 확인해요."
+        "description": "판매자가 원단을 직접 입력해서 등록해요. 등록하면 게시 대기(PENDING)가 되고, 운영팀이 승인해야 구매자에게 보여요.\n\n**권한:** SELLER · **구분:** 필수\n\n**처리 규칙**\n\n- 자투리(SCRAP): detail.length_cm 은 1cm 이상의 정수이고, remaining_length_cm 은 보내지 않아요.\n- 롤(ROLL): remaining_length_cm 은 90cm 이상이고, detail.length_cm 은 보내지 않아요.\n- has_defect 가 true 이면 defect_note(하자 위치와 내용)가 꼭 필요해요.\n- material, thickness, color_family 는 코드값 목록 안에서만 보낼 수 있어요. 소재를 모르면 UNKNOWN 을 보내거나 비워 두면 UNKNOWN 으로 저장해요.\n- 원단정보와 원단상세는 한 번에 저장해요. 둘 다 성공하거나 둘 다 실패해요.\n- 사진은 등록한 뒤에 따로 올려요(최대 3장).\n- 승인된 판매자(seller_approval_status 가 APPROVED)만 등록할 수 있어요. 아니면 SELLER_NOT_APPROVED 예요. 승인을 먼저 확인하고, 그다음 매장을 확인해요."
       },
       "get": {
         "tags": [
@@ -2247,7 +2247,7 @@
             }
           },
           "400": {
-            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**SCRAP_LENGTH_OUT_OF_RANGE** — 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요.\n\n**ROLL_LENGTH_REQUIRED** — 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요.\n\n**DEFECT_NOTE_REQUIRED** — has_defect 가 true 인데 defect_note 가 없어요.",
+            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**SCRAP_LENGTH_OUT_OF_RANGE** — 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요.\n\n**ROLL_LENGTH_REQUIRED** — 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요.\n\n**DEFECT_NOTE_REQUIRED** — has_defect 가 true 인데 defect_note 가 없어요.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2270,7 +2270,7 @@
                       "success": false,
                       "error": {
                         "code": "SCRAP_LENGTH_OUT_OF_RANGE",
-                        "message": "자투리는 길이 30~90cm만 등록할 수 있어요"
+                        "message": "자투리 길이를 1cm 이상의 정수로 입력해 주세요"
                       }
                     }
                   },
@@ -2498,7 +2498,7 @@
                       "length_cm": {
                         "type": "integer",
                         "nullable": true,
-                        "description": "세로 길이 cm. 자투리만, 30~90"
+                        "description": "세로 길이 cm. 자투리만, 1 이상"
                       },
                       "has_defect": {
                         "type": "boolean",
@@ -3349,11 +3349,8 @@
                     "sessionId": "cfc6563a1cb1c3205682e3fb",
                     "session_status": "IN_PROGRESS",
                     "next_question": {
-                      "field": "sale_type",
-                      "text": "자투리 1장인가요, 롤 원단인가요?",
-                      "options": [
-                        "SCRAP"
-                      ]
+                      "field": "listing",
+                      "text": "어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요."
                     },
                     "ai_draft": {},
                     "unconfirmed_fields": [],
@@ -3566,7 +3563,7 @@
                     "messages": [
                       {
                         "role": "assistant",
-                        "content": "자투리 1장인가요, 롤 원단인가요?",
+                        "content": "어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요.",
                         "created_at": "2026-10-10T17:31:31+09:00"
                       }
                     ],
@@ -3752,7 +3749,7 @@
                     "session_status": "IN_PROGRESS",
                     "next_question": {
                       "field": "title",
-                      "text": "원단 이름(제목)을 알려 주세요. 예: 네이비 면 20수"
+                      "text": "원단 이름은 뭐라고 할까요? 예를 들면 네이비 면 20수요."
                     },
                     "ai_draft": {
                       "sale_type": "SCRAP"
@@ -3940,7 +3937,7 @@
             }
           }
         },
-        "description": "질문에 대한 답을 보내고, 정리된 초안(ai_draft)과 다음 질문을 받아요.\n\n**권한:** SELLER(본인) · **구분:** 필수\n\n**처리 규칙**\n\n- 말하듯 쓴 답은 answer 로, 선택 버튼을 누른 값은 selected 로 보내요. 둘 다 없고 finish 도 아니면 VALIDATION_ERROR 예요.\n- selected 는 AI 를 부르지 않고 바로 받아요. 선택 목록에 없는 값이면 VALIDATION_ERROR 예요.\n- \"모름\"이라고 답한 항목은 비워 두고(소재는 UNKNOWN) unconfirmed_fields 에 넣어요. 판매자가 확인·수정 화면에서 채워요.\n- AI 가 선택 목록 밖의 값을 주면 소재는 UNKNOWN, 그 밖의 항목은 빈 값으로 두고 unconfirmed_fields 에 넣어요.\n- 마 단위 답변은 cm로 바꿔 저장해요 (1마 = 90cm, 예: 3마 → 270).\n- 자투리 길이가 90cm 를 넘으면 \"롤로 등록할까요?\", 30cm 미만이면 \"30cm 이상만 등록할 수 있어요\"를 next_question 으로 줘요.\n- finish 가 true 이면 더 묻지 않고 지금까지의 초안을 보여줘요(is_complete 가 true).\n- AI 응답 실패·시간 초과·형식 오류는 서버가 1회 다시 시도해요. 그래도 안 되면 503 AI_UNAVAILABLE 이고, 그때까지의 초안은 남아요.\n- 이미 끝난(확정·중단) 세션이면 AI_SESSION_CLOSED 예요."
+        "description": "질문에 대한 답을 보내고, 정리된 초안(ai_draft)과 다음 질문을 받아요.\n\n**권한:** SELLER(본인) · **구분:** 필수\n\n**처리 규칙**\n\n- 말하듯 쓴 답은 answer 로, 선택 버튼을 누른 값은 selected 로 보내요. 둘 다 없고 finish 도 아니면 VALIDATION_ERROR 예요.\n- selected 는 AI 를 부르지 않고 바로 받아요. 선택 목록에 없는 값이면 VALIDATION_ERROR 예요.\n- \"모름\"이라고 답한 항목은 비워 두고(소재는 UNKNOWN) unconfirmed_fields 에 넣어요. 판매자가 확인·수정 화면에서 채워요.\n- AI 가 선택 목록 밖의 값을 주면 소재는 UNKNOWN, 그 밖의 항목은 빈 값으로 두고 unconfirmed_fields 에 넣어요.\n- 마 단위 답변은 cm로 바꿔 저장해요 (1마 = 90cm, 예: 3마 → 270).\n- 자투리 길이는 1cm 이상의 정수로 받아요. 90cm 를 넘거나 짧아도 롤로 바꾸라고 묻지 않아요.\n- finish 가 true 이면 더 묻지 않고 지금까지의 초안을 보여줘요(is_complete 가 true).\n- AI 응답 실패·시간 초과·형식 오류는 서버가 1회 다시 시도해요. 그래도 안 되면 503 AI_UNAVAILABLE 이고, 그때까지의 초안은 남아요.\n- 이미 끝난(확정·중단) 세션이면 AI_SESSION_CLOSED 예요."
       }
     },
     "/ai-sessions/{sessionId}/confirm": {
@@ -3997,7 +3994,7 @@
             }
           },
           "400": {
-            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**SCRAP_LENGTH_OUT_OF_RANGE** — 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요.\n\n**ROLL_LENGTH_REQUIRED** — 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요.\n\n**DEFECT_NOTE_REQUIRED** — has_defect 가 true 인데 defect_note 가 없어요.",
+            "description": "**VALIDATION_ERROR** — 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요.\n\n**SCRAP_LENGTH_OUT_OF_RANGE** — 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요.\n\n**ROLL_LENGTH_REQUIRED** — 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요.\n\n**DEFECT_NOTE_REQUIRED** — has_defect 가 true 인데 defect_note 가 없어요.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4020,7 +4017,7 @@
                       "success": false,
                       "error": {
                         "code": "SCRAP_LENGTH_OUT_OF_RANGE",
-                        "message": "자투리는 길이 30~90cm만 등록할 수 있어요"
+                        "message": "자투리 길이를 1cm 이상의 정수로 입력해 주세요"
                       }
                     }
                   },
@@ -4247,7 +4244,7 @@
                       "length_cm": {
                         "type": "integer",
                         "nullable": true,
-                        "description": "세로 길이 cm. 자투리만, 30~90"
+                        "description": "세로 길이 cm. 자투리만, 1 이상"
                       },
                       "has_defect": {
                         "type": "boolean",
@@ -4319,7 +4316,7 @@
             }
           }
         },
-        "description": "판매자가 확인·수정한 최종본으로 원단을 만들어요. 요청 본문은 POST /fabrics 와 같아요.\n\n**권한:** SELLER(본인) · **구분:** 필수\n\n**처리 규칙**\n\n- 자투리(SCRAP): detail.length_cm 은 30~90cm 이고, remaining_length_cm 은 보내지 않아요.\n- 롤(ROLL): remaining_length_cm 은 90cm 이상이고, detail.length_cm 은 보내지 않아요.\n- has_defect 가 true 이면 defect_note(하자 위치와 내용)가 꼭 필요해요.\n- material, thickness, color_family 는 코드값 목록 안에서만 보낼 수 있어요. 소재를 모르면 UNKNOWN 을 보내거나 비워 두면 UNKNOWN 으로 저장해요.\n- 세션에는 최종본(final_data)과 fabric_id 가 남고, 초안(ai_draft)은 그대로 남아요. 초안과 최종본을 비교할 수 있어요.\n- 두 번 눌러도 원단은 하나만 만들어져요. 이미 끝난 세션이면 AI_SESSION_CLOSED 예요.\n- 검사에 걸려 실패하면 세션은 계속 진행 중이에요.\n- 확정된 원단도 게시 대기(PENDING)로 시작하고 운영팀 승인이 필요해요.\n- 승인된 판매자(seller_approval_status 가 APPROVED)만 확정할 수 있어요. 아니면 SELLER_NOT_APPROVED 예요."
+        "description": "판매자가 확인·수정한 최종본으로 원단을 만들어요. 요청 본문은 POST /fabrics 와 같아요.\n\n**권한:** SELLER(본인) · **구분:** 필수\n\n**처리 규칙**\n\n- 자투리(SCRAP): detail.length_cm 은 1cm 이상의 정수이고, remaining_length_cm 은 보내지 않아요.\n- 롤(ROLL): remaining_length_cm 은 90cm 이상이고, detail.length_cm 은 보내지 않아요.\n- has_defect 가 true 이면 defect_note(하자 위치와 내용)가 꼭 필요해요.\n- material, thickness, color_family 는 코드값 목록 안에서만 보낼 수 있어요. 소재를 모르면 UNKNOWN 을 보내거나 비워 두면 UNKNOWN 으로 저장해요.\n- 세션에는 최종본(final_data)과 fabric_id 가 남고, 초안(ai_draft)은 그대로 남아요. 초안과 최종본을 비교할 수 있어요.\n- 두 번 눌러도 원단은 하나만 만들어져요. 이미 끝난 세션이면 AI_SESSION_CLOSED 예요.\n- 검사에 걸려 실패하면 세션은 계속 진행 중이에요.\n- 확정된 원단도 게시 대기(PENDING)로 시작하고 운영팀 승인이 필요해요.\n- 승인된 판매자(seller_approval_status 가 APPROVED)만 확정할 수 있어요. 아니면 SELLER_NOT_APPROVED 예요."
       }
     },
     "/ai-sessions/{sessionId}/abort": {
@@ -9878,6 +9875,22 @@
                               "address": {
                                 "type": "string"
                               },
+                              "phone_number": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "fax_number": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "employee_count": {
+                                "type": "integer",
+                                "nullable": true
+                              },
+                              "legal_dong": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "latitude": {
                                 "nullable": true
                               },
@@ -9919,6 +9932,10 @@
                         "industry": "직물호부처리",
                         "category": "TEXTILE",
                         "address": "경기도 양주시 고암동 385-10",
+                        "phone_number": null,
+                        "fax_number": null,
+                        "employee_count": null,
+                        "legal_dong": null,
                         "latitude": null,
                         "longitude": null,
                         "data_source": "양주시청 공장등록 2026-09",

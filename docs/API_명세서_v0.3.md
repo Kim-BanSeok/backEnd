@@ -224,7 +224,7 @@ error.code 로 분기하고, error.message 는 사용자에게 그대로 보여�
 | --- | --- | --- | --- |
 | 400 | VALIDATION_ERROR | 입력값을 확인해 주세요 | 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요. |
 | 400 | AGREEMENT_REQUIRED | 약관과 개인정보 처리에 동의해 주세요 | privacy_agreed 또는 terms_agreed 가 true 가 아니에요. |
-| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리는 길이 30~90cm만 등록할 수 있어요 | 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요. |
+| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리 길이를 1cm 이상의 정수로 입력해 주세요 | 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요. |
 | 400 | ROLL_LENGTH_REQUIRED | 롤은 남은 길이를 90cm 이상 입력해 주세요 | 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요. |
 | 400 | DEFECT_NOTE_REQUIRED | 하자 위치와 내용을 적어 주세요 | has_defect 가 true 인데 defect_note 가 없어요. |
 | 400 | LENGTH_NOT_MULTIPLE_OF_90 | 1마(90cm) 단위로 골라 주세요 | 롤의 requested_length_cm 가 90의 배수가 아니에요. |
@@ -851,7 +851,7 @@ Body 항목
 | detail.color_family | 문자열 | 필수 | 색상 계열 / 값: WHITE, BLACK, GRAY, BEIGE, BROWN, RED, PINK, YELLOW, GREEN, BLUE, NAVY, PURPLE, MIXED |
 | detail.color_detail | 문자열 또는 null | 선택 | 색상 설명 / 최대 100자 |
 | detail.width_cm | 정수 | 필수 | 가로(폭) cm / 최소 1, 최대 1000 |
-| detail.length_cm | 정수 또는 null | 선택 | 세로 길이 cm. 자투리만, 30~90 |
+| detail.length_cm | 정수 또는 null | 선택 | 세로 길이 cm. 자투리만, 1 이상 |
 | detail.has_defect | true/false | 선택 | 하자 여부 (기본 false) |
 | detail.defect_note | 문자열 또는 null | 선택 | 하자 위치와 내용. has_defect 가 true 이면 필수 / 최대 255자 |
 | detail.blend_ratio | 문자열 또는 null | 선택 | 혼방 비율 / 최대 100자 |
@@ -943,7 +943,7 @@ Body 항목
 
 처리 규칙
 
-자투리(SCRAP): detail.length_cm 은 30~90cm 이고, remaining_length_cm 은 보내지 않아요.
+자투리(SCRAP): detail.length_cm 은 1cm 이상의 정수이고, remaining_length_cm 은 보내지 않아요.
 
 롤(ROLL): remaining_length_cm 은 90cm 이상이고, detail.length_cm 은 보내지 않아요.
 
@@ -966,7 +966,7 @@ material, thickness, color_family 는 코드값 목록 안에서만 보낼 수 �
 | 403 | SELLER_NOT_APPROVED | 판매자 승인 전이거나 승인이 거절됐어요. |
 | 403 | STORE_REQUIRED | 판매자가 매장을 아직 등록하지 않았어요. |
 | 400 | VALIDATION_ERROR | 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요. |
-| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요. |
+| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요. |
 | 400 | ROLL_LENGTH_REQUIRED | 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요. |
 | 400 | DEFECT_NOTE_REQUIRED | has_defect 가 true 인데 defect_note 가 없어요. |
 
@@ -1234,7 +1234,7 @@ Body 항목
 | detail.color_family | 문자열 | 선택 | 색상 계열 / 값: WHITE, BLACK, GRAY, BEIGE, BROWN, RED, PINK, YELLOW, GREEN, BLUE, NAVY, PURPLE, MIXED |
 | detail.color_detail | 문자열 또는 null | 선택 | 색상 설명 / 최대 100자 |
 | detail.width_cm | 정수 | 선택 | 가로(폭) cm / 최소 1, 최대 1000 |
-| detail.length_cm | 정수 또는 null | 선택 | 세로 길이 cm. 자투리만, 30~90 |
+| detail.length_cm | 정수 또는 null | 선택 | 세로 길이 cm. 자투리만, 1 이상 |
 | detail.has_defect | true/false | 선택 | 하자 여부 (기본 false) |
 | detail.defect_note | 문자열 또는 null | 선택 | 하자 위치와 내용. has_defect 가 true 이면 필수 / 최대 255자 |
 | detail.blend_ratio | 문자열 또는 null | 선택 | 혼방 비율 / 최대 100자 |
@@ -1296,7 +1296,7 @@ detail 은 보낸 항목만 바뀌어요.
 | 403 | FORBIDDEN | 역할이 다르거나 내 데이터가 아니에요. |
 | 404 | NOT_FOUND | 없거나 볼 수 없는 데이터예요. |
 | 400 | VALIDATION_ERROR | 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요. |
-| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요. |
+| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요. |
 | 400 | ROLL_LENGTH_REQUIRED | 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요. |
 | 400 | DEFECT_NOTE_REQUIRED | has_defect 가 true 인데 defect_note 가 없어요. |
 | 409 | INSUFFICIENT_LENGTH | 구매 가능 길이(남은 길이 - 확보 길이)가 부족해요. 수정 시에는 확보한 길이보다 줄일 수 없어요. |
@@ -1587,17 +1587,9 @@ Path 항목
 
 "next_question": {
 
-"field": "sale_type",
+"field": "listing",
 
-"text": "자투리 1장인가요, 롤 원단인가요?",
-
-"options": [
-
-"SCRAP",
-
-...
-
-]
+"text": "어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요."
 
 },
 
@@ -1697,7 +1689,7 @@ Path 항목
 
 "role": "assistant",
 
-"content": "자투리 1장인가요, 롤 원단인가요?",
+"content": "어떤 원단인지 편하게 적어 주세요. 자투리인지, 크기, 소재, 색, 가격을 한 번에 적어도 돼요. 예를 들면 네이비 면 자투리 50에 70, 한 장에 7천원이요.",
 
 "created_at": "2026-10-10T17:31:31+09:00"
 
@@ -1779,7 +1771,7 @@ Body 항목
 
 "field": "title",
 
-"text": "원단 이름(제목)을 알려 주세요. 예: 네이비 면 20수"
+"text": "원단 이름은 뭐라고 할까요? 예를 들면 네이비 면 20수요."
 
 },
 
@@ -1809,7 +1801,7 @@ AI 가 선택 목록 밖의 값을 주면 소재는 UNKNOWN, 그 밖의 항목�
 
 마 단위 답변은 cm로 바꿔 저장해요 (1마 = 90cm, 예: 3마 → 270).
 
-자투리 길이가 90cm 를 넘으면 "롤로 등록할까요?", 30cm 미만이면 "30cm 이상만 등록할 수 있어요"를 next_question 으로 줘요.
+자투리 길이는 1cm 이상의 정수로 받아요. 90cm 를 넘거나 짧아도 롤로 바꾸라고 묻지 않아요.
 
 finish 가 true 이면 더 묻지 않고 지금까지의 초안을 보여줘요(is_complete 가 true).
 
@@ -1859,7 +1851,7 @@ Body 항목
 | detail.color_family | 문자열 | 필수 | 색상 계열 / 값: WHITE, BLACK, GRAY, BEIGE, BROWN, RED, PINK, YELLOW, GREEN, BLUE, NAVY, PURPLE, MIXED |
 | detail.color_detail | 문자열 또는 null | 선택 | 색상 설명 / 최대 100자 |
 | detail.width_cm | 정수 | 필수 | 가로(폭) cm / 최소 1, 최대 1000 |
-| detail.length_cm | 정수 또는 null | 선택 | 세로 길이 cm. 자투리만, 30~90 |
+| detail.length_cm | 정수 또는 null | 선택 | 세로 길이 cm. 자투리만, 1 이상 |
 | detail.has_defect | true/false | 선택 | 하자 여부 (기본 false) |
 | detail.defect_note | 문자열 또는 null | 선택 | 하자 위치와 내용. has_defect 가 true 이면 필수 / 최대 255자 |
 | detail.blend_ratio | 문자열 또는 null | 선택 | 혼방 비율 / 최대 100자 |
@@ -1915,7 +1907,7 @@ Body 항목
 
 처리 규칙
 
-자투리(SCRAP): detail.length_cm 은 30~90cm 이고, remaining_length_cm 은 보내지 않아요.
+자투리(SCRAP): detail.length_cm 은 1cm 이상의 정수이고, remaining_length_cm 은 보내지 않아요.
 
 롤(ROLL): remaining_length_cm 은 90cm 이상이고, detail.length_cm 은 보내지 않아요.
 
@@ -1943,7 +1935,7 @@ material, thickness, color_family 는 코드값 목록 안에서만 보낼 수 �
 | 403 | SELLER_NOT_APPROVED | 판매자 승인 전이거나 승인이 거절됐어요. |
 | 403 | STORE_REQUIRED | 판매자가 매장을 아직 등록하지 않았어요. |
 | 400 | VALIDATION_ERROR | 요청 값의 형식이 올바르지 않아요. error.details 에 항목별 이유가 와요. |
-| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리인데 length_cm 가 30~90cm 가 아니거나 없어요. |
+| 400 | SCRAP_LENGTH_OUT_OF_RANGE | 자투리인데 length_cm 가 1cm 이상의 정수가 아니거나 없어요. |
 | 400 | ROLL_LENGTH_REQUIRED | 롤인데 remaining_length_cm 가 없거나 90cm 미만이에요. |
 | 400 | DEFECT_NOTE_REQUIRED | has_defect 가 true 인데 defect_note 가 없어요. |
 | 409 | AI_SESSION_CLOSED | 이미 확정되거나 중단된 세션이에요. |
@@ -4024,6 +4016,14 @@ Query 항목
 "category": "TEXTILE",
 
 "address": "경기도 양주시 고암동 385-10",
+
+"phone_number": null,
+
+"fax_number": null,
+
+"employee_count": null,
+
+"legal_dong": null,
 
 "latitude": null,
 

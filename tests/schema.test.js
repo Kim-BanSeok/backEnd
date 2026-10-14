@@ -64,15 +64,15 @@ test('반려 상태는 사유 필수', async () => {
   await makeFabric(store.store_id, { status: 'REJECTED', reject_reason: '사진 흐림' });
 });
 
-test('원단 상세: 자투리 길이 30~90, 하자는 내용 필수, 원단당 1개', async () => {
+test('원단 상세: 자투리 길이는 1cm 이상, 하자는 내용 필수, 원단당 1개', async () => {
   const { store } = await makeStore();
   const fabric = await makeFabric(store.store_id);
   const detail = { fabric_id: fabric.fabric_id, width_cm: 100, thickness: 'THIN', color_family: 'BLUE' };
 
-  await rejectsWith(db.FabricDetail.create({ ...detail, length_cm: 100 }), '23514');
-  await rejectsWith(db.FabricDetail.create({ ...detail, length_cm: 50, has_defect: true }), '23514');
-  await db.FabricDetail.create({ ...detail, length_cm: 50 });
-  await rejectsWith(db.FabricDetail.create({ ...detail, length_cm: 50 }), '23505');
+  await rejectsWith(db.FabricDetail.create({ ...detail, length_cm: 0 }), '23514');
+  await rejectsWith(db.FabricDetail.create({ ...detail, length_cm: 150, has_defect: true }), '23514');
+  await db.FabricDetail.create({ ...detail, length_cm: 150 });
+  await rejectsWith(db.FabricDetail.create({ ...detail, length_cm: 150 }), '23505');
 });
 
 test('예약: 요청 길이는 90의 배수, 거절은 사유 필수, 취소는 취소 주체 필수', async () => {

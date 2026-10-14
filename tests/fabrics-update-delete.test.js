@@ -190,15 +190,15 @@ test('판매 형태는 바꿀 수 없다: 다른 값은 VALIDATION_ERROR, 같은
 
 // ---- 12. 바뀐 뒤의 모습으로 등록 규칙을 다시 검사
 
-test('자투리 세로 길이는 30~90: 경계는 통과, 벗어나면 SCRAP_LENGTH_OUT_OF_RANGE', async () => {
+test('자투리 세로 길이는 1cm 이상: 긴 길이도 통과하고, 0 이하면 SCRAP_LENGTH_OUT_OF_RANGE', async () => {
   const { fabric, token } = await setup();
-  for (const length_cm of [30, 90]) assert.equal((await patch(fabric, { detail: { length_cm } }, token)).status, 200, `${length_cm}`);
-  for (const length_cm of [29, 91, 0, -1, null]) {
+  for (const length_cm of [1, 29, 90, 150]) assert.equal((await patch(fabric, { detail: { length_cm } }, token)).status, 200, `${length_cm}`);
+  for (const length_cm of [0, -1, null]) {
     const { status, json } = await patch(fabric, { detail: { length_cm } }, token);
     assert.equal(status, 400, String(length_cm));
     assert.equal(json.error.code, 'SCRAP_LENGTH_OUT_OF_RANGE', String(length_cm));
   }
-  assert.equal((await reloadDetail(fabric)).length_cm, 90); // 마지막으로 성공한 값이 남았다
+  assert.equal((await reloadDetail(fabric)).length_cm, 150); // 마지막으로 성공한 값이 남았다
 });
 
 test('롤 남은 길이는 90 이상: 경계는 통과, 부족하거나 비우면 ROLL_LENGTH_REQUIRED', async () => {
@@ -248,7 +248,7 @@ test('하자: 있다고 바꾸면 내용 필수, 내용을 비우면 DEFECT_NOTE
 
 test('규칙을 어기면 일부만 저장되지 않는다 (원단 값은 맞고 상세가 틀려도 둘 다 취소)', async () => {
   const { fabric, token } = await setup({ fabric: { status: 'REJECTED', reject_reason: '사유' } });
-  const { status } = await patch(fabric, { title: '새 제목', price: 9999, detail: { length_cm: 500 } }, token);
+  const { status } = await patch(fabric, { title: '새 제목', price: 9999, detail: { length_cm: 0 } }, token);
   assert.equal(status, 400);
   const saved = await reload(fabric);
   assert.deepEqual([saved.title, saved.price, saved.status, saved.reject_reason], ['네이비 면', 3000, 'REJECTED', '사유']);
