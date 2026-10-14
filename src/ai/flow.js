@@ -4,7 +4,7 @@ import { SALE_TYPES, MATERIALS, THICKNESSES, COLOR_FAMILIES } from '../utils/cod
 // 질문 순서는 서버가 정한다: 판매 형태 → 이름 → 가로·세로(롤은 폭·남은 길이) → 소재 → 두께 → 색상 → 하자 → 가격.
 // next_question 은 세션에 저장하지 않고, 세션의 sale_type·ai_draft·unconfirmed_fields 를 보고 매번 계산한다.
 
-export const PROMPT_VERSION = 'p2';
+export const PROMPT_VERSION = 'p3';
 const INT_MAX = 2147483647;
 
 export const FIELD_OPTIONS = {

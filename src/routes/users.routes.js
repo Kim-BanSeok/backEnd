@@ -6,7 +6,7 @@ import * as controller from '../controllers/users.controller.js';
 
 const router = Router();
 
-router.get('/users/me', requireAuth(), controller.getMe);
+router.get('/users/me', requireAuth(), validate({}), controller.getMe);
 router.patch('/users/me', requireAuth(), validate(updateMeSchema), controller.updateMe);
 
 export default router;

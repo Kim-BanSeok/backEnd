@@ -1,4 +1,4 @@
-import { buildMessages, buildPhotoPrompt, buildListingMessages, buildPatternDraftPrompt, PHOTO_FIELDS } from './prompts.js';
+import { buildMessages, buildPhotoPrompt, buildListingMessages, buildPatternDraftMessages, PHOTO_FIELDS } from './prompts.js';
 
 // Claude Messages API 로 판매자의 답에서 값을 뽑는다.
 // 실패(네트워크, 시간 초과, 오류 응답, 형식 오류)는 오류를 던진다. 다시 시도하고 503 AI_UNAVAILABLE 로 바꾸는 것은 services 가 한다.
@@ -85,15 +85,16 @@ export function createClaudeProvider({ apiKey, model, timeoutMs = 15000, fetchIm
       };
     },
     async draftPattern({ itemName, note, fabric }) {
+      const built = buildPatternDraftMessages({ itemName, note, fabric });
       const { parsed } = await complete(fetchImpl, {
         apiKey, model, timeoutMs,
-        system: buildPatternDraftPrompt({ itemName, note, fabric }),
-        content: '초안 JSON만 답해 주세요.',
+        system: built[0].content,
+        content: built[1].content,
       });
       return parsed;
     },
-    async describeProduct({ text, images }) {
-      const built = buildListingMessages({ text });
+    async describeProduct({ text, product, images }) {
+      const built = buildListingMessages({ text, product });
       const content = [
         ...(images || []).map(image => ({ type: 'image', source: { type: 'base64', media_type: image.media_type, data: image.data } })),
         { type: 'text', text: built[1].content },

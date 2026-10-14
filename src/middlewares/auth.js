@@ -3,6 +3,7 @@ import { env } from '../config/env.js';
 import { fail } from '../utils/errors.js';
 import * as usersDao from '../dao/users.dao.js';
 import { isTokenRevoked } from '../services/security.service.js';
+import { setSecurityActor } from '../utils/securityLog.js';
 
 // Authorization: Bearer 토큰을 확인하고 req.user = { userId, role } 를 채운다.
 // 토큰이 유효해도 회원이 탈퇴했으면(DB 에서 조회되지 않으면) 거절한다.
@@ -19,6 +20,7 @@ async function authenticate(req) {
   if (!Number.isSafeInteger(payload.exp) || await isTokenRevoked(token)) return null;
   const user = await usersDao.findById(Number(payload.sub));
   if (!user) return null;
+  setSecurityActor(user.user_id, user.role);
   req.auth = { token, expiresAt: payload.exp };
   return { userId: user.user_id, role: user.role };
 }

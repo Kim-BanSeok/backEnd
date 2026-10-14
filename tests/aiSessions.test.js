@@ -349,7 +349,7 @@ test('AI 호출 횟수와 토큰이 세션에 기록된다 (비용 산정용)', 
   await answer(sessionId, token, { answer: '자투리요' });
   assert.equal((await answer(sessionId, token, { answer: '한 번 더' })).status, 400); // 끝난 뒤에는 AI 를 다시 부르지 않는다
   const stored = await aiSessionsStore.findById(sessionId);
-  assert.deepEqual([stored.call_count, stored.input_tokens, stored.output_tokens, stored.prompt_version], [1, 120, 15, 'p2']);
+  assert.deepEqual([stored.call_count, stored.input_tokens, stored.output_tokens, stored.prompt_version], [1, 120, 15, 'p3']);
   assert.equal(stored.seller_id > 0, true);
 });
 

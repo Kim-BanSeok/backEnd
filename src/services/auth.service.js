@@ -5,6 +5,7 @@ import { env } from '../config/env.js';
 import { fail } from '../utils/errors.js';
 import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
+import { setSecurityActor } from '../utils/securityLog.js';
 
 const SALT_ROUNDS = env.isTest ? 4 : 10; // 테스트는 빠르게
 
@@ -46,6 +47,7 @@ export async function signup(input) {
       privacy_agreed: true,
       terms_agreed: true,
     });
+    setSecurityActor(user.user_id, user.role);
     return { userId: user.user_id, role: user.role };
   } catch (err) {
     // 동시에 같은 이메일로 가입하면 위의 확인을 둘 다 통과하므로, DB 의 UNIQUE 가 마지막으로 막는다.
@@ -66,6 +68,7 @@ export async function login({ email, password }) {
 
   const accessToken = signToken(user);
   const { iat, exp } = jwt.decode(accessToken);
+  setSecurityActor(user.user_id, user.role);
   return {
     accessToken,
     expiresIn: exp - iat, // 초 단위 (24시간 = 86400)

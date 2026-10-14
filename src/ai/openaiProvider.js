@@ -1,4 +1,4 @@
-import { buildMessages, buildPhotoPrompt, buildListingMessages, buildPatternDraftPrompt, PHOTO_FIELDS } from './prompts.js';
+import { buildMessages, buildPhotoPrompt, buildListingMessages, buildPatternDraftMessages, PHOTO_FIELDS } from './prompts.js';
 
 // OpenAI Chat Completions 로 판매자의 답에서 값을 뽑는다.
 // Claude 와 같은 extract / describeImage 모양이라, AI_PROVIDER 만 바꾸면 호출부가 그대로다.
@@ -20,9 +20,8 @@ const parseObject = (text) => {
 async function complete(fetchImpl, { apiKey, model, timeoutMs, messages, maxTokens = 1024 }) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
-  let response;
   try {
-    response = await fetchImpl(ENDPOINT, {
+    const response = await fetchImpl(ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,20 +35,24 @@ async function complete(fetchImpl, { apiKey, model, timeoutMs, messages, maxToke
       }),
       signal: controller.signal,
     });
+    // 헤더 수신 뒤에도 본문을 다 읽을 때까지 취소 신호와 같은 타이머를 유지한다.
+    const body = await response.json().catch((error) => {
+      if (controller.signal.aborted) throw error;
+      return {};
+    });
+    if (!response.ok) {
+      const message = typeof body?.error?.message === 'string' ? body.error.message : '';
+      throw new Error(`OpenAI 응답 오류 ${response.status}${message ? `: ${message}` : ''}`);
+    }
+    const text = jsonText(body?.choices?.[0]?.message?.content);
+    if (!text.trim()) throw new Error('OpenAI 응답에 내용이 없어요');
+    return {
+      parsed: parseObject(text),
+      usage: { input_tokens: body.usage?.prompt_tokens ?? 0, output_tokens: body.usage?.completion_tokens ?? 0 },
+    };
   } finally {
     clearTimeout(timer);
   }
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = typeof body?.error?.message === 'string' ? body.error.message : '';
-    throw new Error(`OpenAI 응답 오류 ${response.status}${message ? `: ${message}` : ''}`);
-  }
-  const text = jsonText(body?.choices?.[0]?.message?.content);
-  if (!text.trim()) throw new Error('OpenAI 응답에 내용이 없어요');
-  return {
-    parsed: parseObject(text),
-    usage: { input_tokens: body.usage?.prompt_tokens ?? 0, output_tokens: body.usage?.completion_tokens ?? 0 },
-  };
 }
 
 export function createOpenaiProvider({ apiKey, model, timeoutMs = 15000, fetchImpl = fetch }) {
@@ -100,15 +103,12 @@ export function createOpenaiProvider({ apiKey, model, timeoutMs = 15000, fetchIm
     async draftPattern({ itemName, note, fabric }) {
       const { parsed } = await complete(fetchImpl, {
         apiKey, model, timeoutMs, maxTokens: 1200,
-        messages: [
-          { role: 'system', content: buildPatternDraftPrompt({ itemName, note, fabric }) },
-          { role: 'user', content: '초안 JSON만 답해 주세요.' },
-        ],
+        messages: buildPatternDraftMessages({ itemName, note, fabric }),
       });
       return parsed;
     },
-    async describeProduct({ text, images }) {
-      const built = buildListingMessages({ text });
+    async describeProduct({ text, product, images }) {
+      const built = buildListingMessages({ text, product });
       const content = [
         ...(images || []).map(image => ({ type: 'image_url', image_url: { url: `data:${image.media_type};base64,${image.data}` } })),
         { type: 'text', text: built[1].content },

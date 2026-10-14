@@ -8,7 +8,7 @@ const fabricIdParams = z.object({
 // 내용은 앞뒤 공백을 지우고 1~1000자. 공백만 있으면 VALIDATION_ERROR. is_private 는 true/false 만 받는다.
 export const createInquirySchema = {
   params: fabricIdParams,
-  body: z.object({
+  body: z.strictObject({
     content: z.string().trim().min(1).max(1000),
     is_private: z.boolean().optional(),
   }),
@@ -37,7 +37,7 @@ export const answerInquirySchema = {
   params: z.object({
     inquiryId: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   }),
-  body: z.object({
+  body: z.strictObject({
     answer: z.string().trim().min(1).max(1000),
   }),
 };

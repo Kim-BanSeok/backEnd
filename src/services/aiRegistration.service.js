@@ -1,4 +1,5 @@
 import { fail } from '../utils/errors.js';
+import { securityEvent, safeErrorType } from '../utils/securityLog.js';
 import { toKstIso } from '../utils/response.js';
 import { withKeyLock } from '../utils/keyedMutex.js';
 import { getProvider } from '../ai/index.js';
@@ -29,16 +30,18 @@ async function findOwn(userId, sessionId) {
   const session = await aiSessionsDao.findById(sessionId);
   if (!session) throw fail('NOT_FOUND');
   if (session.seller_id !== userId) throw fail('FORBIDDEN');
+  if (session.session_status === 'IN_PROGRESS') await renewSession(session.securityLeaseId);
   return session;
 }
 
 const base = (session) => ({ sessionId: session._id, ...flow.toView(session) });
 
 // 세션이 바뀔 때마다 마지막 갱신 시각을 새로 한다. (방치된 세션을 24시간 뒤 지우는 기준)
-// 저장한 세션을 돌려준다. (그 사이 방치 세션으로 정리되었다면 지금 메모리의 세션을 그대로 돌려준다)
+// 이미 삭제된 세션을 저장한 것처럼 응답하거나 되살리지 않는다.
 const persist = async (session) => {
   session.last_updated_at = new Date();
-  const saved = (await aiSessionsDao.save(session)) ?? session;
+  const saved = await aiSessionsDao.save(session);
+  if (!saved) { await releaseSession(session.securityLeaseId); throw fail('NOT_FOUND'); }
   if (session.session_status === 'IN_PROGRESS') await renewSession(session.securityLeaseId);
   else await releaseSession(session.securityLeaseId);
   return saved;
@@ -104,52 +107,61 @@ export async function composeListing(userId, input) {
 
   const provider = getProvider();
   const brief = listingBrief(input);
-  let described;
-  try {
-    described = await provider.describeProduct({ text: brief, images: input.images });
-  } catch (error) {
-    console.error('AI 호출 실패', error);
-    throw fail('AI_UNAVAILABLE');
-  }
-  const values = described?.values;
-  if (!values || typeof values !== 'object') throw fail('AI_UNAVAILABLE');
-
   const session = flow.newSession({ sellerId: userId, now: new Date(), model: provider.model });
-  session.call_count = 1;
-  session.input_tokens = described.usage?.input_tokens ?? 0;
-  session.output_tokens = described.usage?.output_tokens ?? 0;
-  const thickness = THICKNESSES.includes(input.thickness) ? input.thickness : null;
-  const color = COLOR_FAMILIES.includes(values.color_family) ? values.color_family : null;
-  const defect = /얼룩|구멍|오염|뜯/.test(input.memo || '');
-  const roll = input.sale_type === 'ROLL';
-  flow.applyValues(session, { field: 'listing' }, {
-    sale_type: roll ? 'ROLL' : 'SCRAP',
-    title: values.title || input.material_text,
-    width_cm: input.width_cm,
-    ...(roll ? { remaining_length_cm: input.length_cm } : { length_cm: input.length_cm }),
-    material: materialCode(input.material_text),
-    thickness,
-    color_family: color,
-    description: values.description,
-    price: null,
-    has_defect: defect ? true : null,
-    defect_note: defect ? String(input.memo).trim().slice(0, 255) : null,
-  });
-  session.messages.push(message('user', brief));
-  session.messages.push(message('assistant', session.ai_draft.description || flow.COMPLETE_MESSAGE));
-  const note = typeof values.seller_note === 'string' ? values.seller_note.trim() : '';
-  if (note && note !== '추가 확인사항 없음') {
-    session.messages.push(message('assistant', `판매자 확인 메모: ${note}`));
+  session.securityLeaseId = await reserveSession(userId);
+  try {
+    let described;
+    try {
+      described = await withAiCall(userId, () => provider.describeProduct({ product: input, images: input.images }));
+    } catch (error) {
+      if (error.code === 'TOO_MANY_REQUESTS') throw error;
+      securityEvent('ai.provider.failed', { operation: 'listing', error_type: safeErrorType(error) });
+      throw fail('AI_UNAVAILABLE');
+    }
+    const values = described?.values;
+    if (!values || typeof values !== 'object' || Array.isArray(values)) throw fail('AI_UNAVAILABLE');
+
+    session.call_count = 1;
+    session.input_tokens = described.usage?.input_tokens ?? 0;
+    session.output_tokens = described.usage?.output_tokens ?? 0;
+    const thickness = THICKNESSES.includes(input.thickness) ? input.thickness : null;
+    const color = COLOR_FAMILIES.includes(values.color_family) ? values.color_family : null;
+    const defect = /얼룩|구멍|오염|뜯/.test(input.memo || '');
+    const roll = input.sale_type === 'ROLL';
+    flow.applyValues(session, { field: 'listing' }, {
+      sale_type: roll ? 'ROLL' : 'SCRAP',
+      title: values.title || input.material_text,
+      width_cm: input.width_cm,
+      ...(roll ? { remaining_length_cm: input.length_cm } : { length_cm: input.length_cm }),
+      material: materialCode(input.material_text),
+      thickness,
+      color_family: color,
+      description: values.description,
+      price: null,
+      has_defect: defect ? true : null,
+      defect_note: defect ? String(input.memo).trim().slice(0, 255) : null,
+    });
+    session.messages.push(message('user', brief));
+    session.messages.push(message('assistant', session.ai_draft.description || flow.COMPLETE_MESSAGE));
+    const note = typeof values.seller_note === 'string' ? values.seller_note.trim().slice(0, 1000) : '';
+    if (note && note !== '추가 확인사항 없음') {
+      session.messages.push(message('assistant', `판매자 확인 메모: ${note}`));
+    }
+    const stored = await persist(await aiSessionsDao.insert(session));
+    return { ...base(stored), messages: stored.messages.map(toMessageView), fabric_id: null };
+  } catch (error) {
+    await releaseSession(session.securityLeaseId);
+    throw error;
   }
-  const stored = await persist(await aiSessionsDao.insert(session));
-  return { ...base(stored), messages: stored.messages.map(toMessageView), fabric_id: null };
 }
 
 // ==== 18. AI 등록 세션 조회
 
 export async function getSession(userId, sessionId) {
-  const session = await findOwn(userId, sessionId);
-  return { ...base(session), messages: session.messages.map(toMessageView), fabric_id: session.fabric_id };
+  return withSessionLock(sessionId, async () => {
+    const session = await findOwn(userId, sessionId);
+    return { ...base(session), messages: session.messages.map(toMessageView), fabric_id: session.fabric_id };
+  });
 }
 
 // ==== 19. AI 등록 답변 보내기
@@ -171,7 +183,7 @@ async function extractWithRetry(session, question, text) {
       lastError = error;
     }
   }
-  console.error('AI 호출 실패', lastError);
+  securityEvent('ai.provider.failed', { operation: 'dialogue', error_type: safeErrorType(lastError) });
   throw fail('AI_UNAVAILABLE');
 }
 

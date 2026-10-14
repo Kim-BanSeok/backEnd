@@ -12,6 +12,7 @@ import { signedImageUrl } from './imageAccess.service.js';
 const ROLL_UNIT_CM = 90; // 롤은 1마(90cm) 단위로 사고판다
 const INT_MAX = 2147483647;
 const SOLD_OUT_REASON = '판매 완료';
+const ACTIVE_RESERVATION_INDEX = 'reservations_buyer_fabric_active_unique';
 
 const pageOf = ({ rows, count }, page, size, toItem) => ({
   content: rows.map(toItem),
@@ -43,7 +44,7 @@ export async function createReservation(userId, input) {
         throw fail('VALIDATION_ERROR', [{ field: 'requested_length_cm', message: '자투리는 구매할 길이를 보내지 않아요' }]);
       }
       requestedSheets = input.requested_sheet_count ?? 1;
-    } else if (input.requested_sheet_count != null) {
+    } else if (input.requested_sheet_count !== null && input.requested_sheet_count !== undefined) {
       throw fail('VALIDATION_ERROR', [{ field: 'requested_sheet_count', message: '롤은 구매할 장수를 보내지 않아요' }]);
     } else {
       if (requested === null) {
@@ -57,7 +58,7 @@ export async function createReservation(userId, input) {
       throw fail('DUPLICATE_RESERVATION');
     }
 
-    let estimatedPrice = null;
+    let estimatedPrice;
     if (fabric.sale_type === 'SCRAP') {
       const detail = await fabricsDao.findDetailByFabric(fabric.fabric_id, { transaction });
       const stock = scrapStock(fabric, detail);
@@ -96,6 +97,13 @@ export async function createReservation(userId, input) {
       status: reservation.status,
       estimated_price: reservation.estimated_price,
     };
+  }).catch((error) => {
+    // 트랜잭션 롤백이 끝난 뒤 이 인덱스의 충돌만 기존 중복 예약 응답으로 바꾼다.
+    const violation = error.original ?? error.parent;
+    if (violation?.code === '23505' && violation.constraint === ACTIVE_RESERVATION_INDEX) {
+      throw fail('DUPLICATE_RESERVATION');
+    }
+    throw error;
   });
 }
 

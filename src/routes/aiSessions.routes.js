@@ -10,11 +10,11 @@ const router = Router();
 router.use('/ai-sessions', requireAuth('SELLER'));
 
 router.post('/ai-sessions/listings', validate(listingSchema), controller.compose);
-router.post('/ai-sessions', controller.start);
+router.post('/ai-sessions', validate({}), controller.start);
 router.get('/ai-sessions/:sessionId', validate(sessionIdSchema), controller.getById);
 router.post('/ai-sessions/:sessionId/answers', validate(answerSchema), controller.answer);
 router.post('/ai-sessions/:sessionId/confirm', validate(confirmSchema), controller.confirm);
 router.post('/ai-sessions/:sessionId/abort', validate(sessionIdSchema), controller.abort);
-router.post('/ai/fabric-photo', requireAuth('SELLER'), uploadImage, controller.estimatePhoto);
+router.post('/ai/fabric-photo', requireAuth('SELLER'), uploadImage, validate({}), controller.estimatePhoto);
 
 export default router;

@@ -127,13 +127,15 @@ test('수정: 소재를 null 로 보내면 UNKNOWN', async () => {
   assert.equal((await reloadDetail(fabric)).material, 'UNKNOWN');
 });
 
-test('수정: 요청에 섞인 status·store_id·reserved_length_cm 등은 무시한다', async () => {
+test('수정: status·store_id 등의 추가 필드가 섞이면 정상 필드도 저장하지 않는다', async () => {
   const { fabric, store, token } = await setup({ fabric: { status: 'POSTED' } });
   const { status, json } = await patch(fabric, { price: 3100, status: 'SOLD_OUT', store_id: 9999, reserved_length_cm: 50, fabric_id: 7 }, token);
-  assert.equal(status, 200);
-  assert.equal(json.data.status, 'POSTED');
+  assert.equal(status, 400);
+  assert.equal(json.error.code, 'VALIDATION_ERROR');
   const saved = await reload(fabric);
-  assert.deepEqual([saved.status, saved.store_id, saved.reserved_length_cm], ['POSTED', store.store_id, 0]);
+  assert.deepEqual([saved.price, saved.status, saved.store_id, saved.reserved_length_cm], [3000, 'POSTED', store.store_id, 0]);
+  assert.equal((await patch(fabric, { price: 3100 }, token)).status, 200);
+  assert.equal((await reload(fabric)).price, 3100);
 });
 
 test('수정: 상세만 바꿔도 원단의 수정 시각이 갱신된다', async () => {

@@ -126,13 +126,18 @@ test('소재를 보내지 않거나 null 이면 UNKNOWN 으로 저장, 선택 �
   }
 });
 
-test('요청에 없는 항목(status, store_id 등)은 무시하고 서버가 정한다', async () => {
+test('등록: status·store_id 등의 추가 필드는 요청 전체를 거절하고 정상 요청은 서버가 값을 정한다', async () => {
   const { seller, store } = await makeStore();
   const body = { ...scrapBody(), status: 'POSTED', store_id: 9999, reserved_length_cm: 50, fabric_id: 7 };
   const { status, json } = await call('POST', '/fabrics', { token: signToken(seller), body });
-  assert.equal(status, 201);
-  assert.equal(json.data.status, 'PENDING');
-  const fabric = await db.Fabric.findByPk(json.data.fabricId);
+  assert.equal(status, 400);
+  assert.equal(json.error.code, 'VALIDATION_ERROR');
+  assert.equal(await db.Fabric.count(), 0);
+  assert.equal(await db.FabricDetail.count(), 0);
+  const valid = await call('POST', '/fabrics', { token: signToken(seller), body: scrapBody() });
+  assert.equal(valid.status, 201);
+  assert.equal(valid.json.data.status, 'PENDING');
+  const fabric = await db.Fabric.findByPk(valid.json.data.fabricId);
   assert.equal(fabric.store_id, store.store_id);
   assert.equal(fabric.reserved_length_cm, 0);
 });

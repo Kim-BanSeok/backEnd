@@ -3,23 +3,33 @@ import db from '../models/index.js';
 import pg from 'pg';
 import { createHash } from 'node:crypto';
 import { env } from '../config/env.js';
+import { securityEvent, safeErrorType } from '../utils/securityLog.js';
 
 const lockPool = new pg.Pool({ host: env.db.host, port: env.db.port, user: env.db.username, password: env.db.password, database: env.db.database, max: 4, connectionTimeoutMillis: 5000, allowExitOnIdle: true });
-lockPool.on('error', () => console.error('AI session lock connection failed'));
-export async function withAiSessionLock(sessionId, work) {
+lockPool.on('error', error => securityEvent('ai.lock.failed', { error_type: safeErrorType(error) }));
+async function useAiSessionLock(sessionId, work, wait) {
   const key = createHash('sha256').update(`fabric-ai-session:${sessionId}`).digest().readBigInt64BE().toString();
   const connection = await lockPool.connect();
   let locked = false;
   try {
-    await connection.query("SET lock_timeout = '60s'");
-    await connection.query('SELECT pg_advisory_lock($1::bigint)', [key]);
-    locked = true;
-    return await work();
+    if (wait) {
+      await connection.query("SET lock_timeout = '60s'");
+      await connection.query('SELECT pg_advisory_lock($1::bigint)', [key]);
+      locked = true;
+    } else {
+      const { rows } = await connection.query('SELECT pg_try_advisory_lock($1::bigint) AS locked', [key]);
+      locked = rows[0].locked;
+    }
+    if (!locked) return { acquired: false };
+    return { acquired: true, value: await work() };
   } finally {
     try { if (locked) await connection.query('SELECT pg_advisory_unlock($1::bigint)', [key]); }
     finally { connection.release(); }
   }
 }
+export const withAiSessionLock = async (sessionId, work) => (await useAiSessionLock(sessionId, work, true)).value;
+export const tryWithAiSessionLock = (sessionId, work) => useAiSessionLock(sessionId, work, false);
+export const closeAiSessionLocks = () => lockPool.end();
 
 export const findRevokedToken = (hash) => db.RevokedToken.findByPk(hash);
 export const revokeToken = (hash, expiresAt) => db.RevokedToken.findOrCreate({ where: { token_hash: hash }, defaults: { expires_at: expiresAt } });

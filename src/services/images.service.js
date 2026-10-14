@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import sharp from 'sharp';
 import sequelize from '../db/connection.js';
 import { fail } from '../utils/errors.js';
+import { securityEvent, safeErrorType } from '../utils/securityLog.js';
 import { storage } from '../storage/index.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
 import * as imagesDao from '../dao/images.dao.js';
@@ -106,7 +107,7 @@ export async function removeImage(userId, fabricId, imageId) {
   // DB 가 기준이다. 파일을 지우지 못해도 응답은 성공이고, 서버 기록에만 남긴다.
   for (const url of [removed.image_url, removed.thumbnail_url]) {
     const key = storage.keyOf(url);
-    if (key) await storage.remove(key).catch((err) => console.error('사진 파일 삭제 실패', key, err));
+    if (key) await storage.remove(key).catch(error => securityEvent('image.delete.failed', { operation: 'image_delete', error_type: safeErrorType(error) }));
   }
   return null;
 }

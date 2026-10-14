@@ -13,7 +13,7 @@ const futureDateTime = z
 // 25. 예약 요청
 // 판매 형태에 따라 requested_length_cm 가 필수인지는 원단을 읽어야 알 수 있어서 services 가 검사한다.
 export const createReservationSchema = {
-  body: z.object({
+  body: z.strictObject({
     fabric_id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
     pickup_at: futureDateTime,
     memo: z
@@ -54,11 +54,11 @@ export const reservationIdSchema = {
 // 본문을 아예 안 보내면 req.body 가 없으므로 빈 객체로 본다.
 export const acceptReservationSchema = {
   params: z.object({ reservationId: idParam }),
-  body: z.preprocess((value) => value ?? {}, z.object({ pickup_at: futureDateTime.optional() })),
+  body: z.preprocess((value) => value ?? {}, z.strictObject({ pickup_at: futureDateTime.optional() })),
 };
 
 // 30. 예약 거절: 사유 필수 (공백만 있으면 안 됨)
 export const rejectReservationSchema = {
   params: z.object({ reservationId: idParam }),
-  body: z.object({ reason: z.string().trim().min(1).max(255) }),
+  body: z.strictObject({ reason: z.string().trim().min(1).max(255) }),
 };

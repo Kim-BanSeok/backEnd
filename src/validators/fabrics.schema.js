@@ -13,7 +13,7 @@ const optionalText = (max) =>
     .nullish()
     .transform((v) => v || null);
 
-const detailSchema = z.object({
+const detailSchema = z.strictObject({
   material: z
     .enum(MATERIALS)
     .nullish()
@@ -34,7 +34,7 @@ const detailSchema = z.object({
 });
 
 export const createFabricSchema = {
-  body: z.object({
+  body: z.strictObject({
     sale_type: z.enum(SALE_TYPES),
     title: z.string().trim().min(1).max(100),
     price: z.number().int().min(1).max(INT_MAX),
@@ -56,7 +56,7 @@ const clearableText = (max) =>
     .optional()
     .transform((v) => (v === '' ? null : v));
 
-const updateDetailSchema = z.object({
+const updateDetailSchema = z.strictObject({
   material: z
     .enum(MATERIALS)
     .nullable()
@@ -81,7 +81,7 @@ const hasAny = (object) => Object.values(object).some((value) => value !== undef
 export const updateFabricSchema = {
   params: z.object({ fabricId: idParam }),
   body: z
-    .object({
+    .strictObject({
       sale_type: z.enum(SALE_TYPES).optional(), // 바꿀 수 없다. 다른 값이면 services 가 거절한다.
       title: z.string().trim().min(1).max(100).optional(),
       price: z.number().int().min(1).max(INT_MAX).optional(),

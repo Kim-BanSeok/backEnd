@@ -5,6 +5,7 @@ import { getProvider } from '../ai/index.js';
 import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
 import { withAiCall } from './security.service.js';
+import { securityEvent, safeErrorType } from '../utils/securityLog.js';
 
 const MAX_AI_ATTEMPTS = 2;
 const MEDIA_TYPES = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
@@ -55,7 +56,7 @@ async function describeWithRetry(userId, buffer, mediaType) {
       lastError = error;
     }
   }
-  console.error('AI 호출 실패', lastError);
+  securityEvent('ai.provider.failed', { operation: 'photo', error_type: safeErrorType(lastError) });
   throw fail('AI_UNAVAILABLE');
 }
 

@@ -1,6 +1,8 @@
 import { fail } from '../utils/errors.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
 import { getProvider } from '../ai/index.js';
+import { withAiCall } from './security.service.js';
+import { securityEvent, safeErrorType } from '../utils/securityLog.js';
 
 const text = (value, max) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
 const round1 = (value) => Math.round(Number(value) * 10) / 10;
@@ -13,7 +15,7 @@ const outlineOf = (part, name) => {
 };
 
 // AI가 준 조각 목록만 다듬는다. 도안 테이블에 저장하지 않고, 적합 판정에도 넣지 않는다.
-export async function createPatternDraft(input) {
+export async function createPatternDraft(userId, input) {
   const fabric = await fabricsDao.findById(input.fabric_id);
   if (!fabric || fabric.status !== 'POSTED') throw fail('NOT_FOUND');
   const detail = await fabricsDao.findDetailByFabric(fabric.fabric_id);
@@ -23,7 +25,7 @@ export async function createPatternDraft(input) {
   const limitHeight = fabric.sale_type === 'ROLL' ? fabric.remaining_length_cm : detail.length_cm;
   let raw;
   try {
-    raw = await getProvider().draftPattern({
+    raw = await withAiCall(userId, () => getProvider().draftPattern({
       itemName: input.item_name,
       note: input.note,
       fabric: {
@@ -32,8 +34,10 @@ export async function createPatternDraft(input) {
         length_cm: fabric.sale_type === 'SCRAP' ? limitHeight : null,
         remaining_length_cm: fabric.sale_type === 'ROLL' ? limitHeight : null,
       },
-    });
-  } catch {
+    }));
+  } catch (error) {
+    if (error.code === 'TOO_MANY_REQUESTS') throw error;
+    securityEvent('ai.provider.failed', { operation: 'pattern', error_type: safeErrorType(error) });
     throw fail('AI_UNAVAILABLE');
   }
 

@@ -11,7 +11,7 @@ export const sessionIdSchema = { params };
 export const answerSchema = {
   params,
   body: z
-    .object({
+    .strictObject({
       answer: z.string().trim().min(1).max(1000).optional(),
       selected: z.string().trim().min(1).max(50).optional(),
       finish: z.boolean().optional(),
@@ -24,14 +24,14 @@ export const answerSchema = {
 // 확정: 요청 본문은 POST /fabrics 와 같다.
 export const confirmSchema = { params, body: createFabricSchema.body };
 
-const listingImage = z.object({
+const listingImage = z.strictObject({
   media_type: z.enum(['image/jpeg', 'image/png', 'image/webp']),
   data: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/, { error: '사진 데이터가 올바르지 않아요' }).max(3_000_000),
 });
 
 // 사진과 짧은 입력을 한 번에 받아 소개글을 만든다. 치수는 이 입력값을 유지한다.
 export const listingSchema = {
-  body: z.object({
+  body: z.strictObject({
     material_text: z.string().trim().min(1).max(100),
     thickness: z.enum(['THIN', 'NORMAL', 'THICK', 'UNKNOWN']),
     thickness_label: z.string().trim().min(1).max(20),
@@ -45,10 +45,10 @@ export const listingSchema = {
     images: z.array(listingImage).min(1).max(2),
   }).superRefine((body, ctx) => {
     if (body.sale_type === 'ROLL') {
-      if (body.sheet_count != null) ctx.addIssue({ code: 'custom', message: '롤은 판매 장수를 보내지 않아요', path: ['sheet_count'] });
+      if (body.sheet_count !== null && body.sheet_count !== undefined) ctx.addIssue({ code: 'custom', message: '롤은 판매 장수를 보내지 않아요', path: ['sheet_count'] });
       if (body.length_cm < 90) ctx.addIssue({ code: 'custom', message: '롤은 남은 길이를 90cm 이상으로 입력해 주세요', path: ['length_cm'] });
       return;
     }
-    if (body.sheet_count == null) ctx.addIssue({ code: 'custom', message: '판매 장수는 1장 이상인 정수로 입력해 주세요', path: ['sheet_count'] });
+    if (body.sheet_count === null || body.sheet_count === undefined) ctx.addIssue({ code: 'custom', message: '판매 장수는 1장 이상인 정수로 입력해 주세요', path: ['sheet_count'] });
   }),
 };

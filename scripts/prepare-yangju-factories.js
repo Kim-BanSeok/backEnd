@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import XLSX from 'xlsx';
+import XLSX from '../src/spreadsheets/sheetjs.js';
 import { prepareFactoryData, renderPreparationReport, verifyFactorySource } from './factoryPreparation.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');

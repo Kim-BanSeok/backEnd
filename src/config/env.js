@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { isIP } from 'node:net';
 
 // 환경변수를 한 곳에서 읽는다. 다른 파일은 process.env 를 직접 쓰지 않는다.
 // 셸에 예전에 남은 키보다 backend/.env 를 우선한다. Node 의 --env-file 은 이미 있는 변수를 덮어쓰지 않는다.
@@ -28,6 +29,19 @@ const positive = (name, fallback) => {
   if (!Number.isSafeInteger(value) || value < 1 || value > 2147483647) throw new Error(`${name} must be a positive integer`);
   return value;
 };
+const trustedProxyCidrs = () => {
+  const raw = process.env.TRUSTED_PROXY_CIDRS ?? '';
+  if (!raw.trim()) return [];
+  const entries = raw.split(',').map(value => value.trim());
+  for (const entry of entries) {
+    const [address, prefix, ...extra] = entry.split('/');
+    const version = isIP(address);
+    if (!version || extra.length || (prefix !== undefined && (!/^\d+$/.test(prefix) || Number(prefix) < 1 || Number(prefix) > (version === 4 ? 32 : 128)))) {
+      throw new Error('TRUSTED_PROXY_CIDRS must contain explicit proxy IPs or CIDRs (blank disables proxy trust; true, hop counts and /0 are not allowed)');
+    }
+  }
+  return entries;
+};
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const dotEnv = nodeEnv === 'test' ? {} : readDotEnv(path.resolve('.env'));
@@ -43,6 +57,11 @@ export const env = {
   isProd: nodeEnv === 'production',
   isTest: nodeEnv === 'test',
   port: num(process.env.PORT, 3000),
+  trustedProxyCidrs: trustedProxyCidrs(),
+  apiRateLimit: {
+    windowMs: positive('API_RATE_LIMIT_WINDOW_MS', 60 * 1000),
+    max: positive('API_RATE_LIMIT_MAX_REQUESTS', 300),
+  },
   db: {
     username: process.env.DB_ID || 'postgres',
     password: process.env.DB_PASS || undefined,
@@ -88,8 +107,8 @@ export const env = {
       userConcurrent: positive('AI_USER_ACTIVE_SESSIONS', 5),
       globalConcurrent: positive('AI_GLOBAL_ACTIVE_SESSIONS', 100),
     },
-    // 배포 브랜치의 기본값은 memory이며, 명시한 database 설정은 기존 저장소를 사용한다.
-    sessionStore: process.env.AI_SESSION_STORE || 'memory',
+    // 개발·운영은 DB에 보존한다. memory는 테스트나 명시한 개발 실험에서만 쓴다.
+    sessionStore: process.env.AI_SESSION_STORE || (nodeEnv === 'test' ? 'memory' : 'database'),
   },
   jwtSecret: process.env.JWT_SECRET || 'dev-only-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
@@ -111,6 +130,7 @@ if (!['fake', 'claude', 'openai'].includes(env.ai.provider)) throw new Error(`�
 if (env.ai.provider === 'claude' && !env.ai.anthropicApiKey) throw new Error('AI_PROVIDER=claude 에는 ANTHROPIC_API_KEY 가 필요해요.');
 if (env.ai.provider === 'openai' && !env.ai.openaiApiKey) throw new Error('AI_PROVIDER=openai 에는 OPENAI_API_KEY 가 필요해요.');
 if (!['memory', 'database'].includes(env.ai.sessionStore)) throw new Error(`지원하지 않는 AI_SESSION_STORE: ${env.ai.sessionStore}`);
+if (env.isProd && env.ai.sessionStore !== 'database') throw new Error('운영 환경에서는 AI_SESSION_STORE=database 만 사용할 수 있어요.');
 if (env.isProd && env.ai.provider === 'fake') throw new Error('운영 환경에서는 가짜 AI(fake)를 쓸 수 없어요. AI_PROVIDER=openai 또는 claude 로 설정해 주세요.');
 
 // 운영에서 약한 설정이면 서버를 켜지 않는다.
