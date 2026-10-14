@@ -586,3 +586,25 @@ test('사진과 입력으로 상세설명을 만들면 치수는 입력값을 �
   assert.match(json.data.messages[0].content, /폭: 50cm/);
   assert.match(json.data.messages[0].content, /장수: 3장/);
 });
+
+test('롤로 상세설명을 만들면 남은 길이를 유지하고 판매 장수는 받지 않는다', async () => {
+  const { token } = await approvedSeller();
+  const { status, json } = await call('POST', '/ai-sessions/listings', {
+    token,
+    body: {
+      material_text: '린넨',
+      thickness: 'NORMAL',
+      thickness_label: '보통',
+      width_cm: 110,
+      length_cm: 270,
+      sale_type: 'ROLL',
+      images: [{ media_type: 'image/jpeg', data: 'YQ==' }],
+    },
+  });
+  assert.equal(status, 201, JSON.stringify(json));
+  assert.equal(json.data.ai_draft.sale_type, 'ROLL');
+  assert.equal(json.data.ai_draft.width_cm, 110);
+  assert.equal(json.data.ai_draft.remaining_length_cm, 270);
+  assert.equal(json.data.ai_draft.length_cm, undefined);
+  assert.match(json.data.messages[0].content, /남은 길이: 270cm/);
+});

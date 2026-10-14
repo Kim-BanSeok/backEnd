@@ -23,6 +23,7 @@ export const createReservationSchema = {
       .nullish()
       .transform((v) => v || null),
     requested_length_cm: z.number().int().min(1).max(INT_MAX).nullish().transform((v) => v ?? null),
+    requested_sheet_count: z.number().int().min(1).max(9999).nullish().transform((v) => v ?? null),
     pattern_id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER).nullish().transform((v) => v ?? null),
   }),
 };

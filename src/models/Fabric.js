@@ -9,6 +9,7 @@ const Fabric = sequelize.define('Fabric', {
   price: { type: DataTypes.INTEGER, allowNull: false },
   remaining_length_cm: { type: DataTypes.INTEGER, allowNull: true },
   reserved_length_cm: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+  reserved_sheet_count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   status: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'PENDING' },
   reject_reason: { type: DataTypes.STRING(255), allowNull: true },
 }, {

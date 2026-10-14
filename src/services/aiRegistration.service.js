@@ -68,17 +68,20 @@ function materialCode(text) {
 }
 
 function listingBrief(input) {
+  const roll = input.sale_type === 'ROLL';
   return [
     '[현재 상품 입력]',
     `소재·원단 종류: ${input.material_text}`,
     `두께: ${input.thickness_label}`,
     `폭: ${input.width_cm}cm`,
-    `길이: ${input.length_cm}cm`,
-    `장수: ${input.sheet_count}장`,
+    roll ? `남은 길이: ${input.length_cm}cm` : `길이: ${input.length_cm}cm`,
+    roll ? '판매 단위: 90cm(1마)' : `장수: ${input.sheet_count}장`,
     `촉감: ${input.feel || '미입력'}`,
     `신축성: ${input.stretch || '미입력'}`,
     `추가 메모: ${input.memo || '미입력'}`,
-    '첨부 이미지는 현재 판매할 원단 사진입니다.',
+    '첨부 이미지 구분:',
+    '- 현재 상품 사진: 함께 첨부한 전체·확대 이미지',
+    '위 고정 지침에 따라 고객용 상세설명과 판매자 확인 메모를 작성하세요.',
   ].join('\n');
 }
 
@@ -108,11 +111,12 @@ export async function composeListing(userId, input) {
   const thickness = THICKNESSES.includes(input.thickness) ? input.thickness : null;
   const color = COLOR_FAMILIES.includes(values.color_family) ? values.color_family : null;
   const defect = /얼룩|구멍|오염|뜯/.test(input.memo || '');
+  const roll = input.sale_type === 'ROLL';
   flow.applyValues(session, { field: 'listing' }, {
-    sale_type: 'SCRAP',
+    sale_type: roll ? 'ROLL' : 'SCRAP',
     title: values.title || input.material_text,
     width_cm: input.width_cm,
-    length_cm: input.length_cm,
+    ...(roll ? { remaining_length_cm: input.length_cm } : { length_cm: input.length_cm }),
     material: materialCode(input.material_text),
     thickness,
     color_family: color,
@@ -123,8 +127,9 @@ export async function composeListing(userId, input) {
   });
   session.messages.push(message('user', brief));
   session.messages.push(message('assistant', session.ai_draft.description || flow.COMPLETE_MESSAGE));
-  if (typeof values.seller_note === 'string' && values.seller_note.trim()) {
-    session.messages.push(message('assistant', `판매자 확인 메모: ${values.seller_note.trim()}`));
+  const note = typeof values.seller_note === 'string' ? values.seller_note.trim() : '';
+  if (note && note !== '추가 확인사항 없음') {
+    session.messages.push(message('assistant', `판매자 확인 메모: ${note}`));
   }
   const stored = await persist(await aiSessionsDao.insert(session));
   return { ...base(stored), messages: stored.messages.map(toMessageView), fabric_id: null };

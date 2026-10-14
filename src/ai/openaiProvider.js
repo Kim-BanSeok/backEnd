@@ -1,4 +1,4 @@
-import { buildMessages, buildPhotoPrompt, buildListingMessages, PHOTO_FIELDS } from './prompts.js';
+import { buildMessages, buildPhotoPrompt, buildListingMessages, buildPatternDraftPrompt, PHOTO_FIELDS } from './prompts.js';
 
 // OpenAI Chat Completions 로 판매자의 답에서 값을 뽑는다.
 // Claude 와 같은 extract / describeImage 모양이라, AI_PROVIDER 만 바꾸면 호출부가 그대로다.
@@ -96,6 +96,16 @@ export function createOpenaiProvider({ apiKey, model, timeoutMs = 15000, fetchIm
         values: Object.fromEntries(PHOTO_FIELDS.map((name) => [name, parsed[name] ?? null])),
         usage,
       };
+    },
+    async draftPattern({ itemName, note, fabric }) {
+      const { parsed } = await complete(fetchImpl, {
+        apiKey, model, timeoutMs, maxTokens: 1200,
+        messages: [
+          { role: 'system', content: buildPatternDraftPrompt({ itemName, note, fabric }) },
+          { role: 'user', content: '초안 JSON만 답해 주세요.' },
+        ],
+      });
+      return parsed;
     },
     async describeProduct({ text, images }) {
       const built = buildListingMessages({ text });

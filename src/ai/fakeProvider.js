@@ -160,6 +160,32 @@ export function createFakeProvider() {
         usage: { input_tokens: 0, output_tokens: 0 },
       };
     },
+    async draftPattern({ itemName, fabric }) {
+      const limitWidth = Math.max(2, Number(fabric.width_cm) || 20);
+      const limitHeight = Math.max(2, Number(fabric.length_cm || fabric.remaining_length_cm) || 30);
+      const fit = (width, height) => ({ width_cm: Math.min(width, limitWidth), height_cm: Math.min(height, limitHeight) });
+      if (/슬리퍼|실내화|덧신/.test(itemName)) {
+        return {
+          title: `${itemName} 재단 도안 (실물 크기)`,
+          parts: [
+            { part_name: '바닥', ...fit(27.5, 11.8), quantity: 2, grain: '폭 방향', outline: 'sole', note: '겉감 1장 · 안감 1장' },
+            { part_name: '갑피', ...fit(18.4, 10.9), quantity: 2, grain: '폭 방향', outline: 'upper', note: '결감 1장 · 안감 1장' },
+          ],
+          notions: [{ name: '시접', note: '재단선 안쪽 1cm' }],
+          steps: ['겉감과 안감을 시접에 맞춰 겹친다', '곡선을 따라 재단한다'],
+        };
+      }
+      const body = fit(20, 15);
+      return {
+        title: `${itemName} 재단 도안`,
+        parts: [
+          { part_name: '겉감', ...body, quantity: 2, grain: '폭 방향', outline: 'rect', note: '실선 재단' },
+          { part_name: '안감', ...body, quantity: 2, grain: '폭 방향', outline: 'rect', note: '실선 재단' },
+        ],
+        notions: [{ name: '시접', note: '재단선 안쪽 1cm' }],
+        steps: [],
+      };
+    },
     async describeProduct({ text }) {
       const title = text.split('\n').find(line => line.startsWith('소재·원단 종류:'))?.slice('소재·원단 종류:'.length).trim().slice(0, 100) || '자투리 원단';
       return {

@@ -4,6 +4,7 @@ import * as usersDao from '../dao/users.dao.js';
 import * as storesDao from '../dao/stores.dao.js';
 import * as fabricsDao from '../dao/fabrics.dao.js';
 import { assertFabricRules } from './fabricRules.js';
+import { scrapStock } from './sheetStock.js';
 import { assertFabricOwner } from './fabricAccess.js';
 import * as reservationsDao from '../dao/reservations.dao.js';
 
@@ -78,6 +79,9 @@ export async function updateFabric(userId, fabricId, input) {
     // 롤의 남은 길이를 이미 수락된 예약이 확보한 길이보다 작게 줄일 수 없다.
     if (merged.sale_type === 'ROLL' && merged.remaining_length_cm < fabric.reserved_length_cm) {
       throw fail('INSUFFICIENT_LENGTH');
+    }
+    if (merged.sale_type === 'SCRAP' && Number.isInteger(merged.detail.sheet_count) && merged.detail.sheet_count < (fabric.reserved_sheet_count || 0)) {
+      throw fail('INSUFFICIENT_SHEETS');
     }
 
     // 반려된 원단을 고치면 다시 게시 대기가 되고 반려 사유가 지워진다. 게시 중이면 상태가 그대로이고 바로 반영된다.

@@ -308,7 +308,7 @@ const DETAIL_INNER_KEYS = [
 ];
 const IMAGE_KEYS = ['imageId', 'image_type', 'image_url', 'sort_order', 'thumbnail_url'];
 const STORE_KEYS = ['closed_days', 'pickup_guide', 'storeId', 'store_address', 'store_name', 'store_phone'];
-const AVAILABILITY_KEYS = ['available_length_cm', 'is_reserved', 'reserved_length_cm'];
+const AVAILABILITY_KEYS = ['available_length_cm', 'available_sheet_count', 'is_reserved', 'reserved_length_cm', 'reserved_sheet_count'];
 
 test('원단 상세 성공: 로그인 없이 200, 명세서 항목 그대로, 사진은 sort_order 순', async () => {
   const { store } = await makeStore({
@@ -369,7 +369,7 @@ test('원단 상세 성공: 로그인 없이 200, 명세서 항목 그대로, �
   assert.deepEqual(data.images.map((image) => image.imageId), [first.image_id, second.image_id]);
   assert.deepEqual(Object.keys(data.images[0]).sort(), IMAGE_KEYS);
   assert.deepEqual(data.images.map((image) => [image.sort_order, image.image_type]), [[0, 'FULL'], [1, 'ZOOM']]);
-  assert.deepEqual(data.availability, { is_reserved: false, available_length_cm: null, reserved_length_cm: null });
+  assert.deepEqual(data.availability, { is_reserved: false, available_length_cm: null, reserved_length_cm: null, available_sheet_count: 1, reserved_sheet_count: 0 });
   assert.match(data.created_at, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/);
   // 구매자(로그인)에게도 판매자 전용 항목은 키 자체가 없다.
   assert.equal('reject_reason' in data, false);
@@ -409,9 +409,9 @@ test('availability: 자투리는 수락된 예약이 있을 때만 is_reserved t
   await reserve(roll, 'ACCEPTED', 180);
 
   const availability = async (fabric) => (await call('GET', `/fabrics/${fabric.fabric_id}`)).json.data.availability;
-  assert.deepEqual(await availability(scrap), { is_reserved: true, available_length_cm: null, reserved_length_cm: null });
-  assert.deepEqual(await availability(requestedOnly), { is_reserved: false, available_length_cm: null, reserved_length_cm: null });
-  assert.deepEqual(await availability(roll), { is_reserved: false, available_length_cm: 720, reserved_length_cm: 180 });
+  assert.deepEqual(await availability(scrap), { is_reserved: true, available_length_cm: null, reserved_length_cm: null, available_sheet_count: 0, reserved_sheet_count: 1 });
+  assert.deepEqual(await availability(requestedOnly), { is_reserved: false, available_length_cm: null, reserved_length_cm: null, available_sheet_count: 1, reserved_sheet_count: 0 });
+  assert.deepEqual(await availability(roll), { is_reserved: false, available_length_cm: 720, reserved_length_cm: 180, available_sheet_count: null, reserved_sheet_count: null });
   const rollDetail = (await call('GET', `/fabrics/${roll.fabric_id}`)).json.data;
   assert.equal(rollDetail.detail.length_cm, null);
 });

@@ -37,10 +37,18 @@ export const listingSchema = {
     thickness_label: z.string().trim().min(1).max(20),
     width_cm: z.number().int().min(1).max(1000),
     length_cm: z.number().int().min(1).max(2147483647),
-    sheet_count: z.number().int().min(1).max(9999),
+    sale_type: z.enum(['ROLL', 'SCRAP']).default('SCRAP'),
+    sheet_count: z.number().int().min(1).max(9999).optional(),
     feel: z.string().trim().max(200).optional(),
     stretch: z.string().trim().max(40).optional(),
     memo: z.string().trim().max(1000).optional(),
     images: z.array(listingImage).min(1).max(2),
+  }).superRefine((body, ctx) => {
+    if (body.sale_type === 'ROLL') {
+      if (body.sheet_count != null) ctx.addIssue({ code: 'custom', message: '롤은 판매 장수를 보내지 않아요', path: ['sheet_count'] });
+      if (body.length_cm < 90) ctx.addIssue({ code: 'custom', message: '롤은 남은 길이를 90cm 이상으로 입력해 주세요', path: ['length_cm'] });
+      return;
+    }
+    if (body.sheet_count == null) ctx.addIssue({ code: 'custom', message: '판매 장수는 1장 이상인 정수로 입력해 주세요', path: ['sheet_count'] });
   }),
 };

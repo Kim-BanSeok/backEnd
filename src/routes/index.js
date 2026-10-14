@@ -14,6 +14,8 @@ import inquiries from './inquiries.routes.js';
 import reservations from './reservations.routes.js';
 import recommendations from './recommendations.routes.js';
 import aiSessions from './aiSessions.routes.js';
+import patternDraft from './patternDraft.routes.js';
+import bulkSheet from './bulkSheet.routes.js';
 
 const router = Router();
 
@@ -33,5 +35,7 @@ router.use(inquiries);
 router.use(reservations);
 router.use(recommendations);
 router.use(aiSessions);
+router.use(patternDraft);
+router.use(bulkSheet);
 
 export default router;

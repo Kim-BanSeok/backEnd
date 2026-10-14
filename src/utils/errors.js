@@ -19,6 +19,7 @@ export const ERRORS = {
   STORE_ALREADY_EXISTS: { status: 409, message: '이미 매장을 등록했어요' },
   FABRIC_NOT_AVAILABLE: { status: 409, message: '지금은 구매할 수 없는 원단이에요' },
   SCRAP_ALREADY_RESERVED: { status: 409, message: '이미 예약 중인 원단이에요' },
+  INSUFFICIENT_SHEETS: { status: 409, message: '구매 가능한 장수가 부족해요' },
   INSUFFICIENT_LENGTH: { status: 409, message: '구매 가능한 길이가 부족해요' },
   DUPLICATE_RESERVATION: { status: 409, message: '이미 이 원단을 예약했어요' },
   FABRIC_HAS_ACTIVE_RESERVATION: { status: 409, message: '진행 중인 예약이 있어 삭제할 수 없어요' },

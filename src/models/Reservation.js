@@ -8,6 +8,7 @@ const Reservation = sequelize.define('Reservation', {
   seller_id: { type: DataTypes.BIGINT, allowNull: false },
   pattern_id: { type: DataTypes.BIGINT, allowNull: true },
   requested_length_cm: { type: DataTypes.INTEGER, allowNull: true },
+  requested_sheet_count: { type: DataTypes.INTEGER, allowNull: true },
   estimated_price: { type: DataTypes.INTEGER, allowNull: true },
   pickup_at: { type: DataTypes.DATE, allowNull: false },
   memo: { type: DataTypes.STRING(500), allowNull: true },
