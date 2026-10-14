@@ -11,6 +11,30 @@ const prepare = (rows, { month = '09', checksum = 'a' } = {}) => prepareFactoryD
   ['회사명', '소재지(지번)', '생산품'], ...rows,
 ], { datasetMonth: `2026-${month}`, sha256: checksum.repeat(64) });
 const address = '경기도 양주시 고암동 12';
+test('전화·팩스 적재와 갱신이 업체 ID·좌표를 유지하며 재적재가 중복을 만들지 않는다', async () => {
+  const source = { datasetMonth: '2026-09', sha256: 'c'.repeat(64) };
+  const data = prepareFactoryData([
+    ["공장등록현황('26. 9월말)"],
+    ['회사명', '소재지', '생산품', '전화번호', 'FAX', '종업원수', '법정동'],
+    ['샘플', address, '단추', '031-123-4567', '031-123-4568', '0', '고암동'],
+  ], source);
+  await importPreparedFactories(data);
+  const first = await db.Factory.findOne();
+  assert.equal(first.phone_number, '031-123-4567');
+  assert.equal(first.fax_number, '031-123-4568');
+  assert.equal(first.employee_count, 0);
+  await first.update({ latitude: 37.8, longitude: 127.0 });
+  const again = await importPreparedFactories(data);
+  assert.equal(again.unchanged, 1);
+  assert.equal(await db.Factory.count(), 1);
+  const updated = structuredClone(data);
+  updated.records[0].phone_number = '031-999-0000';
+  assert.equal((await importPreparedFactories(updated)).updated, 1);
+  const saved = await db.Factory.findOne();
+  assert.equal(saved.factory_id, first.factory_id);
+  assert.equal(Number(saved.latitude), 37.8);
+  assert.equal(saved.phone_number, '031-999-0000');
+});
 
 test('긴 생산품과 다른 생산품 중복을 모두 저장하고 원본 행의 출처를 보존한다', async () => {
   const data = prepare([['샘플', address, '원'.repeat(718)], ['중복', address, '원단'], ['중복', address, '단추']]);

@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { classifyIndustry } from '../src/factories/categories.js';
 
-export const PREPARATION_VERSION = 1;
+export const PREPARATION_VERSION = 2;
 const LIMITS = { factory_name: 100, address: 255, industry: 100 };
 const digest = (value) => createHash('sha256').update(value).digest('hex');
 export const normalizeFactoryText = (value) => String(value ?? '').normalize('NFKC').replace(/\s+/gu, ' ').trim();
@@ -77,6 +77,10 @@ function columnsOf(matrix, datasetMonth) {
   const field = (name) => header.findIndex((cell) => cell.includes(name));
   const columns = { factory_name: field('회사명'), address: field('소재지'), industry: field('생산품') };
   if (Object.values(columns).some((value) => value < 0)) throw new Error('회사명·소재지·생산품 헤더가 필요합니다.');
+  for (const [key, label] of [['phone_number', '전화'], ['fax_number', 'fax'], ['employee_count', '종업원'], ['legal_dong', '법정동']]) {
+    const column = field(label);
+    if (column >= 0) columns[key] = column;
+  }
   return { index, columns };
 }
 
@@ -105,7 +109,15 @@ export function prepareFactoryData(matrix, source) {
     const products = [...new Set(entries.map((entry) => entry.normalized.industry).filter(Boolean))].sort();
     const first = entries[0].normalized;
     const industry = products.join(' / ') || null;
-    const record = { factory_name: first.factory_name, address: first.address, industry };
+    const readOptional = (field) => entries.map((entry) => entry.normalized[field]).find(Boolean) || null;
+    const employeeText = readOptional('employee_count');
+    const employee = employeeText && /^\d+$/.test(employeeText) ? Number(employeeText) : null;
+    const record = {
+      factory_name: first.factory_name, address: first.address, industry,
+      phone_number: readOptional('phone_number'), fax_number: readOptional('fax_number'),
+      employee_count: Number.isSafeInteger(employee) && employee <= 2147483647 ? employee : null,
+      legal_dong: readOptional('legal_dong'),
+    };
     const issues = [];
     if (products.length > 1) issues.push('DUPLICATE_PRODUCT_CONFLICT');
     if (!industry) issues.push('MISSING_PRODUCT');

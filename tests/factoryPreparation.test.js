@@ -8,6 +8,22 @@ import { factorySourceKey, identifySupplyProducts, normalizeFactoryText, prepare
 import { prepareWorkbook } from '../scripts/prepare-yangju-factories.js';
 
 const source = { datasetMonth: '2026-09' };
+test('연락처와 원문을 보존하고 중복의 빈 전화번호는 다른 원본 행에서 채운다', () => {
+  const data = prepareFactoryData([
+    ["공장등록현황('26. 9월말)"],
+    ['회사명', '소재지(지번)', '생산품', '전화번호', 'FAX', '종업원수', '법정동'],
+    ['샘플', '경기도 양주시 고암동 12', '단추', '', '031-123-4567', '0', '고암동'],
+    ['샘플', '경기도 양주시 고암동 12', '지퍼', ' 031-123-4568 ', '', '0', '고암동'],
+    ['번호없음', '경기도 양주시 고암동 13', '단추', '', '', '', '고암동'],
+  ], source);
+  const record = data.records.find((row) => row.factory_name === '샘플');
+  assert.equal(record.phone_number, '031-123-4568');
+  assert.equal(record.fax_number, '031-123-4567');
+  assert.equal(record.employee_count, 0);
+  assert.equal(record.legal_dong, '고암동');
+  assert.equal(record.raw[1].phone_number, ' 031-123-4568 ');
+  assert.equal(data.records.find((row) => row.factory_name === '번호없음').phone_number, null);
+});
 const matrix = (rows, title = "공장등록현황('26. 9월말)") => [
   [title],
   ['연번', '회사명', '소재지(지번)', '종업원수', '생산품', '전화번호', 'FAX'],

@@ -3,13 +3,13 @@ import { Op, Transaction } from 'sequelize';
 import sequelize from '../src/db/connection.js';
 import Factory from '../src/models/Factory.js';
 import FactoryDataset from '../src/models/FactoryDataset.js';
-import { factorySourceKey, normalizeFactoryText } from './factoryPreparation.js';
+import { PREPARATION_VERSION, factorySourceKey, normalizeFactoryText } from './factoryPreparation.js';
 
 const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 function importable(data) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(data.source?.datasetMonth) || !/^[a-f0-9]{64}$/.test(data.source?.sha256)) throw new Error('검증한 원본 출처가 필요합니다.');
-  if (data.preparationVersion !== 1 || data.rejected?.length || !data.records?.length) throw new Error('자료 버전·필수값 누락을 먼저 검토하세요.');
+  if (data.preparationVersion !== PREPARATION_VERSION || data.rejected?.length || !data.records?.length) throw new Error('자료 버전·필수값 누락을 먼저 검토하세요.');
   const keys = new Set();
   for (const record of data.records) {
     if (record.sourceKey !== factorySourceKey(record.factory_name, record.address) || keys.has(record.sourceKey)) throw new Error('업체 식별키가 잘못됐거나 중복됩니다.');
@@ -48,6 +48,8 @@ export async function importPreparedFactories(data) {
           const fields = {
             source_key: record.sourceKey,
             factory_name: record.factory_name, address: record.address, industry: record.industry,
+            phone_number: record.phone_number, fax_number: record.fax_number,
+            employee_count: record.employee_count, legal_dong: record.legal_dong,
             data_source: `양주시청 공장등록 ${month}`, dataset_month: month, dataset_key: datasetKey,
             source_record: sourceRecord, supply_status: record.supply.status, is_current: true,
           };
