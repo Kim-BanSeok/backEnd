@@ -271,7 +271,7 @@ TOO_MANY_REQUESTS(429)는 로그인 시도 제한을 위해 이전 초안에 없
 | 10 | 원단 | GET | /fabrics | 공개 | 필수 | 원단 목록 조회 |
 | 11 | 원단 | GET | /fabrics/{fabricId} | 공개 | 필수 | 원단 상세 조회 |
 | 12 | 원단 | PATCH | /fabrics/{fabricId} | SELLER(본인) | 필수 | 원단 수정 |
-| 13 | 원단 | DELETE | /fabrics/{fabricId} | SELLER(본인) | 필수 | 원단 삭제 |
+| 13 | 원단 | DELETE | /fabrics/{fabricId} | SELLER(본인), ADMIN | 필수 | 원단 삭제 |
 | 14 | 원단 | GET | /sellers/me/fabrics | SELLER | 필수 | 내 원단 목록 조회 |
 | 15 | 원단 | POST | /fabrics/{fabricId}/images | SELLER(본인) | 필수 | 원단 사진 업로드 |
 | 16 | 원단 | DELETE | /fabrics/{fabricId}/images/{imageId} | SELLER(본인) | 필수 | 원단 사진 삭제 |
@@ -1307,9 +1307,9 @@ detail 은 보낸 항목만 바뀌어요.
 | 항목 | 내용 |
 | --- | --- |
 | Method / URL | DELETE /api/v1/fabrics/{fabricId} |
-| 권한 | SELLER(본인) |
+| 권한 | SELLER(본인), ADMIN |
 | 구분 | 필수 |
-| 설명 | 판매자가 자기 원단을 삭제해요. 실제로 지우지 않고 삭제 표시(deleted_at)만 해요. |
+| 설명 | 판매자는 자기 원단을, 운영팀은 어떤 원단이든 삭제해요. 실제로 지우지 않고 삭제 표시(deleted_at)만 해요. |
 
 요청
 
@@ -1331,7 +1331,9 @@ Path 항목
 
 처리 규칙
 
-요청됨·수락됨 예약이 있으면 삭제할 수 없어요.
+요청됨·수락됨 예약이 있으면 삭제할 수 없어요. 운영팀도 같습니다.
+
+운영팀은 다른 판매자의 원단도 삭제할 수 있어요. 판매자는 자기 원단만 삭제할 수 있어요.
 
 삭제하면 목록과 상세에서 사라져요.
 

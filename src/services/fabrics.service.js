@@ -98,11 +98,11 @@ export async function updateFabric(userId, fabricId, input) {
 // ---- 삭제 (13번)
 
 // 실제로 지우지 않고 삭제 표시(deleted_at)만 한다. 모든 상태에서 삭제할 수 있지만 요청됨·수락됨 예약이 있으면 안 된다.
-export async function deleteFabric(userId, fabricId) {
+export async function deleteFabric(userId, fabricId, role = 'SELLER') {
   await sequelize.transaction(async (transaction) => {
     const fabric = await fabricsDao.lockById(fabricId, { transaction });
     if (!fabric) throw fail('NOT_FOUND');
-    await assertFabricOwner(userId, fabric, { transaction });
+    if (role !== 'ADMIN') await assertFabricOwner(userId, fabric, { transaction });
     if ((await reservationsDao.countActiveByFabric(fabricId, { transaction })) > 0) {
       throw fail('FABRIC_HAS_ACTIVE_RESERVATION');
     }

@@ -2,14 +2,17 @@
 import sequelize from '../src/db/connection.js';
 import { env } from '../src/config/env.js';
 import { seedAdmin } from '../src/db/seedAdmin.js';
+import { seedDemoAccounts } from './seedDemoAccounts.js';
 
 try {
   const result = await seedAdmin();
+  const demoResults = await seedDemoAccounts();
   console.log(
     result === 'created'
       ? `운영팀 계정을 만들었어요: ${env.admin.email}`
       : `운영팀 계정이 이미 있어서 그대로 뒀어요: ${env.admin.email}`,
   );
+  console.log('demo accounts: ' + demoResults.join(', '));
 } catch (err) {
   console.error(`시드 실패: ${err.message}`);
   process.exitCode = 1;

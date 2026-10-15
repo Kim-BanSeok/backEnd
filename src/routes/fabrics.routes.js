@@ -9,6 +9,6 @@ const router = Router();
 
 router.post('/fabrics', requireAuth('SELLER'), validate(createFabricSchema), controller.create);
 router.patch('/fabrics/:fabricId', requireAuth('SELLER'), validate(updateFabricSchema), controller.update);
-router.delete('/fabrics/:fabricId', requireAuth('SELLER'), validate(fabricIdSchema), controller.remove);
+router.delete('/fabrics/:fabricId', requireAuth('SELLER', 'ADMIN'), validate(fabricIdSchema), controller.remove);
 
 export default router;
