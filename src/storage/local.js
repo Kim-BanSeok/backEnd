@@ -31,7 +31,9 @@ export function createLocalStorage({ rootDir, publicUrl }) {
     keyOf(url) {
       try {
         const { pathname } = new URL(url);
-        return pathname.startsWith('/uploads/') ? decodeURIComponent(pathname.slice('/uploads/'.length)) : null;
+        const marker = '/uploads/';
+        const index = pathname.indexOf(marker);
+        return index >= 0 ? decodeURIComponent(pathname.slice(index + marker.length)) : null;
       } catch {
         return null;
       }
