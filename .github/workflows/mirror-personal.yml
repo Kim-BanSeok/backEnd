@@ -1,0 +1,22 @@
+name: Mirror main to personal repo
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Push main to the personal mirror
+        env:
+          PERSONAL_REPO_TOKEN: ${{ secrets.PERSONAL_REPO_TOKEN }}
+        run: |
+          git remote add mirror "https://x-access-token:${PERSONAL_REPO_TOKEN}@github.com/Kim-BanSeok/backEnd.git"
+          git push mirror HEAD:main
