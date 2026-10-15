@@ -8,4 +8,4 @@ export const update = async (req, res) =>
   ok(res, await fabricsService.updateFabric(req.user.userId, req.valid.params.fabricId, req.valid.body));
 
 export const remove = async (req, res) =>
-  ok(res, await fabricsService.deleteFabric(req.user.userId, req.valid.params.fabricId));
+  ok(res, await fabricsService.deleteFabric(req.user.userId, req.valid.params.fabricId, req.user.role));

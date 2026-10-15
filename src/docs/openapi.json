@@ -2690,8 +2690,8 @@
         ],
         "x-api-no": 13,
         "x-priority": "필수",
-        "x-permission": "SELLER(본인)",
-        "description": "판매자가 자기 원단을 삭제해요. 실제로 지우지 않고 삭제 표시(deleted_at)만 해요.\n\n**권한:** SELLER(본인) · **구분:** 필수\n\n**처리 규칙**\n\n- 요청됨·수락됨 예약이 있으면 삭제할 수 없어요.\n- 삭제하면 목록과 상세에서 사라져요."
+        "x-permission": "SELLER(본인), ADMIN",
+        "description": "판매자는 자기 원단을, 운영팀은 어떤 원단이든 삭제해요. 실제로 지우지 않고 삭제 표시(deleted_at)만 해요.\n\n**권한:** SELLER(본인), ADMIN · **구분:** 필수\n\n**처리 규칙**\n\n- 요청됨·수락됨 예약이 있으면 삭제할 수 없어요. 운영팀도 같습니다.\n- 운영팀은 다른 판매자의 원단도 삭제할 수 있어요. 판매자는 자기 원단만 삭제할 수 있어요.\n- 삭제하면 목록과 상세에서 사라져요."
       }
     },
     "/sellers/me/fabrics": {
@@ -3319,12 +3319,6 @@
                             },
                             "text": {
                               "type": "string"
-                            },
-                            "options": {
-                              "type": "array",
-                              "items": {
-                                "type": "string"
-                              }
                             }
                           }
                         },
@@ -9876,19 +9870,15 @@
                                 "type": "string"
                               },
                               "phone_number": {
-                                "type": "string",
                                 "nullable": true
                               },
                               "fax_number": {
-                                "type": "string",
                                 "nullable": true
                               },
                               "employee_count": {
-                                "type": "integer",
                                 "nullable": true
                               },
                               "legal_dong": {
-                                "type": "string",
                                 "nullable": true
                               },
                               "latitude": {

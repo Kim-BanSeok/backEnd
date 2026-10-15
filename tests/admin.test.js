@@ -574,3 +574,14 @@ test('운영 흐름: 판매자 승인 후에야 원단을 등록할 수 있고, 
   assert.deepEqual((await call('GET', '/admin/fabrics', { token: admin })).json.data.content, []);
   assert.equal((await call('GET', '/admin/fabrics?status=POSTED', { token: admin })).json.data.totalElements, 1);
 });
+
+test('운영팀은 다른 판매자의 원단을 삭제할 수 있고, 구매자는 삭제할 수 없다', async () => {
+  const admin = await adminToken();
+  const buyer = await tokenOf('BUYER');
+  const { fabric } = await makeListed({ status: 'POSTED' });
+
+  assert.equal((await call('DELETE', `/fabrics/${fabric.fabric_id}`, { token: buyer })).status, 403);
+  assert.equal((await call('DELETE', `/fabrics/${fabric.fabric_id}`, { token: admin })).status, 200);
+  assert.equal(await db.Fabric.findByPk(fabric.fabric_id), null);
+  assert.ok((await db.Fabric.findByPk(fabric.fabric_id, { paranoid: false })).deleted_at);
+});
