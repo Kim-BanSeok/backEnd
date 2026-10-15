@@ -487,7 +487,7 @@ test('삭제 권한: 로그인 안 함 401, 구매자·운영팀 403, 남의 원
   const mine = await setup();
   const other = await setup();
   assert.equal((await del(mine.fabric)).status, 401);
-  for (const role of ['BUYER', 'ADMIN']) {
+  for (const role of ['BUYER']) {
     assert.equal((await del(mine.fabric, signToken(await makeUser({ role })))).status, 403, role);
   }
   const forbidden = await del(other.fabric, mine.token);
@@ -495,6 +495,17 @@ test('삭제 권한: 로그인 안 함 401, 구매자·운영팀 403, 남의 원
   assert.equal(forbidden.json.error.code, 'FORBIDDEN');
   assert.equal((await reload(other.fabric)).deleted_at, null);
   assert.equal((await del(99999, mine.token)).json.error.code, 'NOT_FOUND');
+});
+
+test('관리자는 다른 판매자의 원단도 삭제할 수 있다', async () => {
+  const other = await setup({ fabric: { status: 'POSTED' } });
+  const admin = signToken(await makeUser({ role: 'ADMIN' }));
+
+  const { status, json } = await del(other.fabric, admin);
+
+  assert.equal(status, 200);
+  assert.deepEqual(json, { success: true, data: null });
+  assert.ok((await reload(other.fabric)).deleted_at);
 });
 
 test('남의 원단은 진행 중 예약이 있어도 FORBIDDEN 이 먼저다 (예약 여부를 알려 주지 않는다)', async () => {
